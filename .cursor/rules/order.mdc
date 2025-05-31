@@ -1,0 +1,47 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Always refer back to the main task to-do list.
+
+All work should start from this master list. No wandering off-task or adding side features mid-sprint.
+
+Complete tasks from the top, in order.
+
+Treat the list as sequential. Top = highest priority.
+Dont skip around unless a blocker forces you to.
+
+If a task is blocked, mark it, comment it, then move to the next.
+
+Dont stall for too long — document the issue and continue building.
+
+Never work on UI before the API logic for that feature is built.
+
+Function before finesse. Backend drives frontend.
+
+Every commit should include a short description tied to a task.
+Example: feat: add POST endpoint for /task (Task 3.1)
+
+No new features added unless they solve a real user friction point.
+MVP = fast, usable, lean. Anything else is noise.
+
+Before moving on, test locally and confirm expected output.
+
+A broken feature is as useless as a missing one. Move only after its stable.
+
+End each session by updating the to-do list with:
+
+✅ What you completed
+
+⚠️ Whats blocked
+
+🔜 Whats next for tomorrow
+
+Every 3 days, run a micro review:
+
+Are you still building the core product? Has your scope drifted?
+
+Rest is a task too.
+
+If burnout hits, your shipping speed dies. Stick to your time blocks and schedule breaks like you would user testing.

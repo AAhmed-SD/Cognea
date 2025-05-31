@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Code Quality and Maintenance
+Code Review Process
+Ensure all code changes are reviewed by at least one other developer before merging.Consistent Coding Standards
+Use a linter (e.g., ESLint for JavaScript) to enforce consistent coding styles.
+Documentation
+Maintain clear and up-to-date documentation for all code and APIs.
+Security
+Secure Authentication
+Implement strong authentication mechanisms and regularly update dependencies to patch vulnerabilities.
+Data Protection
+Ensure all sensitive data is encrypted both in transit and at rest.
+Performance
+Performance Monitoring
+Regularly monitor application performance and optimize as needed.
+Load Testing
+Conduct load testing to ensure the application can handle expected traffic.
+User Experience
+Accessibility
+Ensure the application is accessible to users with disabilities by following WCAG guidelines.
+Responsive Design
+Design the application to be fully responsive across all devices and screen sizes.
+Deployment and DevOps
+Continuous Integration/Continuous Deployment (CI/CD)
+Set up a CI/CD pipeline to automate testing and deployment.
+Backup and Recovery
+Implement regular backups and a recovery plan for critical data.

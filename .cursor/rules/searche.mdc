@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Always consider SEO best practices when developing features or writing content for the web application. This includes:
+
+1. Implementing server-side rendering (SSR) for better indexing.
+2. Adding relevant meta tags and Open Graph tags.
+3. Generating a sitemap and robots.txt.
+4. Using structured data (JSON-LD) for enhanced search visibility.
+5. Optimizing page speed and performance.
+6. Ensuring accessible and semantic HTML.
+7. Conducting keyword research and aligning content with user intent.
+This rule should be applied to all development tasks and content creation to enhance the application's search engine visibility and user experience.
