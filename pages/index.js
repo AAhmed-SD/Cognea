@@ -1,3 +1,5 @@
+import Layout from '../components/Layout/Layout';
+
 export default function Home() {
-  return <h1>Welcome to Cognie</h1>;
+  return <Layout />;
 } 

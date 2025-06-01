@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+name No Back and Forth Just Build  
+trigger any prompt  
+rules  
+  when writing code or generating files  
+    do  
+      Assume I want you to complete the task without asking follow up questions  
+      Use best practices and sensible defaults where there is ambiguity  
+      Do not pause to ask for clarification unless absolutely necessary  
+      Focus on outputting working clean production ready code with brief inline comments  
+      Prioritize speed and execution I will review and edit later if needed  
+      If multiple approaches exist choose the most straightforward and modular one

@@ -1,5 +1,5 @@
 {
-  "name": "personal-agent",
+  "name": "Cognie",
   "version": "1.0.0",
   "description": "> The smart planner that adapts to your brain — not the other way around.",
   "main": "index.js",
@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
+    "@tailwindcss/postcss": "^4.1.8",
     "autoprefixer": "^10.4.21",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
