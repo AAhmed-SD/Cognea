@@ -1,3 +1,3 @@
 export default function Home() {
-  return <h1>Welcome to FocusFlow</h1>;
+  return <h1>Welcome to Cognie</h1>;
 } 
