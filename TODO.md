@@ -54,6 +54,17 @@
 - [ ] Plan for voice scheduling with Whisper
 - [ ] Explore additional integrations (e.g., WhatsApp/Telegram)
 
+## Completed Tasks
+- Improved error handling in `generate_openai_text` by returning structured error responses.
+- Added token usage reporting in the OpenAI integration.
+- Enhanced logging granularity with more logging levels.
+- Suggested a clean directory structure for separating frontend and backend.
+
+## Next Steps
+- Implement the suggested directory structure by moving frontend and backend files into separate directories.
+- Test the FastAPI server to ensure it runs without errors after installing missing packages.
+- Continue with any remaining tasks on the to-do list, focusing on resolving any blockers and ensuring the application is stable.
+
 ---
 
 This checklist will help guide the development process, ensuring all necessary steps are completed efficiently. Each task should be checked off as it is completed to track progress. 
