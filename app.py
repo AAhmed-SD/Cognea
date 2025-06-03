@@ -1,4 +1,8 @@
 from flask import Flask, jsonify, request
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from openai_integration import generate_text
+from typing import List, Optional
 
 app = Flask(__name__)
 
@@ -11,6 +15,19 @@ users = []
 calendar_events = []
 notifications = []
 settings = {}
+
+class TextGenerationRequest(BaseModel):
+    prompt: str
+    model: str = "gpt-3.5-turbo"
+    max_tokens: int = 500
+    temperature: float = 0.7
+    stop: Optional[List[str]] = None
+
+class TextGenerationResponse(BaseModel):
+    original_prompt: str
+    model: str
+    generated_text: str
+    total_tokens: Optional[int] = None
 
 # User Authentication
 @app.route('/api/register', methods=['POST'])
@@ -131,6 +148,29 @@ def delete_task(task_id):
     global tasks
     tasks = [task for task in tasks if task['id'] != task_id]
     return '', 204
+
+@app.post("/generate-text", response_model=TextGenerationResponse, tags=["Text Generation"], summary="Generate text using OpenAI API")
+async def generate_text_endpoint(request: TextGenerationRequest):
+    try:
+        # Call the generate_text function
+        result = generate_text(
+            prompt=request.prompt,
+            model=request.model,
+            max_tokens=request.max_tokens,
+            temperature=request.temperature,
+            stop=request.stop
+        )
+        # Extract total tokens if available
+        total_tokens = None  # Placeholder for token extraction logic
+        # Return a structured response
+        return TextGenerationResponse(
+            original_prompt=request.prompt,
+            model=request.model,
+            generated_text=result,
+            total_tokens=total_tokens
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == '__main__':
     app.run(debug=True) 

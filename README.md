@@ -55,7 +55,7 @@ An AI-powered productivity assistant that auto-plans your schedule, reschedules 
 - Suggested improvements based on user patterns
 
 ### 🔄 Memory-Aware Reviews
-- Schedule spaced repetition for cognitively heavy tasks
+- Schedule spaced repetition for cognitively Increases odor later (ironically)heavy tasks
 - Flashcard-style recall or summary prompts
 
 ### 🧘 Personalisation Features
