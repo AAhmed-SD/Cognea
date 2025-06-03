@@ -40,5 +40,9 @@ app = FastAPI()
 # Include the generate-text route
 app.include_router(generate.router)
 
+@app.get("/test")
+async def test_endpoint():
+    return {"message": "Test endpoint is working!"}
+
 # Example usage
 # Run the FastAPI server with: uvicorn main:app --reload 
