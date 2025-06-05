@@ -205,4 +205,21 @@ An AI-powered productivity assistant that auto-plans your schedule, reschedules 
 
 ---
 
+## Real-Time Updates with Notion Webhooks
+
+To enhance the user experience, our application supports real-time updates using Notion webhooks. This feature allows users to receive instant notifications about changes in their Notion workspace, such as updates to pages, databases, or comments.
+
+### Benefits
+- **Immediate Feedback**: Users receive instant notifications, helping them stay informed and make timely decisions.
+- **Improved Productivity**: Real-time updates help users manage their time more effectively by providing up-to-date information on assignments, deadlines, and other important events.
+- **Enhanced Collaboration**: For group projects or shared workspaces, real-time updates ensure that all members are on the same page, reducing miscommunication and improving collaboration.
+- **Automation**: Webhooks can trigger automated workflows, such as sending reminders or updating other integrated systems, further streamlining the user's workflow.
+
+### Implementation
+To enable real-time updates, we have set up a server to handle incoming webhook requests from Notion. This server processes the events and updates the user's application accordingly. Our system is designed to handle Notion's API rate limits and ensure secure processing of webhook events.
+
+By leveraging Notion webhooks, we aim to provide a seamless and efficient experience for our users, helping them stay organized and productive.
+
+---
+
 Let me know if you want this synced into your GitHub README or styled for a product landing page.

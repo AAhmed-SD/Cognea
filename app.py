@@ -1,21 +1,19 @@
-from flask import Flask, jsonify, request
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from openai_integration import generate_text
 from typing import List, Optional
+from openai_integration import generate_text
 
-app = Flask(__name__)
+# Load environment variables from .env file
+load_dotenv()
 
-tasks = [
-    {'id': 1, 'title': 'Task 1', 'completed': False},
-    {'id': 2, 'title': 'Task 2', 'completed': True}
-]
+# Retrieve the OpenAI API key from environment variables
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-users = []
-calendar_events = []
-notifications = []
-settings = {}
+app = FastAPI()
 
+# Define Pydantic models for request and response
 class TextGenerationRequest(BaseModel):
     prompt: str
     model: str = "gpt-3.5-turbo"
@@ -29,139 +27,129 @@ class TextGenerationResponse(BaseModel):
     generated_text: str
     total_tokens: Optional[int] = None
 
-# User Authentication
-@app.route('/api/register', methods=['POST'])
-def register_user():
-    user = request.json
-    users.append(user)
-    return jsonify(user), 201
+# In-memory data storage
+users = []
+tasks = [
+    {'id': 1, 'title': 'Task 1', 'completed': False},
+    {'id': 2, 'title': 'Task 2', 'completed': True}
+]
+calendar_events = []
+notifications = []
+settings = {}
 
-@app.route('/api/login', methods=['POST'])
-def login_user():
-    # Implement login logic here
-    return jsonify({'message': 'User logged in'}), 200
+@app.get("/api/users")
+async def get_users():
+    return users
 
-@app.route('/api/logout', methods=['POST'])
-def logout_user():
-    # Implement logout logic here
-    return jsonify({'message': 'User logged out'}), 200
-
-# User Management
-@app.route('/api/users', methods=['GET'])
-def get_users():
-    return jsonify(users)
-
-@app.route('/api/users/<int:user_id>', methods=['GET'])
-def get_user(user_id):
+@app.get("/api/users/{user_id}")
+async def get_user(user_id: int):
     user = next((user for user in users if user['id'] == user_id), None)
     if user is None:
-        return jsonify({'error': 'User not found'}), 404
-    return jsonify(user)
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
-@app.route('/api/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
+@app.put("/api/users/{user_id}")
+async def update_user(user_id: int, user_data: dict):
     user = next((user for user in users if user['id'] == user_id), None)
     if user is None:
-        return jsonify({'error': 'User not found'}), 404
-    user.update(request.json)
-    return jsonify(user)
+        raise HTTPException(status_code=404, detail="User not found")
+    user.update(user_data)
+    return user
 
-@app.route('/api/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
+@app.delete("/api/users/{user_id}")
+async def delete_user(user_id: int):
     global users
     users = [user for user in users if user['id'] != user_id]
-    return jsonify({'message': 'User deleted'}), 200
+    return {"message": "User deleted"}
 
-# Calendar Integration
-@app.route('/api/calendar/events', methods=['GET'])
-def get_calendar_events():
-    return jsonify(calendar_events)
+@app.get("/api/calendar/events")
+async def get_calendar_events():
+    return calendar_events
 
-@app.route('/api/calendar/events', methods=['POST'])
-def create_calendar_event():
-    event = request.json
+@app.post("/api/calendar/events")
+async def create_calendar_event(event: dict):
     calendar_events.append(event)
-    return jsonify(event), 201
+    return event
 
-@app.route('/api/calendar/events/<int:event_id>', methods=['PUT'])
-def update_calendar_event(event_id):
+@app.put("/api/calendar/events/{event_id}")
+async def update_calendar_event(event_id: int, event_data: dict):
     event = next((event for event in calendar_events if event['id'] == event_id), None)
     if event is None:
-        return jsonify({'error': 'Event not found'}), 404
-    event.update(request.json)
-    return jsonify(event)
+        raise HTTPException(status_code=404, detail="Event not found")
+    event.update(event_data)
+    return event
 
-@app.route('/api/calendar/events/<int:event_id>', methods=['DELETE'])
-def delete_calendar_event(event_id):
+@app.delete("/api/calendar/events/{event_id}")
+async def delete_calendar_event(event_id: int):
     global calendar_events
     calendar_events = [event for event in calendar_events if event['id'] != event_id]
-    return jsonify({'message': 'Event deleted'}), 200
+    return {"message": "Event deleted"}
 
-# Notifications
-@app.route('/api/notifications', methods=['GET'])
-def get_notifications():
-    return jsonify(notifications)
+@app.get("/api/notifications")
+async def get_notifications():
+    return notifications
 
-@app.route('/api/notifications', methods=['POST'])
-def create_notification():
-    notification = request.json
+@app.post("/api/notifications")
+async def create_notification(notification: dict):
     notifications.append(notification)
-    return jsonify(notification), 201
+    return notification
 
-@app.route('/api/notifications/<int:notification_id>', methods=['DELETE'])
-def delete_notification(notification_id):
+@app.delete("/api/notifications/{notification_id}")
+async def delete_notification(notification_id: int):
     global notifications
     notifications = [notification for notification in notifications if notification['id'] != notification_id]
-    return jsonify({'message': 'Notification deleted'}), 200
+    return {"message": "Notification deleted"}
 
-# Settings
-@app.route('/api/settings', methods=['GET'])
-def get_settings():
-    return jsonify(settings)
+@app.get("/api/settings")
+async def get_settings():
+    return settings
 
-@app.route('/api/settings', methods=['PUT'])
-def update_settings():
-    settings.update(request.json)
-    return jsonify(settings)
+@app.put("/api/settings")
+async def update_settings(settings_data: dict):
+    settings.update(settings_data)
+    return settings
 
-@app.route('/api/tasks', methods=['GET'])
-def get_tasks():
-    return jsonify(tasks)
+@app.get("/api/tasks")
+async def get_tasks():
+    return tasks
 
-@app.route('/api/tasks', methods=['POST'])
-def create_task():
-    new_task = request.json
+@app.post("/api/tasks")
+async def create_task(new_task: dict):
     new_task['id'] = len(tasks) + 1
     tasks.append(new_task)
-    return jsonify(new_task), 201
+    return new_task
 
-@app.route('/api/tasks/<int:task_id>', methods=['PUT'])
-def update_task(task_id):
+@app.put("/api/tasks/{task_id}")
+async def update_task(task_id: int, task_data: dict):
     task = next((task for task in tasks if task['id'] == task_id), None)
     if task is None:
-        return jsonify({'error': 'Task not found'}), 404
-    task.update(request.json)
-    return jsonify(task)
+        raise HTTPException(status_code=404, detail="Task not found")
+    task.update(task_data)
+    return task
 
-@app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
-def delete_task(task_id):
+@app.delete("/api/tasks/{task_id}")
+async def delete_task(task_id: int):
     global tasks
     tasks = [task for task in tasks if task['id'] != task_id]
-    return '', 204
+    return {"message": "Task deleted"}
 
 @app.post("/generate-text", response_model=TextGenerationResponse, tags=["Text Generation"], summary="Generate text using OpenAI API")
 async def generate_text_endpoint(request: TextGenerationRequest):
     try:
+        # Validate max_tokens
+        if request.max_tokens > 4096:
+            raise HTTPException(status_code=400, detail="max_tokens exceeds model limit")
+        # Validate model
+        if request.model not in ["gpt-3.5-turbo", "gpt-4"]:
+            raise HTTPException(status_code=400, detail="Invalid model selection")
         # Call the generate_text function
-        result = generate_text(
+        result, total_tokens = generate_text(
             prompt=request.prompt,
             model=request.model,
             max_tokens=request.max_tokens,
             temperature=request.temperature,
             stop=request.stop
         )
-        # Extract total tokens if available
-        total_tokens = None  # Placeholder for token extraction logic
         # Return a structured response
         return TextGenerationResponse(
             original_prompt=request.prompt,
@@ -169,8 +157,10 @@ async def generate_text_endpoint(request: TextGenerationRequest):
             generated_text=result,
             total_tokens=total_tokens
         )
-    except Exception as e:
+    except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == '__main__':
-    app.run(debug=True) 
+@app.on_event("startup")
+async def load_openai_key():
+    if not OPENAI_API_KEY:
+        raise RuntimeError("Missing OpenAI API key") 

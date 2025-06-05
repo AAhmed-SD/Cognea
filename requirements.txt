@@ -87,11 +87,10 @@ moviepy==1.0.3
 msgpack==1.1.0
 mypy==1.8.0
 mypy-extensions==1.0.0
-numpy==2.0.2
+numpy==2.2.6
 obs-websocket-py==0.5.3
 obswebsocket-trio==0.1.1.post2
 openai==1.78.0
-opencv-python==4.5.4.60
 orjson==3.10.16
 outcome==1.1.0
 packageurl-python==0.16.0
@@ -102,7 +101,7 @@ passlib==1.7.4
 pathspec==0.12.1
 pbr==6.1.1
 pexpect==4.8.0
-pillow==10.2.0
+pillow==11.2.1
 pip-api==0.0.34
 pip-requirements-parser==32.0.1
 pip_audit==2.9.0
@@ -316,3 +315,4 @@ wiserHeatAPIv2==0.0.7
 wsproto==1.0.0
 zeroconf==0.37.0
 zipp==3.21.0
+tenacity

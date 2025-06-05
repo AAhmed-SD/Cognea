@@ -40,9 +40,11 @@ def generate_text(prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7
             stop=stop,
             n=1
         )
-        return response.choices[0].message['content'].strip()
+        generated_text = response.choices[0].message['content'].strip()
+        total_tokens = response['usage']['total_tokens']
+        return generated_text, total_tokens
     except Exception as e:
-        return f"An error occurred: {str(e)}"
+        raise ValueError(f"OpenAI error: {str(e)}")
 
 # Example usage
 if __name__ == "__main__":
