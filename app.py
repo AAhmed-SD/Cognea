@@ -16,6 +16,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from datetime import datetime, timedelta
 
 # Load environment variables from .env file
 load_dotenv()
@@ -303,4 +304,21 @@ async def generic_exception_handler(request, exc):
     return JSONResponse(
         status_code=500,
         content={"error": "Internal Server Error", "detail": "An unexpected error occurred."},
-    ) 
+    )
+
+@app.get("/daily-brief", tags=["AI"], summary="Generate a daily brief", description="Generate a daily summary of tasks, priorities, missed tasks, and a reflection.")
+async def daily_brief():
+    today = datetime.now().date()
+    # Example logic for generating a daily brief
+    completed_tasks = [task for task in tasks if task['completed']]
+    pending_tasks = [task for task in tasks if not task['completed']]
+    missed_tasks = [task for task in tasks if not task['completed'] and task.get('due_date') and task['due_date'] < today]
+    reflection = "Reflect on your day: What went well? What could be improved?"
+
+    return {
+        "date": today.isoformat(),
+        "completed_tasks": completed_tasks,
+        "pending_tasks": pending_tasks,
+        "missed_tasks": missed_tasks,
+        "reflection": reflection
+    } 
