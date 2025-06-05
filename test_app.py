@@ -58,4 +58,25 @@ def test_openai_downtime(mock_openai):
         headers={"X-API-Key": "expected_api_key"}
     )
     assert response.status_code == 500
-    assert response.json()["error"] == "OpenAI API Error" 
+    assert response.json()["error"] == "OpenAI API Error"
+
+def test_http_exception_handler():
+    response = client.get("/api/users/999")  # Assuming this ID does not exist
+    assert response.status_code == 404
+    assert response.json()["error"] == "HTTPException"
+
+
+def test_validation_exception_handler():
+    response = client.post(
+        "/api/tasks",
+        json={"title": 123}  # Invalid data type
+    )
+    assert response.status_code == 422
+    assert response.json()["error"] == "Validation Error"
+
+
+def test_generic_exception_handler():
+    with patch("app.get_users", side_effect=Exception("Unexpected error")):
+        response = client.get("/api/users")
+        assert response.status_code == 500
+        assert response.json()["error"] == "Internal Server Error" 

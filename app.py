@@ -14,6 +14,8 @@ import redis
 import json
 import logging
 from logging.handlers import RotatingFileHandler
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Load environment variables from .env file
 load_dotenv()
@@ -276,4 +278,29 @@ async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None
 # Example of adding examples to a Pydantic model
 class TaskUpdate(BaseModel):
     title: str = Field(..., example="Update notes for biology")
-    completed: bool = Field(..., example=True) 
+    completed: bool = Field(..., example=True)
+
+# Custom exception handler for HTTPException
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": "HTTPException", "detail": exc.detail},
+    )
+
+# Custom exception handler for RequestValidationError
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=422,
+        content={"error": "Validation Error", "detail": exc.errors()},
+    )
+
+# Custom exception handler for generic exceptions
+@app.exception_handler(Exception)
+async def generic_exception_handler(request, exc):
+    logger.error(f"Unexpected error: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Internal Server Error", "detail": "An unexpected error occurred."},
+    ) 
