@@ -347,4 +347,84 @@ async def create_goal(request: GoalRequest):
         return GoalResponse(**new_goal)
     except Exception as e:
         logging.error(f"Failed to create goal: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create goal") 
+        raise HTTPException(status_code=500, detail="Failed to create goal")
+
+# Define the request model for input validation
+class ScheduleBlock(BaseModel):
+    user_id: str
+    title: str
+    description: Optional[str] = None
+    start_time: datetime
+    end_time: datetime
+    context: Optional[str] = "Work"
+    goal_id: Optional[str]
+    is_fixed: bool = False
+    is_rescheduled: bool = False
+    rescheduled_count: int = 0
+    color_code: Optional[str]
+
+# In-memory storage for schedules (for demonstration purposes)
+schedules_db = []
+
+@router.post("/schedule", response_model=ScheduleBlock, tags=["Schedule"], summary="Create a scheduled block")
+async def create_schedule_block(request: ScheduleBlock):
+    """
+    Create a new schedule block for a task.
+    """
+    try:
+        logging.info(f"Creating schedule block for user {request.user_id} from {request.start_time} to {request.end_time}")
+        # Simulate schedule creation
+        schedule_id = f"schedule_{len(schedules_db) + 1}"
+        new_schedule = request.dict()
+        new_schedule["schedule_id"] = schedule_id
+        schedules_db.append(new_schedule)
+        return new_schedule
+    except Exception as e:
+        logging.error(f"Failed to create schedule block: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create schedule block")
+
+@router.get("/schedule", response_model=List[ScheduleBlock], tags=["Schedule"], summary="Read scheduled blocks")
+async def read_scheduled_blocks(user_id: str, view: Optional[str] = "week"):
+    """
+    Retrieve scheduled blocks for a user.
+    """
+    try:
+        logging.info(f"Retrieving schedule blocks for user {user_id} with view {view}")
+        # Filter schedules by user_id
+        user_schedules = [s for s in schedules_db if s["user_id"] == user_id]
+        return user_schedules
+    except Exception as e:
+        logging.error(f"Failed to retrieve schedule blocks: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve schedule blocks")
+
+@router.put("/schedule/{schedule_id}", response_model=ScheduleBlock, tags=["Schedule"], summary="Update a scheduled block")
+async def update_schedule_block(schedule_id: str, request: ScheduleBlock):
+    """
+    Update an existing schedule block.
+    """
+    try:
+        logging.info(f"Updating schedule block {schedule_id}")
+        # Find and update the schedule
+        for schedule in schedules_db:
+            if schedule["schedule_id"] == schedule_id:
+                schedule.update(request.dict())
+                return schedule
+        raise HTTPException(status_code=404, detail="Schedule block not found")
+    except Exception as e:
+        logging.error(f"Failed to update schedule block: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update schedule block")
+
+@router.delete("/schedule/{schedule_id}", tags=["Schedule"], summary="Delete a scheduled block")
+async def delete_schedule_block(schedule_id: str):
+    """
+    Delete a schedule block.
+    """
+    try:
+        logging.info(f"Deleting schedule block {schedule_id}")
+        # Find and delete the schedule
+        global schedules_db
+        schedules_db = [s for s in schedules_db if s["schedule_id"] != schedule_id]
+        return {"message": "Schedule block deleted"}
+    except Exception as e:
+        logging.error(f"Failed to delete schedule block: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete schedule block") 
