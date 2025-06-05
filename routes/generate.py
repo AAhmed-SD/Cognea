@@ -295,19 +295,26 @@ async def plan_my_day(request: PlanMyDayRequest):
 
 # Define the request model for input validation
 class GoalRequest(BaseModel):
+    user_id: int
     title: str
     description: Optional[str] = None
     due_date: Optional[str] = None  # e.g. "2025-06-06"
     priority: Optional[str] = "medium"
+    is_starred: bool = False
 
 # Define the response model
 class GoalResponse(BaseModel):
     goal_id: str
+    user_id: int
     title: str
     description: Optional[str]
     due_date: Optional[str]
     priority: str
     status: str
+    progress: Optional[int] = 0
+    created_at: datetime
+    updated_at: datetime
+    analytics: Optional[dict] = None
 
 # In-memory storage for goals (for demonstration purposes)
 goals_db = []
@@ -318,16 +325,23 @@ async def create_goal(request: GoalRequest):
     Create a new goal and track its progress.
     """
     try:
-        logging.info(f"Creating goal with title: {request.title}")
+        logging.info(f"Creating goal for user {request.user_id} with title: {request.title}")
         # Simulate goal creation
         goal_id = f"goal_{len(goals_db) + 1}"
+        now = datetime.now()
         new_goal = {
             "goal_id": goal_id,
+            "user_id": request.user_id,
             "title": request.title,
             "description": request.description,
             "due_date": request.due_date,
             "priority": request.priority,
-            "status": "in-progress"
+            "status": "Not Started",
+            "progress": 0,
+            "created_at": now,
+            "updated_at": now,
+            "analytics": {"tags": ["Academic", "Health", "Career"]},
+            "is_starred": request.is_starred
         }
         goals_db.append(new_goal)
         return GoalResponse(**new_goal)
