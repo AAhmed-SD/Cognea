@@ -435,6 +435,12 @@ class FlashcardRequest(BaseModel):
     question: str
     answer: str
     tags: Optional[List[str]] = None
+    deck_id: Optional[str] = None
+    deck_name: Optional[str] = None
+    last_reviewed_at: Optional[datetime] = None
+    next_review_date: Optional[datetime] = None
+    ease_factor: Optional[float] = 2.5
+    interval: Optional[int] = 1
 
 # Define the response model
 class FlashcardResponse(BaseModel):
@@ -443,6 +449,12 @@ class FlashcardResponse(BaseModel):
     question: str
     answer: str
     tags: Optional[List[str]]
+    deck_id: Optional[str]
+    deck_name: Optional[str]
+    last_reviewed_at: Optional[datetime]
+    next_review_date: Optional[datetime]
+    ease_factor: Optional[float]
+    interval: Optional[int]
 
 # In-memory storage for flashcards (for demonstration purposes)
 flashcards_db = []
