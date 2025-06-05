@@ -9,6 +9,7 @@ from typing import List, Optional
 from datetime import datetime
 import json
 import aioredis
+from services.review_engine import ReviewEngine
 
 router = APIRouter()
 
@@ -520,4 +521,18 @@ async def delete_flashcard(flashcard_id: str):
         return {"message": "Flashcard deleted"}
     except Exception as e:
         logging.error(f"Failed to delete flashcard: {e}")
-        raise HTTPException(status_code=500, detail="Failed to delete flashcard") 
+        raise HTTPException(status_code=500, detail="Failed to delete flashcard")
+
+@router.get("/review-plan", response_model=List[FlashcardResponse], tags=["Review"], summary="Get today's review plan")
+async def get_review_plan(user_id: str, time_available: int = 30):
+    """
+    Retrieve a personalized review plan for the user based on available time.
+    """
+    try:
+        logging.info(f"Generating review plan for user {user_id} with {time_available} minutes available")
+        engine = ReviewEngine(user_id=user_id)
+        plan = engine.get_today_review_plan(time_available_mins=time_available)
+        return plan
+    except Exception as e:
+        logging.error(f"Failed to generate review plan: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate review plan") 
