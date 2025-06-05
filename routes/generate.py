@@ -6,6 +6,7 @@ import os
 from starlette.status import HTTP_401_UNAUTHORIZED
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 
 router = APIRouter()
 
@@ -127,4 +128,42 @@ async def summarize_notes_endpoint(request: SummarizeNotesRequest):
         return {"summaries": summaries}
     except Exception as e:
         logging.error(f"Error summarizing notes for user {request.user_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Define the request model for input validation
+class SuggestRescheduleRequest(BaseModel):
+    task_title: str
+    reason_missed: Optional[str]
+    task_deadline: Optional[str]
+    task_duration_minutes: Optional[int]
+    energy_level: Optional[str]  # low, medium, high
+    user_schedule_context: Optional[str]  # e.g., "Fully booked on Thursday"
+
+# Define the response model
+class RescheduleSuggestion(BaseModel):
+    suggested_time: str
+    reason: str
+    alternative_times: Optional[List[str]] = None
+
+# Function to suggest a reschedule time
+async def suggest_reschedule_logic(request: SuggestRescheduleRequest) -> RescheduleSuggestion:
+    # Placeholder for the actual AI logic
+    logging.info(f"Suggesting reschedule for task: {request.task_title}")
+    # Simulate AI response
+    suggested_time = "Friday, 9:00 AM - 10:30 AM"
+    reason = "Closer to the deadline. User has higher focus in the morning and Friday is still open."
+    return RescheduleSuggestion(suggested_time=suggested_time, reason=reason)
+
+@router.post("/suggest-reschedule", summary="Suggest Reschedule Time", description="Suggest an optimal new time for a missed or rescheduled task based on context.")
+async def suggest_reschedule_endpoint(request: SuggestRescheduleRequest):
+    try:
+        logging.info(f"Received reschedule request for task: {request.task_title}")
+        suggestion = await suggest_reschedule_logic(request)
+        logging.info(f"Suggested time: {suggestion.suggested_time}, Reason: {suggestion.reason}")
+        return suggestion
+    except ValueError as e:
+        logging.error(f"Invalid task object: {str(e)}")
+        raise HTTPException(status_code=422, detail="Invalid task object.")
+    except Exception as e:
+        logging.error(f"Error suggesting reschedule: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to suggest reschedule.") 
