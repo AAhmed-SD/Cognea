@@ -233,6 +233,8 @@ class PlanMyDayRequest(BaseModel):
     date: str  # e.g. "2025-06-06"
     focus_hours: Optional[List[str]] = None  # e.g. ["09:00-12:00", "14:00-17:00"]
     include_reflections: Optional[bool] = False
+    preferred_working_hours: Optional[List[str]] = None  # e.g. ["08:00-12:00", "13:00-17:00"]
+    break_times: Optional[List[str]] = None  # e.g. ["12:00-13:00"]
 
 # Define the response models
 class TimeBlock(BaseModel):
@@ -273,7 +275,19 @@ async def plan_my_day(request: PlanMyDayRequest):
         prompt = await generate_planning_prompt(tasks, request.focus_hours)
         # Simulate AI call
         ai_response = '[{"start_time": "09:00", "end_time": "11:00", "task_name": "Write report", "priority": "high"}, {"start_time": "11:30", "end_time": "12:00", "task_name": "Email follow-up", "priority": "medium"}]'
-        timeblocks = json.loads(ai_response)
+        try:
+            timeblocks = json.loads(ai_response)
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON decoding failed: {e}")
+            raise HTTPException(status_code=500, detail="Invalid response format from AI")
+
+        # Incorporate user preferences into the plan
+        # This is a placeholder for actual logic
+        if request.preferred_working_hours:
+            logging.info(f"User preferred working hours: {request.preferred_working_hours}")
+        if request.break_times:
+            logging.info(f"User break times: {request.break_times}")
+
         return PlanMyDayResponse(date=request.date, user_id=request.user_id, timeblocks=timeblocks, notes="AI-generated plan")
     except Exception as e:
         logging.error(f"Failed to plan day: {e}")
