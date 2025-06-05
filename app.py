@@ -7,9 +7,12 @@ from openai_integration import generate_text
 from fastapi.security.api_key import APIKeyHeader
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 import asyncio
 import functools
+import redis
+import json
+import logging
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,6 +27,13 @@ app.state.limiter = limiter
 
 # API Key Security
 api_key_header = APIKeyHeader(name="X-API-Key")
+
+# Initialize Redis client
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 async def get_api_key(api_key: str = Depends(api_key_header)):
     if api_key != "expected_api_key":
@@ -42,6 +52,11 @@ class TextGenerationResponse(BaseModel):
     model: str
     generated_text: str
     total_tokens: Optional[int] = None
+
+# Standardized error response
+class ErrorResponse(BaseModel):
+    error: str
+    detail: str
 
 # In-memory data storage
 users = []
@@ -152,13 +167,32 @@ async def delete_task(task_id: int):
 # Model Validation
 supported_models = ["gpt-3.5-turbo", "gpt-4"]
 
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Application startup")
+    if not OPENAI_API_KEY:
+        raise RuntimeError("Missing OpenAI API key")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    logger.info("Application shutdown")
+
 @app.post("/generate-text", response_model=TextGenerationResponse, tags=["Text Generation"], summary="Generate text using OpenAI API")
 @limiter.limit("5/minute")  # Rate limiting
 async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = Depends(get_api_key)):
     try:
+        logger.info(f"Received request for model: {request.model} with prompt: {request.prompt}")
         # Validate model
         if request.model not in supported_models:
             raise HTTPException(status_code=400, detail="Unsupported model")
+
+        # Check cache for existing response
+        cache_key = f"{request.model}:{request.prompt}"
+        cached_response = redis_client.get(cache_key)
+        if cached_response:
+            logger.info("Cache hit")
+            return TextGenerationResponse(**json.loads(cached_response))
+
         # Asynchronous OpenAI call
         loop = asyncio.get_event_loop()
         result, total_tokens = await loop.run_in_executor(None, functools.partial(generate_text,
@@ -168,15 +202,24 @@ async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = 
             temperature=request.temperature,
             stop=request.stop
         ))
-        # Return a structured response
-        return TextGenerationResponse(
+
+        # Cache the response
+        response_data = TextGenerationResponse(
             original_prompt=request.prompt,
             model=request.model,
             generated_text=result,
             total_tokens=total_tokens
         )
+        redis_client.setex(cache_key, 3600, response_data.json())  # Cache for 1 hour
+
+        logger.info("Response cached")
+
+        # Return a structured response
+        return response_data
     except ValueError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error processing request: {str(e)}")
+        error_response = ErrorResponse(error="OpenAI API Error", detail=str(e))
+        return JSONResponse(status_code=500, content=error_response.dict())
 
 # Streaming Response Example
 async def stream_data():
@@ -185,9 +228,4 @@ async def stream_data():
 
 @app.get("/stream")
 async def get_stream():
-    return StreamingResponse(stream_data(), media_type="application/octet-stream")
-
-@app.on_event("startup")
-async def load_openai_key():
-    if not OPENAI_API_KEY:
-        raise RuntimeError("Missing OpenAI API key") 
+    return StreamingResponse(stream_data(), media_type="application/octet-stream") 
