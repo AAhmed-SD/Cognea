@@ -234,4 +234,21 @@ async def stream_data():
 
 @app.get("/stream")
 async def get_stream():
-    return StreamingResponse(stream_data(), media_type="application/octet-stream") 
+    return StreamingResponse(stream_data(), media_type="application/octet-stream")
+
+@app.post("/generate-flashcards", tags=["AI"], summary="Generate flashcards from notes", description="Turn raw notes or textbook content into flashcards.")
+async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None):
+    try:
+        # Example logic to generate flashcards
+        # This should be replaced with actual logic using OpenAI or another service
+        flashcards = []
+        for note in notes.split("\n"):
+            question = f"What is the key point of: {note}?"
+            answer = note  # Simplified example
+            flashcards.append({"question": question, "answer": answer})
+
+        return {"flashcards": flashcards}
+    except Exception as e:
+        logger.error(f"Error generating flashcards: {str(e)}")
+        error_response = ErrorResponse(error="Flashcard Generation Error", detail=str(e))
+        return JSONResponse(status_code=500, content=error_response.dict()) 

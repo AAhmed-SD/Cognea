@@ -60,4 +60,36 @@ This plan outlines the comprehensive approach to building and deploying FocusFlo
 - Personalize emails with user-specific data.
 - Allow users to opt-in or out of receiving emails.
 - Ensure data privacy and security, complying with regulations like GDPR.
-- Conduct A/B testing and gather feedback for optimization. 
+- Conduct A/B testing and gather feedback for optimization.
+
+## FastAPI Endpoints Plan
+
+### AI Tasks & Memory
+- `/generate-flashcards`: Turn raw notes or textbook content into flashcards.
+- `/daily-brief`: Generate a daily summary of tasks, priorities, missed tasks, and a reflection.
+- `/quiz-me`: Takes a deck ID, returns 3–5 Qs from that deck to quiz the user.
+- `/summarize-notes`: Compress long notes into key takeaways.
+- `/suggest-reschedule`: Suggest new time + reasoning for missed task.
+- `/extract-tasks-from-text`: User brain-dumps a paragraph, AI extracts structured tasks.
+
+### Planning
+- `/plan-my-day`: Auto-generate time blocks for a day.
+- `/goals`: Create and track high-level goals.
+- `/schedule`: Manage scheduled blocks.
+
+### Memory Engine
+- `/flashcards`: CRUD operations for flashcards.
+
+### Insights
+- `/user-insights`: Return trends, missed patterns, overbooking, etc.
+- `/ai-feedback`: GPT reviews your week.
+
+### Utility + UX
+- `/notifications`: Basic create/delete for reminders.
+- `/settings`: Save user energy preferences, focus hours, etc.
+
+### Integration
+- `/notion-sync`: Push/pull tasks and notes from Notion.
+
+### Command UX (stretch)
+- `/ai-command`: One endpoint for command-palette prompts. 
