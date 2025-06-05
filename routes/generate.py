@@ -427,4 +427,85 @@ async def delete_schedule_block(schedule_id: str):
         return {"message": "Schedule block deleted"}
     except Exception as e:
         logging.error(f"Failed to delete schedule block: {e}")
-        raise HTTPException(status_code=500, detail="Failed to delete schedule block") 
+        raise HTTPException(status_code=500, detail="Failed to delete schedule block")
+
+# Define the request model for input validation
+class FlashcardRequest(BaseModel):
+    user_id: str
+    question: str
+    answer: str
+    tags: Optional[List[str]] = None
+
+# Define the response model
+class FlashcardResponse(BaseModel):
+    flashcard_id: str
+    user_id: str
+    question: str
+    answer: str
+    tags: Optional[List[str]]
+
+# In-memory storage for flashcards (for demonstration purposes)
+flashcards_db = []
+
+@router.post("/flashcards", response_model=FlashcardResponse, tags=["Flashcards"], summary="Create a flashcard")
+async def create_flashcard(request: FlashcardRequest):
+    """
+    Create a new flashcard.
+    """
+    try:
+        logging.info(f"Creating flashcard for user {request.user_id}")
+        # Simulate flashcard creation
+        flashcard_id = f"flashcard_{len(flashcards_db) + 1}"
+        new_flashcard = request.dict()
+        new_flashcard["flashcard_id"] = flashcard_id
+        flashcards_db.append(new_flashcard)
+        return new_flashcard
+    except Exception as e:
+        logging.error(f"Failed to create flashcard: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create flashcard")
+
+@router.get("/flashcards", response_model=List[FlashcardResponse], tags=["Flashcards"], summary="Read flashcards")
+async def read_flashcards(user_id: str):
+    """
+    Retrieve flashcards for a user.
+    """
+    try:
+        logging.info(f"Retrieving flashcards for user {user_id}")
+        # Filter flashcards by user_id
+        user_flashcards = [f for f in flashcards_db if f["user_id"] == user_id]
+        return user_flashcards
+    except Exception as e:
+        logging.error(f"Failed to retrieve flashcards: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve flashcards")
+
+@router.put("/flashcards/{flashcard_id}", response_model=FlashcardResponse, tags=["Flashcards"], summary="Update a flashcard")
+async def update_flashcard(flashcard_id: str, request: FlashcardRequest):
+    """
+    Update an existing flashcard.
+    """
+    try:
+        logging.info(f"Updating flashcard {flashcard_id}")
+        # Find and update the flashcard
+        for flashcard in flashcards_db:
+            if flashcard["flashcard_id"] == flashcard_id:
+                flashcard.update(request.dict())
+                return flashcard
+        raise HTTPException(status_code=404, detail="Flashcard not found")
+    except Exception as e:
+        logging.error(f"Failed to update flashcard: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update flashcard")
+
+@router.delete("/flashcards/{flashcard_id}", tags=["Flashcards"], summary="Delete a flashcard")
+async def delete_flashcard(flashcard_id: str):
+    """
+    Delete a flashcard.
+    """
+    try:
+        logging.info(f"Deleting flashcard {flashcard_id}")
+        # Find and delete the flashcard
+        global flashcards_db
+        flashcards_db = [f for f in flashcards_db if f["flashcard_id"] != flashcard_id]
+        return {"message": "Flashcard deleted"}
+    except Exception as e:
+        logging.error(f"Failed to delete flashcard: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete flashcard") 
