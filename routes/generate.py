@@ -291,4 +291,46 @@ async def plan_my_day(request: PlanMyDayRequest):
         return PlanMyDayResponse(date=request.date, user_id=request.user_id, timeblocks=timeblocks, notes="AI-generated plan")
     except Exception as e:
         logging.error(f"Failed to plan day: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate plan") 
+        raise HTTPException(status_code=500, detail="Failed to generate plan")
+
+# Define the request model for input validation
+class GoalRequest(BaseModel):
+    title: str
+    description: Optional[str] = None
+    due_date: Optional[str] = None  # e.g. "2025-06-06"
+    priority: Optional[str] = "medium"
+
+# Define the response model
+class GoalResponse(BaseModel):
+    goal_id: str
+    title: str
+    description: Optional[str]
+    due_date: Optional[str]
+    priority: str
+    status: str
+
+# In-memory storage for goals (for demonstration purposes)
+goals_db = []
+
+@router.post("/goals", response_model=GoalResponse, tags=["Goals"], summary="Create and track high-level goals")
+async def create_goal(request: GoalRequest):
+    """
+    Create a new goal and track its progress.
+    """
+    try:
+        logging.info(f"Creating goal with title: {request.title}")
+        # Simulate goal creation
+        goal_id = f"goal_{len(goals_db) + 1}"
+        new_goal = {
+            "goal_id": goal_id,
+            "title": request.title,
+            "description": request.description,
+            "due_date": request.due_date,
+            "priority": request.priority,
+            "status": "in-progress"
+        }
+        goals_db.append(new_goal)
+        return GoalResponse(**new_goal)
+    except Exception as e:
+        logging.error(f"Failed to create goal: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create goal") 
