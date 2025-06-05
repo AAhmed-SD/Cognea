@@ -7,6 +7,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+import json
 
 router = APIRouter()
 
@@ -166,4 +167,44 @@ async def suggest_reschedule_endpoint(request: SuggestRescheduleRequest):
         raise HTTPException(status_code=422, detail="Invalid task object.")
     except Exception as e:
         logging.error(f"Error suggesting reschedule: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to suggest reschedule.") 
+        raise HTTPException(status_code=500, detail="Failed to suggest reschedule.")
+
+# Define the request model for input validation
+class ExtractTasksRequest(BaseModel):
+    text: str
+    goal_context: Optional[str] = None  # Optional: Help AI link tasks to goals
+
+# Define the response models
+class ExtractedTask(BaseModel):
+    task: str
+    priority: Optional[str] = "medium"
+    time_estimate_minutes: Optional[int] = None
+    goal: Optional[str] = None
+
+class ExtractTasksResponse(BaseModel):
+    extracted_tasks: List[ExtractedTask]
+
+# Function to generate AI prompt
+async def generate_ai_prompt(text: str, goal_context: Optional[str] = None) -> str:
+    prompt = f"""
+    Extract clear, actionable tasks from the following notes. 
+    Return a JSON list with fields: task, priority (low/medium/high), time_estimate_minutes, and goal (if mentioned).
+
+    Text: {text}
+
+    {f"Goal Context: {goal_context}" if goal_context else ""}
+    """
+    return prompt
+
+@router.post("/extract-tasks-from-text", response_model=ExtractTasksResponse, summary="Extract structured tasks from messy notes", tags=["AI Tasks & Memory"])
+async def extract_tasks(request: ExtractTasksRequest):
+    try:
+        logging.info(f"Extracting tasks for user with text length {len(request.text)}")
+        prompt = await generate_ai_prompt(request.text, request.goal_context)
+        # Simulate AI call
+        ai_response = '[{"task": "Write project proposal", "priority": "high", "time_estimate_minutes": 90, "goal": "Launch SaaS"}]'
+        tasks = json.loads(ai_response)  # Validate this carefully
+        return {"extracted_tasks": tasks}
+    except Exception as e:
+        logging.error(f"Task extraction failed: {e}")
+        raise HTTPException(status_code=500, detail="Task extraction failed") 
