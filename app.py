@@ -13,6 +13,7 @@ import functools
 import redis
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 
 # Load environment variables from .env file
 load_dotenv()
@@ -31,9 +32,13 @@ api_key_header = APIKeyHeader(name="X-API-Key")
 # Initialize Redis client
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging with a rotating file handler
+log_handler = RotatingFileHandler("app.log", maxBytes=1000000, backupCount=3)
+log_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log_handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
+logger.addHandler(log_handler)
 
 async def get_api_key(api_key: str = Depends(api_key_header)):
     if api_key != "expected_api_key":
@@ -68,11 +73,11 @@ calendar_events = []
 notifications = []
 settings = {}
 
-@app.get("/api/users")
+@app.get("/api/users", tags=["User Management"], summary="Get all users", description="Retrieve a list of all users.")
 async def get_users():
     return users
 
-@app.get("/api/users/{user_id}")
+@app.get("/api/users/{user_id}", tags=["User Management"], summary="Get a user by ID", description="Retrieve a user's details by their ID.")
 async def get_user(user_id: int):
     user = next((user for user in users if user['id'] == user_id), None)
     if user is None:
@@ -177,7 +182,7 @@ async def startup_event():
 async def shutdown_event():
     logger.info("Application shutdown")
 
-@app.post("/generate-text", response_model=TextGenerationResponse, tags=["Text Generation"], summary="Generate text using OpenAI API")
+@app.post("/generate-text", response_model=TextGenerationResponse, tags=["AI"], summary="Generate text using GPT", description="Generate text using OpenAI's GPT model based on the provided prompt.")
 @limiter.limit("5/minute")  # Rate limiting
 async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = Depends(get_api_key)):
     try:
@@ -186,8 +191,9 @@ async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = 
         if request.model not in supported_models:
             raise HTTPException(status_code=400, detail="Unsupported model")
 
-        # Check cache for existing response
-        cache_key = f"{request.model}:{request.prompt}"
+        # Normalize prompt
+        normalized_prompt = request.prompt.strip().lower()
+        cache_key = f"{request.model}:{normalized_prompt}"
         cached_response = redis_client.get(cache_key)
         if cached_response:
             logger.info("Cache hit")
@@ -196,7 +202,7 @@ async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = 
         # Asynchronous OpenAI call
         loop = asyncio.get_event_loop()
         result, total_tokens = await loop.run_in_executor(None, functools.partial(generate_text,
-            prompt=request.prompt,
+            prompt=normalized_prompt,
             model=request.model,
             max_tokens=request.max_tokens,
             temperature=request.temperature,
