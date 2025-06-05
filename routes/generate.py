@@ -98,6 +98,7 @@ async def quiz_me(request: QuizMeRequest):
 class SummarizeNotesRequest(BaseModel):
     notes: str
     summary_type: Optional[str] = "TL;DR"
+    user_id: Optional[int] = None
 
 # Function to split text into manageable chunks
 async def split_into_chunks(text: str, max_tokens: int = 1000) -> List[str]:
@@ -115,10 +116,15 @@ async def summarize_notes(notes: str, summary_type: str) -> str:
 @router.post("/summarize-notes", summary="Summarize Notes", description="Compress long notes into key takeaways.")
 async def summarize_notes_endpoint(request: SummarizeNotesRequest):
     try:
-        logging.info("Summarizing notes")
+        # Input size validation
+        if len(request.notes) > 5000:  # Example limit
+            logging.warning(f"User {request.user_id} submitted notes exceeding size limit: {len(request.notes)} characters")
+            raise HTTPException(status_code=400, detail="Notes exceed the maximum allowed size of 5000 characters.")
+
+        logging.info(f"User {request.user_id} is summarizing notes of length {len(request.notes)}")
         chunks = await split_into_chunks(request.notes)
         summaries = [await summarize_notes(chunk, request.summary_type) for chunk in chunks]
         return {"summaries": summaries}
     except Exception as e:
-        logging.error(f"Error summarizing notes: {str(e)}")
+        logging.error(f"Error summarizing notes for user {request.user_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) 
