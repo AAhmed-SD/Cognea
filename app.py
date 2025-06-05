@@ -1,9 +1,15 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from openai_integration import generate_text
+from fastapi.security.api_key import APIKeyHeader
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from fastapi.responses import StreamingResponse
+import asyncio
+import functools
 
 # Load environment variables from .env file
 load_dotenv()
@@ -11,7 +17,17 @@ load_dotenv()
 # Retrieve the OpenAI API key from environment variables
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
+# Initialize FastAPI app with rate limiting
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
+app.state.limiter = limiter
+
+# API Key Security
+api_key_header = APIKeyHeader(name="X-API-Key")
+
+async def get_api_key(api_key: str = Depends(api_key_header)):
+    if api_key != "expected_api_key":
+        raise HTTPException(status_code=403, detail="Could not validate credentials")
 
 # Define Pydantic models for request and response
 class TextGenerationRequest(BaseModel):
@@ -133,23 +149,25 @@ async def delete_task(task_id: int):
     tasks = [task for task in tasks if task['id'] != task_id]
     return {"message": "Task deleted"}
 
+# Model Validation
+supported_models = ["gpt-3.5-turbo", "gpt-4"]
+
 @app.post("/generate-text", response_model=TextGenerationResponse, tags=["Text Generation"], summary="Generate text using OpenAI API")
-async def generate_text_endpoint(request: TextGenerationRequest):
+@limiter.limit("5/minute")  # Rate limiting
+async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = Depends(get_api_key)):
     try:
-        # Validate max_tokens
-        if request.max_tokens > 4096:
-            raise HTTPException(status_code=400, detail="max_tokens exceeds model limit")
         # Validate model
-        if request.model not in ["gpt-3.5-turbo", "gpt-4"]:
-            raise HTTPException(status_code=400, detail="Invalid model selection")
-        # Call the generate_text function
-        result, total_tokens = generate_text(
+        if request.model not in supported_models:
+            raise HTTPException(status_code=400, detail="Unsupported model")
+        # Asynchronous OpenAI call
+        loop = asyncio.get_event_loop()
+        result, total_tokens = await loop.run_in_executor(None, functools.partial(generate_text,
             prompt=request.prompt,
             model=request.model,
             max_tokens=request.max_tokens,
             temperature=request.temperature,
             stop=request.stop
-        )
+        ))
         # Return a structured response
         return TextGenerationResponse(
             original_prompt=request.prompt,
@@ -159,6 +177,15 @@ async def generate_text_endpoint(request: TextGenerationRequest):
         )
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Streaming Response Example
+async def stream_data():
+    # Example streaming logic
+    yield b"some data"
+
+@app.get("/stream")
+async def get_stream():
+    return StreamingResponse(stream_data(), media_type="application/octet-stream")
 
 @app.on_event("startup")
 async def load_openai_key():
