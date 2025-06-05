@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 import json
+import aioredis
 
 router = APIRouter()
 
@@ -196,14 +197,31 @@ async def generate_ai_prompt(text: str, goal_context: Optional[str] = None) -> s
     """
     return prompt
 
+# Initialize Redis client within an async function
+async def get_redis_client():
+    return await aioredis.create_redis_pool("redis://localhost")
+
 @router.post("/extract-tasks-from-text", response_model=ExtractTasksResponse, summary="Extract structured tasks from messy notes", tags=["AI Tasks & Memory"])
 async def extract_tasks(request: ExtractTasksRequest):
     try:
         logging.info(f"Extracting tasks for user with text length {len(request.text)}")
+        redis = await get_redis_client()
+        cache_key = f"extract_tasks:{hash(request.text)}"
+        cached_tasks = await redis.get(cache_key)
+        if cached_tasks:
+            logging.info("Cache hit for task extraction")
+            return {"extracted_tasks": json.loads(cached_tasks)}
+
         prompt = await generate_ai_prompt(request.text, request.goal_context)
         # Simulate AI call
         ai_response = '[{"task": "Write project proposal", "priority": "high", "time_estimate_minutes": 90, "goal": "Launch SaaS"}]'
-        tasks = json.loads(ai_response)  # Validate this carefully
+        try:
+            tasks = json.loads(ai_response)
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON decoding failed: {e}")
+            raise HTTPException(status_code=500, detail="Invalid response format from AI")
+
+        await redis.set(cache_key, json.dumps(tasks))
         return {"extracted_tasks": tasks}
     except Exception as e:
         logging.error(f"Task extraction failed: {e}")
