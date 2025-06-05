@@ -65,4 +65,30 @@ async def generate_daily_brief(request: DailyBriefRequest, background_tasks: Bac
         return {"message": "Daily brief is being generated."}
     except Exception as e:
         logging.error(f"Error generating daily brief: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Define the request model for input validation
+class QuizMeRequest(BaseModel):
+    deck_id: int
+
+# Function to generate quiz questions
+async def generate_quiz_questions(deck_id: int):
+    # Placeholder for the actual quiz generation logic
+    logging.info(f"Generating quiz for deck {deck_id}")
+    # Simulate quiz generation
+    questions = [
+        {"question": "What is the capital of France?", "answer": "Paris"},
+        {"question": "What is 2 + 2?", "answer": "4"},
+        {"question": "What is the boiling point of water?", "answer": "100°C"}
+    ]
+    return questions
+
+@router.post("/quiz-me", summary="Generate Quiz Questions", description="Takes a deck ID and returns 3–5 questions from that deck to quiz the user.")
+async def quiz_me(request: QuizMeRequest):
+    try:
+        logging.info("Generating quiz questions")
+        questions = await generate_quiz_questions(request.deck_id)
+        return {"questions": questions}
+    except Exception as e:
+        logging.error(f"Error generating quiz questions: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) 
