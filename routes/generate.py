@@ -225,4 +225,56 @@ async def extract_tasks(request: ExtractTasksRequest):
         return {"extracted_tasks": tasks}
     except Exception as e:
         logging.error(f"Task extraction failed: {e}")
-        raise HTTPException(status_code=500, detail="Task extraction failed") 
+        raise HTTPException(status_code=500, detail="Task extraction failed")
+
+# Define the request model for input validation
+class PlanMyDayRequest(BaseModel):
+    user_id: str
+    date: str  # e.g. "2025-06-06"
+    focus_hours: Optional[List[str]] = None  # e.g. ["09:00-12:00", "14:00-17:00"]
+    include_reflections: Optional[bool] = False
+
+# Define the response models
+class TimeBlock(BaseModel):
+    start_time: str
+    end_time: str
+    task_name: str
+    task_id: Optional[str]
+    goal: Optional[str]
+    priority: Optional[str]
+
+class PlanMyDayResponse(BaseModel):
+    date: str
+    user_id: str
+    timeblocks: List[TimeBlock]
+    notes: Optional[str]  # Optional summary or planning AI notes
+
+# Function to generate AI prompt for planning
+async def generate_planning_prompt(tasks: List[dict], focus_hours: Optional[List[str]]) -> str:
+    prompt = f"""
+    Given these tasks and time windows, create a focused, realistic plan.
+    Tasks: {tasks}
+    Focus Hours: {focus_hours}
+    """
+    return prompt
+
+@router.post("/plan-my-day", response_model=PlanMyDayResponse, tags=["Planning"], summary="AI-generated daily plan")
+async def plan_my_day(request: PlanMyDayRequest):
+    """
+    Generate an AI-powered daily time-blocked plan based on your pending tasks, priorities, and focus windows.
+    """
+    try:
+        logging.info(f"Planning day for user {request.user_id} on {request.date}")
+        # Simulate fetching tasks
+        tasks = [
+            {"task_name": "Write report", "duration": 120, "priority": "high"},
+            {"task_name": "Email follow-up", "duration": 30, "priority": "medium"}
+        ]
+        prompt = await generate_planning_prompt(tasks, request.focus_hours)
+        # Simulate AI call
+        ai_response = '[{"start_time": "09:00", "end_time": "11:00", "task_name": "Write report", "priority": "high"}, {"start_time": "11:30", "end_time": "12:00", "task_name": "Email follow-up", "priority": "medium"}]'
+        timeblocks = json.loads(ai_response)
+        return PlanMyDayResponse(date=request.date, user_id=request.user_id, timeblocks=timeblocks, notes="AI-generated plan")
+    except Exception as e:
+        logging.error(f"Failed to plan day: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate plan") 
