@@ -5,6 +5,7 @@ import logging
 import os
 from starlette.status import HTTP_401_UNAUTHORIZED
 from pydantic import BaseModel
+from typing import List, Optional
 
 router = APIRouter()
 
@@ -91,4 +92,33 @@ async def quiz_me(request: QuizMeRequest):
         return {"questions": questions}
     except Exception as e:
         logging.error(f"Error generating quiz questions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Define the request model for input validation
+class SummarizeNotesRequest(BaseModel):
+    notes: str
+    summary_type: Optional[str] = "TL;DR"
+
+# Function to split text into manageable chunks
+async def split_into_chunks(text: str, max_tokens: int = 1000) -> List[str]:
+    # Basic splitting logic here...
+    logging.info("Splitting text into chunks")
+    return [text[i:i+max_tokens] for i in range(0, len(text), max_tokens)]
+
+# Function to summarize notes
+async def summarize_notes(notes: str, summary_type: str) -> str:
+    # Placeholder for the actual summarization logic
+    logging.info(f"Summarizing notes with summary type: {summary_type}")
+    # Simulate summarization
+    return f"Summary ({summary_type}): {notes[:100]}..."
+
+@router.post("/summarize-notes", summary="Summarize Notes", description="Compress long notes into key takeaways.")
+async def summarize_notes_endpoint(request: SummarizeNotesRequest):
+    try:
+        logging.info("Summarizing notes")
+        chunks = await split_into_chunks(request.notes)
+        summaries = [await summarize_notes(chunk, request.summary_type) for chunk in chunks]
+        return {"summaries": summaries}
+    except Exception as e:
+        logging.error(f"Error summarizing notes: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) 
