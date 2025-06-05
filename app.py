@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from openai_integration import generate_text
 from fastapi.security.api_key import APIKeyHeader
@@ -23,7 +23,20 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 # Initialize FastAPI app with rate limiting
 limiter = Limiter(key_func=get_remote_address)
-app = FastAPI()
+app = FastAPI(
+    title="Cognie API",
+    description="AI-powered productivity and scheduling assistant",
+    version="1.0.0",
+    contact={
+        "name": "Cognie Dev Team",
+        "url": "https://github.com/AAhmed-SD/Cognie",
+        "email": "support@cognie.app",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+)
 app.state.limiter = limiter
 
 # API Key Security
@@ -73,7 +86,14 @@ calendar_events = []
 notifications = []
 settings = {}
 
-@app.get("/api/users", tags=["User Management"], summary="Get all users", description="Retrieve a list of all users.")
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to the FastAPI application!"}
+
+@app.get("/api/users", tags=["User Management"], summary="Get all users", description="Retrieve a list of all users.", responses={
+    200: {"description": "Successful retrieval of users"},
+    404: {"description": "Users not found"}
+})
 async def get_users():
     return users
 
@@ -145,7 +165,7 @@ async def update_settings(settings_data: dict):
     settings.update(settings_data)
     return settings
 
-@app.get("/api/tasks")
+@app.get("/api/tasks", dependencies=[Depends(get_api_key)], tags=["Tasks"], summary="List all tasks", description="Retrieve a list of all tasks.")
 async def get_tasks():
     return tasks
 
@@ -251,4 +271,9 @@ async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None
     except Exception as e:
         logger.error(f"Error generating flashcards: {str(e)}")
         error_response = ErrorResponse(error="Flashcard Generation Error", detail=str(e))
-        return JSONResponse(status_code=500, content=error_response.dict()) 
+        return JSONResponse(status_code=500, content=error_response.dict())
+
+# Example of adding examples to a Pydantic model
+class TaskUpdate(BaseModel):
+    title: str = Field(..., example="Update notes for biology")
+    completed: bool = Field(..., example=True) 
