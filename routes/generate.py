@@ -600,25 +600,54 @@ async def update_review_result(request: ReviewUpdateRequest):
 # Define the request model for input validation
 class UserInsightsRequest(BaseModel):
     user_id: str
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
 
 # Define the response model
 class UserInsightsResponse(BaseModel):
-    trends: Optional[dict] = None
-    missed_patterns: Optional[dict] = None
-    overbooking: Optional[dict] = None
+    user_id: str
+    date_range: dict
+    task_summary: dict
+    flashcard_summary: dict
+    goal_progress: List[dict]
+    suggestions: List[str]
 
 @router.get("/user-insights", response_model=UserInsightsResponse, tags=["Insights"], summary="Get user productivity insights")
-async def get_user_insights(user_id: str):
+async def get_user_insights(request: UserInsightsRequest):
     """
     Provide insights into user productivity and scheduling habits, including trends, missed patterns, and overbooking.
     """
     try:
-        logging.info(f"Generating insights for user {user_id}")
+        logging.info(f"Generating insights for user {request.user_id}")
         # Simulate fetching insights
         insights = {
-            "trends": {"productive_days": 5, "focus_hours": "09:00-11:00"},
-            "missed_patterns": {"tasks_missed": 3, "common_miss_time": "15:00"},
-            "overbooking": {"days_overbooked": 2, "peak_overbook_time": "14:00"}
+            "user_id": request.user_id,
+            "date_range": {"start": request.start_date or "2025-06-01", "end": request.end_date or "2025-06-07"},
+            "task_summary": {
+                "completed": 12,
+                "missed": 3,
+                "rescheduled": 2,
+                "overbooked_days": ["2025-06-03", "2025-06-04"]
+            },
+            "flashcard_summary": {
+                "reviewed": 45,
+                "forgotten": 9,
+                "avg_accuracy": 80,
+                "most_forgotten_deck": "Neuroscience"
+            },
+            "goal_progress": [
+                {
+                    "goal_id": "goal123",
+                    "title": "Finish ML Course",
+                    "progress": "60%",
+                    "status": "on_track"
+                }
+            ],
+            "suggestions": [
+                "Review 'Neuroscience' deck earlier in the day",
+                "Avoid scheduling >5 tasks on weekdays",
+                "You're most consistent at 9–11 AM. Leverage that."
+            ]
         }
         return UserInsightsResponse(**insights)
     except Exception as e:
