@@ -595,4 +595,32 @@ async def update_review_result(request: ReviewUpdateRequest):
         return {"message": "Review updated successfully", "next_review_date": next_review_date}
     except Exception as e:
         logging.error(f"Failed to update review result: {e}")
-        raise HTTPException(status_code=500, detail="Failed to update review result") 
+        raise HTTPException(status_code=500, detail="Failed to update review result")
+
+# Define the request model for input validation
+class UserInsightsRequest(BaseModel):
+    user_id: str
+
+# Define the response model
+class UserInsightsResponse(BaseModel):
+    trends: Optional[dict] = None
+    missed_patterns: Optional[dict] = None
+    overbooking: Optional[dict] = None
+
+@router.get("/user-insights", response_model=UserInsightsResponse, tags=["Insights"], summary="Get user productivity insights")
+async def get_user_insights(user_id: str):
+    """
+    Provide insights into user productivity and scheduling habits, including trends, missed patterns, and overbooking.
+    """
+    try:
+        logging.info(f"Generating insights for user {user_id}")
+        # Simulate fetching insights
+        insights = {
+            "trends": {"productive_days": 5, "focus_hours": "09:00-11:00"},
+            "missed_patterns": {"tasks_missed": 3, "common_miss_time": "15:00"},
+            "overbooking": {"days_overbooked": 2, "peak_overbook_time": "14:00"}
+        }
+        return UserInsightsResponse(**insights)
+    except Exception as e:
+        logging.error(f"Failed to generate user insights: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate user insights") 
