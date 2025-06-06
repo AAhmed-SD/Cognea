@@ -240,6 +240,10 @@ By leveraging Notion webhooks, we aim to provide a seamless and efficient experi
 ### Memory Engine
 - flashcards`: CRUD operations for flashcards.
  `/ReviewEngine`
+  /review/plan
+Purpose: Return a daily personalized review plan.
+
+Input: user_id, available_time, optional exam_date
 
 ### Insights
 - `/user-insights`: Return trends, missed patterns, overbooking, etc.
@@ -254,6 +258,20 @@ By leveraging Notion webhooks, we aim to provide a seamless and efficient experi
 
 ### Command UX (stretch)
 - `/ai-command`: One endpoint for command-palette prompts.
+
+---
+
+## Planned Endpoints
+
+### /review/plan
+- **Purpose**: Return a daily personalized review plan.
+- **Input**: `user_id`, `available_time`, optional `exam_date`
+- **Output**: List of flashcards scheduled for review today, prioritized by difficulty and urgency.
+
+### /review/update
+- **Purpose**: Log the outcome of a flashcard review.
+- **Input**: `flashcard_id`, `was_correct`
+- **Output**: Updated review performance metrics
 
 ---
 

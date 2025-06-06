@@ -535,4 +535,24 @@ async def get_review_plan(user_id: str, time_available: int = 30):
         return plan
     except Exception as e:
         logging.error(f"Failed to generate review plan: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate review plan") 
+        raise HTTPException(status_code=500, detail="Failed to generate review plan")
+
+# Define the request model for input validation
+class ReviewUpdateRequest(BaseModel):
+    flashcard_id: str
+    was_correct: bool
+
+@router.post("/review/update", tags=["Review"], summary="Update flashcard review result")
+async def update_review_result(request: ReviewUpdateRequest):
+    """
+    Log the outcome of a flashcard review and update review performance metrics.
+    """
+    try:
+        logging.info(f"Updating review result for flashcard {request.flashcard_id}")
+        # Simulate updating review result
+        # This is where you would call the ReviewEngine to update the review metrics
+        # Example: engine.update_review_result(request.flashcard_id, request.was_correct)
+        return {"message": "Review result updated successfully"}
+    except Exception as e:
+        logging.error(f"Failed to update review result: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update review result") 
