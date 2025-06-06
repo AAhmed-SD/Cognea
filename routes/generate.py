@@ -6,7 +6,7 @@ import os
 from starlette.status import HTTP_401_UNAUTHORIZED
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import aioredis
 from services.review_engine import ReviewEngine
@@ -542,17 +542,57 @@ class ReviewUpdateRequest(BaseModel):
     flashcard_id: str
     was_correct: bool
 
-@router.post("/review/update", tags=["Review"], summary="Update flashcard review result")
+# Simulate a function to check if a flashcard exists
+async def flashcard_exists(flashcard_id: str) -> bool:
+    # Placeholder logic to check if a flashcard exists
+    return any(flashcard["flashcard_id"] == flashcard_id for flashcard in flashcards_db)
+
+# Simulate a function to update flashcard review
+async def update_flashcard_review(flashcard_id: str, was_correct: bool):
+    # Placeholder logic to update flashcard review
+    for flashcard in flashcards_db:
+        if flashcard["flashcard_id"] == flashcard_id:
+            # Update logic here
+            pass
+
+# Simulate SM-2 algorithm
+async def calculate_next_interval(ease_factor: float, repetitions: int, was_correct: bool) -> (int, float):
+    # SM-2 algorithm logic
+    if was_correct:
+        if repetitions == 0:
+            interval = 1
+        elif repetitions == 1:
+            interval = 6
+        else:
+            interval = round(interval * ease_factor)
+        repetitions += 1
+    else:
+        repetitions = 0
+        interval = 1
+    ease_factor = max(1.3, ease_factor + (0.1 - (5 - 3) * (0.08 + (5 - 3) * 0.02)))
+    return repetitions, ease_factor
+
+@router.post("/review/update", tags=["Review"], summary="Update flashcard review result", response_description="Review updated successfully")
 async def update_review_result(request: ReviewUpdateRequest):
     """
     Log the outcome of a flashcard review and update review performance metrics.
     """
     try:
         logging.info(f"Updating review result for flashcard {request.flashcard_id}")
-        # Simulate updating review result
-        # This is where you would call the ReviewEngine to update the review metrics
-        # Example: engine.update_review_result(request.flashcard_id, request.was_correct)
-        return {"message": "Review result updated successfully"}
+        if not await flashcard_exists(request.flashcard_id):
+            raise HTTPException(status_code=404, detail="Flashcard not found")
+
+        # Simulate atomic transaction
+        # with database.transaction():
+        await update_flashcard_review(request.flashcard_id, request.was_correct)
+
+        # Calculate next review interval
+        repetitions, ease_factor = await calculate_next_interval(2.5, 0, request.was_correct)
+
+        # Simulate next review date calculation
+        next_review_date = datetime.now() + timedelta(days=repetitions)
+
+        return {"message": "Review updated successfully", "next_review_date": next_review_date}
     except Exception as e:
         logging.error(f"Failed to update review result: {e}")
         raise HTTPException(status_code=500, detail="Failed to update review result") 
