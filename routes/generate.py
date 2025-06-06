@@ -682,4 +682,28 @@ async def ai_feedback(request: AIFeedbackRequest):
         return AIFeedbackResponse(feedback=feedback, suggestions=suggestions)
     except Exception as e:
         logging.error(f"Failed to generate AI feedback: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate AI feedback") 
+        raise HTTPException(status_code=500, detail="Failed to generate AI feedback")
+
+# Define the request model for input validation
+class UserSettingsRequest(BaseModel):
+    user_id: str
+    feedback_topics: Optional[List[str]] = None  # e.g., ['productivity', 'learning progress']
+    feedback_frequency: Optional[str] = 'weekly'  # e.g., 'daily', 'weekly'
+
+# Define the response model
+class UserSettingsResponse(BaseModel):
+    message: str
+
+@router.post("/settings", response_model=UserSettingsResponse, tags=["Settings"], summary="Set user preferences for feedback")
+async def set_user_settings(request: UserSettingsRequest):
+    """
+    Allow users to set their preferences for feedback, including topics and frequency.
+    """
+    try:
+        logging.info(f"Setting preferences for user {request.user_id}")
+        # Simulate saving user settings
+        # This is where you would save the settings to a database
+        return UserSettingsResponse(message="User settings updated successfully")
+    except Exception as e:
+        logging.error(f"Failed to set user settings: {e}")
+        raise HTTPException(status_code=500, detail="Failed to set user settings") 
