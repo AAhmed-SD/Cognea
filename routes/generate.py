@@ -652,4 +652,34 @@ async def get_user_insights(request: UserInsightsRequest):
         return UserInsightsResponse(**insights)
     except Exception as e:
         logging.error(f"Failed to generate user insights: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate user insights") 
+        raise HTTPException(status_code=500, detail="Failed to generate user insights")
+
+# Define the request model for input validation
+class AIFeedbackRequest(BaseModel):
+    user_id: str
+    week_start: Optional[datetime] = None
+    week_end: Optional[datetime] = None
+
+# Define the response model
+class AIFeedbackResponse(BaseModel):
+    feedback: str
+    suggestions: List[str]
+
+@router.post("/ai-feedback", response_model=AIFeedbackResponse, tags=["Insights"], summary="Get AI-generated feedback for the week")
+async def ai_feedback(request: AIFeedbackRequest):
+    """
+    Provide AI-generated feedback and suggestions based on the user's weekly activities.
+    """
+    try:
+        logging.info(f"Generating AI feedback for user {request.user_id}")
+        # Simulate AI feedback generation
+        feedback = "You have been consistent with your tasks this week. Keep up the good work!"
+        suggestions = [
+            "Try to focus more on your morning routine.",
+            "Consider setting aside time for reflection at the end of each day.",
+            "Balance your workload by scheduling breaks.",
+        ]
+        return AIFeedbackResponse(feedback=feedback, suggestions=suggestions)
+    except Exception as e:
+        logging.error(f"Failed to generate AI feedback: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate AI feedback") 

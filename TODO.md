@@ -97,6 +97,35 @@
 ### Command UX (stretch)
 - `/ai-command`: One endpoint for command-palette prompts.
 
+### /user-insights
+
+#### Database Schema Updates
+- Add Context Information:
+  - Add a column to the tasks table to store the context of each task (e.g., Work, Study, Personal).
+  - Add a column to store the duration of each task.
+- Create a New Table (if needed):
+  - If tasks are not already stored in a table, create a new table to store task details, including task ID, user ID, context, duration, start time, and end time.
+
+#### Data Collection Logic
+- Aggregate Time Spent:
+  - Implement a function to calculate the total time spent in each context over a specified period.
+  - Use SQL queries to aggregate the data based on the context and time period.
+- Calculate Duration:
+  - Ensure that the duration of each task is calculated and stored in the database.
+  - This can be done by calculating the difference between the start time and end time of each task.
+
+#### Implementation Steps
+- Update Database Schema:
+  - Modify the existing tasks table or create a new table to include context and duration columns.
+- Implement Data Collection Logic:
+  - Write SQL queries or ORM methods to aggregate time spent in each context.
+  - Implement a function to calculate the total time spent in each context over a specified period.
+- Test the Implementation:
+  - Validate the accuracy of the aggregated data.
+  - Ensure that the duration calculations are correct.
+- Integrate with /user-insights Endpoint:
+  - Update the /user-insights endpoint to include time allocation data in the response.
+
 ---
 
 This checklist will help guide the development process, ensuring all necessary steps are completed efficiently. Each task should be checked off as it is completed to track progress. 
