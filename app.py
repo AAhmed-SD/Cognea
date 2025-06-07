@@ -1,12 +1,13 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from openai_integration import generate_text
 from fastapi.security.api_key import APIKeyHeader
-from slowapi import Limiter
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from fastapi.responses import StreamingResponse, JSONResponse
 import asyncio
 import functools
@@ -17,6 +18,8 @@ from logging.handlers import RotatingFileHandler
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from datetime import datetime, timedelta
+from slowapi.middleware import SlowAPIMiddleware
+from routes import generate
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,8 +27,11 @@ load_dotenv()
 # Retrieve the OpenAI API key from environment variables
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-# Initialize FastAPI app with rate limiting
-limiter = Limiter(key_func=get_remote_address)
+# Adjust rate limiting for testing
+if os.getenv('TESTING') == 'true':
+    limiter = Limiter(key_func=get_remote_address, default_limits=["1000/minute"])  # Increase limit for tests
+else:
+    limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])  # Set a global rate limit
 app = FastAPI(
     title="Cognie API",
     description="AI-powered productivity and scheduling assistant",
@@ -39,6 +45,7 @@ app = FastAPI(
         "name": "MIT",
         "url": "https://opensource.org/licenses/MIT",
     },
+    lifespan="on"
 )
 app.state.limiter = limiter
 
@@ -88,6 +95,13 @@ tasks = [
 calendar_events = []
 notifications = []
 settings = {}
+
+# Add SlowAPI middleware for rate limiting
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
+# Add versioning to all endpoints
+app.include_router(generate.router, prefix="/v1")
 
 @app.get("/")
 async def read_root():
@@ -278,8 +292,8 @@ async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None
 
 # Example of adding examples to a Pydantic model
 class TaskUpdate(BaseModel):
-    title: str = Field(..., example="Update notes for biology")
-    completed: bool = Field(..., example=True)
+    title: str = Field(..., json_schema_extra={"example": "Update notes for biology"})
+    completed: bool = Field(..., json_schema_extra={"example": True})
 
 # Custom exception handler for HTTPException
 @app.exception_handler(StarletteHTTPException)

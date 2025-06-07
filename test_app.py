@@ -11,7 +11,8 @@ def test_generate_text_endpoint():
             "prompt": "Hello, world!",
             "model": "gpt-3.5-turbo",
             "max_tokens": 50,
-            "temperature": 0.7
+            "temperature": 0.7,
+            "stop": ["\n"]
         },
         headers={"X-API-Key": "expected_api_key"}
     )
@@ -79,4 +80,41 @@ def test_generic_exception_handler():
     with patch("app.get_users", side_effect=Exception("Unexpected error")):
         response = client.get("/api/users")
         assert response.status_code == 500
-        assert response.json()["error"] == "Internal Server Error" 
+        assert response.json()["error"] == "Internal Server Error"
+
+# Load testing for /generate-text endpoint
+
+def test_generate_text_load():
+    for _ in range(100):  # Simulate 100 requests
+        response = client.post("/generate-text", json={
+            "prompt": "Test prompt",
+            "model": "text-davinci-003",
+            "max_tokens": 50,
+            "temperature": 0.7,
+            "stop": ["\n"]
+        })
+        assert response.status_code == 200
+
+# Load testing for /daily-brief endpoint
+
+def test_daily_brief_load():
+    for _ in range(100):  # Simulate 100 requests
+        response = client.post("/daily-brief", json={
+            "date": "2023-10-10",
+            "user_id": 1
+        })
+        assert response.status_code == 200
+
+# Load testing for /quiz-me endpoint
+
+def test_quiz_me_load():
+    for _ in range(100):  # Simulate 100 requests
+        response = client.post("/quiz-me", json={
+            "deck_id": 1
+        })
+        assert response.status_code == 200
+
+def test_load_example_endpoint():
+    for _ in range(100):  # Simulate 100 requests
+        response = client.post("/example-endpoint")
+        assert response.status_code == 200 

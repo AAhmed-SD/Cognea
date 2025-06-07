@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Header, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, Header, BackgroundTasks, Request
 from models.text import TextGenerationRequest, TextGenerationResponse
 from services.openai_integration import generate_openai_text
 import logging
@@ -11,41 +11,64 @@ import json
 import aioredis
 from services.review_engine import ReviewEngine
 from uuid import uuid4
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from starlette.responses import JSONResponse
 
 router = APIRouter()
 
 # Set up basic logging
 logging.basicConfig(level=logging.INFO)
 
+# Initialize the rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 # Placeholder for API key authentication
 async def api_key_auth(api_key: str = Header(...)):
     # Example logic to validate API key
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # Replace with your actual keys or fetch from a secure source
-    if api_key not in OPENAI_API_KEY:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Invalid API Key")
+    if api_key != OPENAI_API_KEY:
+        logging.warning("Invalid API Key")
+        raise HTTPException(status_code=403, detail="Not authenticated")
     return api_key
 
+# Initialize Redis client for caching
+async def get_redis_client():
+    return await aioredis.create_redis_pool("redis://localhost")
+
 @router.post("/generate-text", response_model=TextGenerationResponse, tags=["Text Generation"], summary="Generate text using OpenAI API")
-async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = Depends(api_key_auth)):
+@limiter.limit("5/minute")
+async def generate_text_endpoint(request: Request, request_data: TextGenerationRequest, api_key: str = Depends(api_key_auth)):
     try:
-        logging.debug(f"Received request: {request}")
+        redis = await get_redis_client()
+        cache_key = f"generate_text:{hash(request_data.prompt)}"
+        cached_response = await redis.get(cache_key)
+        if cached_response:
+            logging.info("Cache hit for text generation")
+            return json.loads(cached_response)
+
+        logging.debug(f"Received request: {request_data}")
         generated_text, total_tokens = generate_openai_text(
-            prompt=request.prompt,
-            model=request.model,
-            max_tokens=request.max_tokens,
-            temperature=request.temperature,
-            stop=request.stop
+            prompt=request_data.prompt,
+            model=request_data.model,
+            max_tokens=request_data.max_tokens,
+            temperature=request_data.temperature,
+            stop=request_data.stop
         )
         if "error" in generated_text:
             logging.warning(f"Error in text generation: {generated_text['error']}")
             raise HTTPException(status_code=500, detail=generated_text['error'])
         logging.info(f"Generated text: {generated_text['generated_text']}")
-        return TextGenerationResponse(
-            original_prompt=request.prompt,
-            model=request.model,
+        response = TextGenerationResponse(
+            original_prompt=request_data.prompt,
+            model=request_data.model,
             generated_text=generated_text['generated_text'],
             total_tokens=generated_text['total_tokens']
         )
+
+        # Cache the response
+        await redis.set(cache_key, json.dumps(response), expire=3600)  # Cache for 1 hour
+        return response
     except Exception as e:
         logging.error(f"Unhandled exception: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -63,11 +86,12 @@ async def process_daily_brief(date: str, user_id: int):
     return {"summary": f"Daily brief for user {user_id} on {date}"}
 
 @router.post("/daily-brief", summary="Generate Daily Brief", description="Generates a daily summary of tasks.")
-async def generate_daily_brief(request: DailyBriefRequest, background_tasks: BackgroundTasks):
+@limiter.limit("5/minute")
+async def generate_daily_brief(request: Request, request_data: DailyBriefRequest, background_tasks: BackgroundTasks):
     try:
         logging.info("Generating daily brief")
         # Add the task to be processed in the background
-        background_tasks.add_task(process_daily_brief, request.date, request.user_id)
+        background_tasks.add_task(process_daily_brief, request_data.date, request_data.user_id)
         return {"message": "Daily brief is being generated."}
     except Exception as e:
         logging.error(f"Error generating daily brief: {str(e)}")
@@ -90,10 +114,11 @@ async def generate_quiz_questions(deck_id: int):
     return questions
 
 @router.post("/quiz-me", summary="Generate Quiz Questions", description="Takes a deck ID and returns 3–5 questions from that deck to quiz the user.")
-async def quiz_me(request: QuizMeRequest):
+@limiter.limit("5/minute")
+async def quiz_me(request: Request, request_data: QuizMeRequest):
     try:
         logging.info("Generating quiz questions")
-        questions = await generate_quiz_questions(request.deck_id)
+        questions = await generate_quiz_questions(request_data.deck_id)
         return {"questions": questions}
     except Exception as e:
         logging.error(f"Error generating quiz questions: {str(e)}")
@@ -119,6 +144,7 @@ async def summarize_notes(notes: str, summary_type: str) -> str:
     return f"Summary ({summary_type}): {notes[:100]}..."
 
 @router.post("/summarize-notes", summary="Summarize Notes", description="Compress long notes into key takeaways.")
+@limiter.limit("5/minute")
 async def summarize_notes_endpoint(request: SummarizeNotesRequest):
     try:
         # Input size validation
@@ -159,6 +185,7 @@ async def suggest_reschedule_logic(request: SuggestRescheduleRequest) -> Resched
     return RescheduleSuggestion(suggested_time=suggested_time, reason=reason)
 
 @router.post("/suggest-reschedule", summary="Suggest Reschedule Time", description="Suggest an optimal new time for a missed or rescheduled task based on context.")
+@limiter.limit("5/minute")
 async def suggest_reschedule_endpoint(request: SuggestRescheduleRequest):
     try:
         logging.info(f"Received reschedule request for task: {request.task_title}")
@@ -198,10 +225,6 @@ async def generate_ai_prompt(text: str, goal_context: Optional[str] = None) -> s
     {f"Goal Context: {goal_context}" if goal_context else ""}
     """
     return prompt
-
-# Initialize Redis client within an async function
-async def get_redis_client():
-    return await aioredis.create_redis_pool("redis://localhost")
 
 @router.post("/extract-tasks-from-text", response_model=ExtractTasksResponse, summary="Extract structured tasks from messy notes", tags=["AI Tasks & Memory"])
 async def extract_tasks(request: ExtractTasksRequest):
@@ -491,6 +514,21 @@ async def read_flashcards(user_id: str):
     except Exception as e:
         logging.error(f"Failed to retrieve flashcards: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve flashcards")
+
+@router.get("/flashcards/{flashcard_id}", response_model=FlashcardResponse, tags=["Flashcards"], summary="Read a flashcard")
+async def read_flashcard(flashcard_id: str):
+    """
+    Retrieve a single flashcard by ID.
+    """
+    try:
+        logging.info(f"Retrieving flashcard {flashcard_id}")
+        flashcard = next((f for f in flashcards_db if f["flashcard_id"] == flashcard_id), None)
+        if not flashcard:
+            raise HTTPException(status_code=404, detail="Flashcard not found")
+        return flashcard
+    except Exception as e:
+        logging.error(f"Failed to retrieve flashcard: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve flashcard")
 
 @router.put("/flashcards/{flashcard_id}", response_model=FlashcardResponse, tags=["Flashcards"], summary="Update a flashcard")
 async def update_flashcard(flashcard_id: str, request: FlashcardRequest):
@@ -899,4 +937,22 @@ async def ai_command(request: AICommandRequest):
         return AICommandResponse(result=result)
     except Exception as e:
         logging.error(f"Failed to process AI command: {e}")
-        raise HTTPException(status_code=500, detail="Failed to process AI command") 
+        raise HTTPException(status_code=500, detail="Failed to process AI command")
+
+# Define a standardized error response model
+class ErrorResponse(BaseModel):
+    code: int
+    message: str
+
+# Example of using the standardized error response
+@router.post("/example-endpoint")
+@limiter.limit("5/minute")
+async def example_endpoint(request: Request):
+    try:
+        # Process request and generate response
+        response = {"data": "example"}
+        return response
+    except Exception as e:
+        logging.error(f"Error processing request: {str(e)}")
+        error_response = ErrorResponse(code=500, message="Internal Server Error")
+        return JSONResponse(status_code=500, content=error_response.dict()) 

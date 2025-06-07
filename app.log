@@ -1,0 +1,19 @@
+2025-06-07 10:50:51,996 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:50:52,202 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:50:52,370 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:51:35,644 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:51:35,864 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:51:36,039 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:51:56,293 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:51:56,493 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:51:56,667 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:53:43,568 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:53:43,812 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:53:43,992 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 10:55:11,658 - app - INFO - Application startup
+2025-06-07 10:55:44,792 - app - INFO - Application shutdown
+2025-06-07 10:55:45,352 - app - INFO - Application startup
+2025-06-07 10:55:45,867 - app - INFO - Application startup
+2025-06-07 10:55:50,719 - app - INFO - Application shutdown
+2025-06-07 10:55:51,246 - app - INFO - Application startup
+2025-06-07 10:55:59,532 - app - INFO - Application shutdown
