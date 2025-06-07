@@ -27,11 +27,9 @@ load_dotenv()
 # Retrieve the OpenAI API key from environment variables
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-# Adjust rate limiting for testing
-if os.getenv('TESTING') == 'true':
-    limiter = Limiter(key_func=get_remote_address, default_limits=["1000/minute"])  # Increase limit for tests
-else:
-    limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])  # Set a global rate limit
+# Environment variable toggle
+DISABLE_RATE_LIMIT = os.getenv("DISABLE_RATE_LIMIT", "false").lower() == "true"
+
 app = FastAPI(
     title="Cognie API",
     description="AI-powered productivity and scheduling assistant",
@@ -47,7 +45,6 @@ app = FastAPI(
     },
     lifespan="on"
 )
-app.state.limiter = limiter
 
 # API Key Security
 api_key_header = APIKeyHeader(name="X-API-Key")
@@ -96,42 +93,75 @@ calendar_events = []
 notifications = []
 settings = {}
 
-# Add SlowAPI middleware for rate limiting
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(SlowAPIMiddleware)
+if not DISABLE_RATE_LIMIT:
+    limiter = Limiter(key_func=get_remote_address)
+    app.state.limiter = limiter
 
-# Add versioning to all endpoints
-app.include_router(generate.router, prefix="/v1")
+    # Only attach middleware and handler if limiter is enabled
+    app.add_exception_handler(RateLimitExceeded, limiter._rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
+else:
+    app.state.limiter = None  # Prevents access errors
+
+# Define a decorator factory for conditional rate limiting
+def rate_limit_if_enabled(app, rate: str):
+    def decorator(func):
+        limiter = getattr(app.state, "limiter", None)
+        if limiter:
+            return limiter.limit(rate)(func)
+        return func
+    return decorator
 
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the FastAPI application!"}
 
 @app.get("/api/users", tags=["User Management"], summary="Get all users", description="Retrieve a list of all users.", responses={
-    200: {"description": "Successful retrieval of users"},
+    200: {"description": "Successful retrieval of users", "content": {"application/json": {"example": [{"id": 1, "name": "John Doe"}]}}},
     404: {"description": "Users not found"}
 })
 async def get_users():
+    cached_users = redis_client.get("users")
+    if cached_users:
+        return json.loads(cached_users)
+    if not users:
+        raise HTTPException(status_code=404, detail="No users found")
+    redis_client.setex("users", 3600, json.dumps(users))  # Cache for 1 hour
     return users
 
-@app.get("/api/users/{user_id}", tags=["User Management"], summary="Get a user by ID", description="Retrieve a user's details by their ID.")
+@app.get("/api/users/{user_id}", tags=["User Management"], summary="Get a user by ID", description="Retrieve a user's details by their ID.", responses={
+    200: {"description": "Successful retrieval of user", "content": {"application/json": {"example": {"id": 1, "name": "John Doe"}}}},
+    404: {"description": "User not found"}
+})
 async def get_user(user_id: int):
     user = next((user for user in users if user['id'] == user_id), None)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@app.put("/api/users/{user_id}")
+@app.put("/api/users/{user_id}", tags=["User Management"], summary="Update a user", description="Update a user's details by their ID.", responses={
+    200: {"description": "User updated successfully", "content": {"application/json": {"example": {"id": 1, "name": "John Doe"}}}},
+    404: {"description": "User not found"},
+    422: {"description": "Validation Error"}
+})
 async def update_user(user_id: int, user_data: dict):
     user = next((user for user in users if user['id'] == user_id), None)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
+    if not isinstance(user_data, dict) or not user_data.get('name'):
+        raise HTTPException(status_code=422, detail="Invalid user data")
     user.update(user_data)
     return user
 
-@app.delete("/api/users/{user_id}")
-async def delete_user(user_id: int):
+@app.delete("/api/users/{user_id}", tags=["User Management"], summary="Delete a user", description="Delete a user by their ID.", responses={
+    200: {"description": "User deleted successfully"},
+    404: {"description": "User not found"}
+})
+async def delete_user(user_id: int, api_key: str = Depends(get_api_key)):
     global users
+    user = next((user for user in users if user['id'] == user_id), None)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
     users = [user for user in users if user['id'] != user_id]
     return {"message": "User deleted"}
 
@@ -139,8 +169,14 @@ async def delete_user(user_id: int):
 async def get_calendar_events():
     return calendar_events
 
-@app.post("/api/calendar/events")
+@app.post("/api/calendar/events", tags=["Calendar"], summary="Create a calendar event", description="Create a new calendar event.", responses={
+    200: {"description": "Event created successfully", "content": {"application/json": {"example": {"id": 1, "title": "Meeting", "date": "2023-10-10"}}}},
+    422: {"description": "Validation Error"}
+})
 async def create_calendar_event(event: dict):
+    if not isinstance(event, dict) or not event.get('title') or not event.get('date'):
+        raise HTTPException(status_code=422, detail="Invalid event data")
+    event['id'] = len(calendar_events) + 1
     calendar_events.append(event)
     return event
 
@@ -220,7 +256,7 @@ async def shutdown_event():
     logger.info("Application shutdown")
 
 @app.post("/generate-text", response_model=TextGenerationResponse, tags=["AI"], summary="Generate text using GPT", description="Generate text using OpenAI's GPT model based on the provided prompt.")
-@limiter.limit("5/minute")  # Rate limiting
+@rate_limit_if_enabled(app, "5/minute")  # Rate limiting
 async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = Depends(get_api_key)):
     try:
         logger.info(f"Received request for model: {request.model} with prompt: {request.prompt}")

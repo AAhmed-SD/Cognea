@@ -17,3 +17,16 @@
 2025-06-07 10:55:50,719 - app - INFO - Application shutdown
 2025-06-07 10:55:51,246 - app - INFO - Application startup
 2025-06-07 10:55:59,532 - app - INFO - Application shutdown
+2025-06-07 11:25:45,808 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 11:27:33,823 - app - ERROR - Unexpected error: 'State' object has no attribute 'limiter'
+2025-06-07 11:33:55,109 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 11:36:46,347 - app - ERROR - Error processing request: OpenAI error: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
