@@ -684,6 +684,37 @@ async def analyze_user_data(user_id: str) -> dict:
         ]
     }
 
+# Simulate a database for feedback history
+feedback_history_db = []
+
+# Function to log feedback
+async def log_feedback(user_id: str, feedback: str, suggestions: List[str]):
+    feedback_entry = {
+        "user_id": user_id,
+        "feedback": feedback,
+        "suggestions": suggestions,
+        "timestamp": datetime.now(),
+        "acknowledgment_status": False
+    }
+    feedback_history_db.append(feedback_entry)
+
+# Define the response model for feedback history
+class FeedbackHistoryResponse(BaseModel):
+    feedback_history: List[dict]
+
+@router.get("/ai-feedback/history", response_model=FeedbackHistoryResponse, tags=["Insights"], summary="Get feedback history")
+async def get_feedback_history(user_id: str):
+    """
+    Retrieve feedback history for a user.
+    """
+    try:
+        logging.info(f"Retrieving feedback history for user {user_id}")
+        user_feedback_history = [entry for entry in feedback_history_db if entry["user_id"] == user_id]
+        return FeedbackHistoryResponse(feedback_history=user_feedback_history)
+    except Exception as e:
+        logging.error(f"Failed to retrieve feedback history: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve feedback history")
+
 @router.post("/ai-feedback", response_model=AIFeedbackResponse, tags=["Insights"], summary="Get AI-generated feedback for the week")
 async def ai_feedback(request: AIFeedbackRequest, api_key: str = Depends(api_key_auth)):
     """
@@ -702,6 +733,9 @@ async def ai_feedback(request: AIFeedbackRequest, api_key: str = Depends(api_key
         # Simulate AI feedback generation
         feedback = "You have been consistent with your tasks this week. Keep up the good work!"
         suggestions = analysis["actionable_steps"]
+
+        # Log feedback
+        await log_feedback(request.user_id, feedback, suggestions)
 
         return AIFeedbackResponse(feedback=feedback, suggestions=suggestions)
     except Exception as e:
