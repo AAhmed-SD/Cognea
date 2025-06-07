@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import json
 import aioredis
 from services.review_engine import ReviewEngine
+from uuid import uuid4
 
 router = APIRouter()
 
@@ -764,4 +765,67 @@ async def set_user_settings(request: UserSettingsRequest):
         return UserSettingsResponse(message="User settings updated successfully")
     except Exception as e:
         logging.error(f"Failed to set user settings: {e}")
-        raise HTTPException(status_code=500, detail="Failed to set user settings") 
+        raise HTTPException(status_code=500, detail="Failed to set user settings")
+
+# Define the Pydantic model for notifications
+class Notification(BaseModel):
+    id: str
+    user_id: str
+    title: str
+    message: str
+    send_time: datetime
+    type: str = "reminder"
+    is_sent: bool = False
+    is_read: bool = False
+
+# In-memory storage for notifications
+notifications = []
+
+# POST /notifications: create a new notification
+@router.post("/notifications", tags=["Notifications"], summary="Create a new notification")
+async def create_notification(notification: Notification):
+    try:
+        notification.id = str(uuid4())  # Generate a unique ID
+        notifications.append(notification)
+        logging.info(f"Notification created: {notification}")
+        return {"message": "Notification created successfully", "notification": notification}
+    except Exception as e:
+        logging.error(f"Error creating notification: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create notification")
+
+# GET /notifications?user_id=...: get all notifications for a user
+@router.get("/notifications", tags=["Notifications"], summary="Get all notifications for a user")
+async def get_notifications(user_id: str):
+    try:
+        user_notifications = [n for n in notifications if n.user_id == user_id]
+        logging.info(f"Retrieved notifications for user {user_id}")
+        return {"notifications": user_notifications}
+    except Exception as e:
+        logging.error(f"Error retrieving notifications: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve notifications")
+
+# PUT /notifications/{notification_id}: update an existing notification
+@router.put("/notifications/{notification_id}", tags=["Notifications"], summary="Update an existing notification")
+async def update_notification(notification_id: str, updated_notification: Notification):
+    try:
+        for i, n in enumerate(notifications):
+            if n.id == notification_id:
+                notifications[i] = updated_notification
+                logging.info(f"Notification updated: {updated_notification}")
+                return {"message": "Notification updated successfully", "notification": updated_notification}
+        raise HTTPException(status_code=404, detail="Notification not found")
+    except Exception as e:
+        logging.error(f"Error updating notification: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update notification")
+
+# DELETE /notifications/{notification_id}: delete a notification
+@router.delete("/notifications/{notification_id}", tags=["Notifications"], summary="Delete a notification")
+async def delete_notification(notification_id: str):
+    try:
+        global notifications
+        notifications = [n for n in notifications if n.id != notification_id]
+        logging.info(f"Notification deleted: {notification_id}")
+        return {"message": "Notification deleted successfully"}
+    except Exception as e:
+        logging.error(f"Error deleting notification: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete notification") 
