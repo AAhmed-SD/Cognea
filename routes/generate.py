@@ -665,20 +665,44 @@ class AIFeedbackResponse(BaseModel):
     feedback: str
     suggestions: List[str]
 
+# Simulate a function to fetch user preferences
+async def get_user_preferences(user_id: str) -> dict:
+    # Placeholder logic to fetch user preferences
+    return {
+        "feedback_topics": ["productivity", "learning progress"],
+        "feedback_frequency": "weekly"
+    }
+
+# Simulate an analysis module
+async def analyze_user_data(user_id: str) -> dict:
+    # Placeholder logic to analyze user data
+    return {
+        "areas_for_improvement": ["Improve time management", "Focus on deep work"],
+        "actionable_steps": [
+            "Set specific goals for each day",
+            "Limit distractions during work hours"
+        ]
+    }
+
 @router.post("/ai-feedback", response_model=AIFeedbackResponse, tags=["Insights"], summary="Get AI-generated feedback for the week")
-async def ai_feedback(request: AIFeedbackRequest):
+async def ai_feedback(request: AIFeedbackRequest, api_key: str = Depends(api_key_auth)):
     """
     Provide AI-generated feedback and suggestions based on the user's weekly activities.
     """
     try:
         logging.info(f"Generating AI feedback for user {request.user_id}")
+        # Fetch user preferences
+        preferences = await get_user_preferences(request.user_id)
+        logging.info(f"User preferences: {preferences}")
+
+        # Analyze user data
+        analysis = await analyze_user_data(request.user_id)
+        logging.info(f"Analysis results: {analysis}")
+
         # Simulate AI feedback generation
         feedback = "You have been consistent with your tasks this week. Keep up the good work!"
-        suggestions = [
-            "Try to focus more on your morning routine.",
-            "Consider setting aside time for reflection at the end of each day.",
-            "Balance your workload by scheduling breaks.",
-        ]
+        suggestions = analysis["actionable_steps"]
+
         return AIFeedbackResponse(feedback=feedback, suggestions=suggestions)
     except Exception as e:
         logging.error(f"Failed to generate AI feedback: {e}")
