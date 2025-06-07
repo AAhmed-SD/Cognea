@@ -767,7 +767,7 @@ async def set_user_settings(request: UserSettingsRequest):
         logging.error(f"Failed to set user settings: {e}")
         raise HTTPException(status_code=500, detail="Failed to set user settings")
 
-# Define the Pydantic model for notifications
+# Update the Pydantic model for notifications
 class Notification(BaseModel):
     id: str
     user_id: str
@@ -777,6 +777,8 @@ class Notification(BaseModel):
     type: str = "reminder"
     is_sent: bool = False
     is_read: bool = False
+    repeat_interval: Optional[str] = None  # daily, weekly, custom
+    category: Optional[str] = "task"  # task, goal, system, alert
 
 # In-memory storage for notifications
 notifications = []
@@ -828,4 +830,73 @@ async def delete_notification(notification_id: str):
         return {"message": "Notification deleted successfully"}
     except Exception as e:
         logging.error(f"Error deleting notification: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to delete notification") 
+        raise HTTPException(status_code=500, detail="Failed to delete notification")
+
+# Add support for marking a notification as read
+@router.put("/notifications/{notification_id}/read", tags=["Notifications"], summary="Mark a notification as read")
+async def mark_notification_as_read(notification_id: str):
+    try:
+        for notification in notifications:
+            if notification.id == notification_id:
+                notification.is_read = True
+                logging.info(f"Notification marked as read: {notification_id}")
+                return {"message": "Notification marked as read"}
+        raise HTTPException(status_code=404, detail="Notification not found")
+    except Exception as e:
+        logging.error(f"Error marking notification as read: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to mark notification as read")
+
+# Add endpoint to get unread notification count
+@router.get("/notifications/unread-count", tags=["Notifications"], summary="Get unread notification count")
+async def get_unread_notification_count(user_id: str):
+    try:
+        unread_count = sum(1 for n in notifications if n.user_id == user_id and not n.is_read)
+        logging.info(f"Unread notification count for user {user_id}: {unread_count}")
+        return {"unread_count": unread_count}
+    except Exception as e:
+        logging.error(f"Error retrieving unread notification count: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve unread notification count")
+
+@router.post("/notion-sync", summary="Sync notes and tasks from/to Notion")
+async def notion_sync(user_id: str):
+    # Placeholder for the actual Notion sync logic
+    logging.info(f"Syncing notes and tasks for user {user_id}")
+    # Simulate sync process
+    return {"message": "Notes and tasks synced successfully"}
+
+@router.post("/notion-sync", summary="Sync notes and tasks from/to Notion")
+async def notion_sync(user_id: str):
+    # Placeholder for the actual Notion sync logic
+    logging.info(f"Syncing notes and tasks for user {user_id}")
+    # Simulate sync process
+    return {"message": "Notes and tasks synced successfully"}
+
+# Define the request model for AI command
+class AICommandRequest(BaseModel):
+    command: str
+    context: Optional[dict] = None
+
+# Define the response model for AI command
+class AICommandResponse(BaseModel):
+    result: dict
+
+@router.post("/ai-command", response_model=AICommandResponse, tags=["AI Command"], summary="Handle command-palette input")
+async def ai_command(request: AICommandRequest):
+    """
+    Process a command-palette input and route to the appropriate function.
+    """
+    try:
+        logging.info(f"Processing AI command: {request.command}")
+        # Simulate OpenAI call to parse intent
+        # This is a placeholder for actual OpenAI integration
+        if "summarize" in request.command:
+            result = {"action": "summarize_notes", "details": "Summarizing notes..."}
+        elif "create flashcards" in request.command:
+            result = {"action": "create_flashcards", "details": "Creating flashcards..."}
+        else:
+            result = {"action": "unknown", "details": "Command not recognized."}
+
+        return AICommandResponse(result=result)
+    except Exception as e:
+        logging.error(f"Failed to process AI command: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process AI command") 
