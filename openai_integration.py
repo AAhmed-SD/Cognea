@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-import openai
+from openai import OpenAI
 
 # Load environment variables from .env file
 load_dotenv()
@@ -14,8 +14,11 @@ if OPENAI_API_KEY:
 else:
     print("Error: OpenAI API key not found. Please check your .env file.")
 
+# Verify the API key
+print(f"Using OpenAI API Key: {OPENAI_API_KEY}")
+
 # Initialize OpenAI API client
-openai.api_key = OPENAI_API_KEY
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 def generate_text(prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7, stop=None):
     """
@@ -29,7 +32,7 @@ def generate_text(prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7
     :return: Generated text or an error message.
     """
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=model,
             messages=[
                 {"role": "system", "content": "You are a helpful productivity assistant."},
@@ -40,8 +43,8 @@ def generate_text(prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7
             stop=stop,
             n=1
         )
-        generated_text = response.choices[0].message['content'].strip()
-        total_tokens = response['usage']['total_tokens']
+        generated_text = response.choices[0].message.content.strip()
+        total_tokens = response.usage.total_tokens
         return generated_text, total_tokens
     except Exception as e:
         raise ValueError(f"OpenAI error: {str(e)}")

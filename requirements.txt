@@ -90,7 +90,7 @@ mypy-extensions==1.0.0
 numpy==2.2.6
 obs-websocket-py==0.5.3
 obswebsocket-trio==0.1.1.post2
-openai==1.78.0
+openai==0.28
 orjson==3.10.16
 outcome==1.1.0
 packageurl-python==0.16.0

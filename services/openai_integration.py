@@ -16,7 +16,7 @@ else:
     print("Error: OpenAI API key not found. Please check your .env file.")
 
 # Initialize OpenAI API client
-openai.api_key = "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"
+openai.api_key = OPENAI_API_KEY
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))

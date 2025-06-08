@@ -20,6 +20,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from datetime import datetime, timedelta
 from slowapi.middleware import SlowAPIMiddleware
 from routes import generate
+import slowapi.util
+from starlette.requests import Request
+from handlers import custom_rate_limit_exceeded_handler
 
 # Load environment variables from .env file
 load_dotenv()
@@ -27,8 +30,8 @@ load_dotenv()
 # Retrieve the OpenAI API key from environment variables
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-# Environment variable toggle
-DISABLE_RATE_LIMIT = os.getenv("DISABLE_RATE_LIMIT", "false").lower() == "true"
+# Ensure rate limiting is disabled during tests
+DISABLE_RATE_LIMIT = os.getenv('TEST_ENV', 'false').lower() == 'true'
 
 app = FastAPI(
     title="Cognie API",
@@ -93,15 +96,24 @@ calendar_events = []
 notifications = []
 settings = {}
 
-if not DISABLE_RATE_LIMIT:
+# Function to initialize middleware
+async def initialize_middleware(app):
+    if app.state.limiter is not None:
+        app.add_middleware(SlowAPIMiddleware)
+
+# Check if rate limiting should be disabled
+if os.getenv('DISABLE_RATE_LIMIT', 'false').lower() == 'true':
+    app.state.limiter = None
+else:
     limiter = Limiter(key_func=get_remote_address)
     app.state.limiter = limiter
-
-    # Only attach middleware and handler if limiter is enabled
-    app.add_exception_handler(RateLimitExceeded, limiter._rate_limit_exceeded_handler)
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)
-else:
-    app.state.limiter = None  # Prevents access errors
+
+# Conditionally register middleware and exception handlers
+if app.state.limiter:
+    app.add_exception_handler(RateLimitExceeded, custom_rate_limit_exceeded_handler)
+    initialize_middleware(app)
 
 # Define a decorator factory for conditional rate limiting
 def rate_limit_if_enabled(app, rate: str):
@@ -257,16 +269,23 @@ async def shutdown_event():
 
 @app.post("/generate-text", response_model=TextGenerationResponse, tags=["AI"], summary="Generate text using GPT", description="Generate text using OpenAI's GPT model based on the provided prompt.")
 @rate_limit_if_enabled(app, "5/minute")  # Rate limiting
-async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = Depends(get_api_key)):
+async def generate_text_endpoint(request: Request, api_key: str = Depends(get_api_key)):
     try:
-        logger.info(f"Received request for model: {request.model} with prompt: {request.prompt}")
+        request_data = await request.json()  # Parse the request body
+        model = request_data.get("model")
+        prompt = request_data.get("prompt")
+        max_tokens = request_data.get("max_tokens")
+        temperature = request_data.get("temperature")
+        stop = request_data.get("stop")
+
+        logger.info(f"Received request for model: {model} with prompt: {prompt}")
         # Validate model
-        if request.model not in supported_models:
+        if model not in supported_models:
             raise HTTPException(status_code=400, detail="Unsupported model")
 
         # Normalize prompt
-        normalized_prompt = request.prompt.strip().lower()
-        cache_key = f"{request.model}:{normalized_prompt}"
+        normalized_prompt = prompt.strip().lower()
+        cache_key = f"{model}:{normalized_prompt}"
         cached_response = redis_client.get(cache_key)
         if cached_response:
             logger.info("Cache hit")
@@ -274,18 +293,19 @@ async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = 
 
         # Asynchronous OpenAI call
         loop = asyncio.get_event_loop()
+        logger.info("Attempting to call OpenAI API")
         result, total_tokens = await loop.run_in_executor(None, functools.partial(generate_text,
             prompt=normalized_prompt,
-            model=request.model,
-            max_tokens=request.max_tokens,
-            temperature=request.temperature,
-            stop=request.stop
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stop=stop
         ))
 
         # Cache the response
         response_data = TextGenerationResponse(
-            original_prompt=request.prompt,
-            model=request.model,
+            original_prompt=prompt,
+            model=model,
             generated_text=result,
             total_tokens=total_tokens
         )
@@ -295,10 +315,18 @@ async def generate_text_endpoint(request: TextGenerationRequest, api_key: str = 
 
         # Return a structured response
         return response_data
+    except HTTPException as e:
+        logger.error(f"HTTP error: {str(e)}")
+        raise e
     except ValueError as e:
         logger.error(f"Error processing request: {str(e)}")
         error_response = ErrorResponse(error="OpenAI API Error", detail=str(e))
-        return JSONResponse(status_code=500, content=error_response.dict())
+        return JSONResponse(status_code=400, content=error_response.dict())
+    except Exception as e:
+        logger.error("🔥 Exception raised during OpenAI API call")
+        logger.error(f"OpenAI API Error: {str(e)}")
+        error_response = ErrorResponse(error="OpenAI API Error", detail="AI service temporarily unavailable")
+        return JSONResponse(status_code=503, content=error_response.dict())
 
 # Streaming Response Example
 async def stream_data():
@@ -349,20 +377,20 @@ async def validation_exception_handler(request, exc):
 
 # Custom exception handler for generic exceptions
 @app.exception_handler(Exception)
-async def generic_exception_handler(request, exc):
+async def custom_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unexpected error: {exc}")
     return JSONResponse(
         status_code=500,
-        content={"error": "Internal Server Error", "detail": "An unexpected error occurred."},
+        content={"message": "An unexpected error occurred."},
     )
 
 @app.get("/daily-brief", tags=["AI"], summary="Generate a daily brief", description="Generate a daily summary of tasks, priorities, missed tasks, and a reflection.")
 async def daily_brief():
     today = datetime.now().date()
     # Example logic for generating a daily brief
-    completed_tasks = [task for task in tasks if task['completed']]
-    pending_tasks = [task for task in tasks if not task['completed']]
-    missed_tasks = [task for task in tasks if not task['completed'] and task.get('due_date') and task['due_date'] < today]
+    completed_tasks = [task for task in tasks if task.get('completed', False)]
+    pending_tasks = [task for task in tasks if not task.get('completed', False)]
+    missed_tasks = [task for task in tasks if not task.get('completed', False) and task.get('due_date') and task['due_date'] < today]
     reflection = "Reflect on your day: What went well? What could be improved?"
 
     return {
@@ -371,4 +399,25 @@ async def daily_brief():
         "pending_tasks": pending_tasks,
         "missed_tasks": missed_tasks,
         "reflection": reflection
-    } 
+    }
+
+# Include the generate router to access /quiz-me endpoint
+app.include_router(generate.router)
+
+# Custom rate limit exceeded handler
+async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Rate limit exceeded. Please slow down."}
+    )
+
+@app.post("/simulate-openai-failure")
+async def simulate_openai_failure():
+    raise HTTPException(status_code=503, detail="OpenAI is currently unavailable")
+
+@app.get("/force-error")
+async def force_error():
+    raise Exception("Simulated error")
+
+# Ensure the generic exception handler is registered
+app.add_exception_handler(Exception, custom_exception_handler) 

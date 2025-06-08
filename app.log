@@ -30,3 +30,317 @@ Alternatively, you can pin your installation to the old version, e.g. `pip insta
 
 A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
 
+2025-06-07 11:52:44,712 - app - ERROR - Error processing request: OpenAI error: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-06-07 11:55:29,592 - app - ERROR - Error processing request: OpenAI error: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-06-07 12:02:37,147 - app - ERROR - Error processing request: OpenAI error: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-06-07 12:02:49,480 - app - ERROR - Error processing request: OpenAI error: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************lTUA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+2025-06-07 12:04:50,025 - app - ERROR - Error processing request: OpenAI error: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************lTUA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+2025-06-07 12:23:02,125 - app - ERROR - Error processing request: OpenAI error: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-06-07 12:26:49,392 - app - ERROR - Error processing request: OpenAI error: 'ChatCompletionMessage' object is not subscriptable
+2025-06-07 12:29:51,194 - app - ERROR - Unexpected error: 'completed'
+2025-06-07 12:30:11,140 - app - ERROR - Unexpected error: 'completed'
+2025-06-07 12:30:29,195 - app - ERROR - Unexpected error: 'completed'
+2025-06-07 12:43:49,459 - app - ERROR - OpenAI API Error: 400: Unsupported model
+2025-06-07 12:44:03,158 - app - ERROR - OpenAI API Error: 400: Unsupported model
+2025-06-07 12:44:19,083 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 12:44:50,722 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 16:21:40,626 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:21:40,936 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:21:41,123 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:21:41,356 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:22:05,088 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 16:22:38,325 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:22:38,565 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:22:38,742 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:22:38,993 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:01,113 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:01,351 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:01,533 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:01,785 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:22,201 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:22,437 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:22,625 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:22,873 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:45,379 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:45,612 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:45,791 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:23:46,045 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:44:18,305 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:44:18,539 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:44:18,718 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 16:44:18,976 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 17:03:55,294 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 17:03:55,519 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 17:03:55,704 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 17:03:55,895 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 17:04:38,764 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 17:04:38,997 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 17:04:39,188 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 17:04:39,382 - app - ERROR - Unexpected error: parameter `request` must be an instance of starlette.requests.Request
+2025-06-07 17:05:22,463 - app - ERROR - 🔥 Exception raised during OpenAI API call
+2025-06-07 17:05:22,463 - app - ERROR - OpenAI API Error: 'Request' object has no attribute 'model'
+2025-06-07 17:05:22,503 - app - ERROR - 🔥 Exception raised during OpenAI API call
+2025-06-07 17:05:22,504 - app - ERROR - OpenAI API Error: 'Request' object has no attribute 'model'
+2025-06-07 17:05:22,511 - app - ERROR - 🔥 Exception raised during OpenAI API call
+2025-06-07 17:05:22,511 - app - ERROR - OpenAI API Error: 'Request' object has no attribute 'model'
+2025-06-07 17:05:22,524 - app - ERROR - 🔥 Exception raised during OpenAI API call
+2025-06-07 17:05:22,524 - app - ERROR - OpenAI API Error: 'Request' object has no attribute 'model'
+2025-06-07 17:05:53,018 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:06:28,169 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:07:17,821 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:07:42,594 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:28:46,084 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:29:09,399 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:29:37,802 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:29:59,822 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:30:18,410 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:30:40,799 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:31:16,124 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:31:38,368 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:31:56,568 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:32:16,546 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:32:37,708 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:32:57,028 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:33:19,331 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:38:51,775 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:39:21,726 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:39:47,151 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:40:16,830 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-07 17:41:12,972 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:13,129 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:13,247 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:13,362 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:13,479 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:13,644 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:13,758 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:13,872 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:13,991 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:14,104 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:39,817 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:39,974 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:40,085 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:40,196 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:40,307 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:40,415 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:40,573 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:40,697 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:40,815 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:40,938 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:52,914 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:53,065 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:53,176 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:53,285 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:53,398 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:53,510 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:53,658 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:53,773 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:53,883 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-07 17:41:53,993 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:13,185 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:13,332 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:13,439 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:13,543 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:13,649 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:13,783 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:13,888 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:13,996 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:14,105 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:14,208 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:27,439 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:27,587 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:27,690 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:27,795 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:27,902 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:28,006 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:28,141 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:28,249 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:28,355 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:28,460 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:43,890 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:44,038 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:44,143 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:44,248 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:44,354 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:44,457 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:44,583 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:44,692 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:44,795 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:27:44,899 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:00,147 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:00,399 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:00,578 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:00,715 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:00,877 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:01,066 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:01,258 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:01,382 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:01,510 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 13:31:01,642 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:41,658 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:41,821 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:41,935 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:42,043 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:42,213 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:42,328 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:42,438 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:42,551 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:42,666 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:09:42,776 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:12,743 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:12,915 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:13,027 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:13,137 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:13,302 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:13,419 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:13,527 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:13,642 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:13,757 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:13,864 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:26,503 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:26,679 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:26,790 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:26,903 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:27,068 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:27,189 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:27,302 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:27,417 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:27,530 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:27,639 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:41,177 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:41,374 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:41,521 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:41,653 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:41,879 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:42,023 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:42,155 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:42,293 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:42,434 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:42,563 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:56,981 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:57,175 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:57,300 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:57,421 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:57,607 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:57,729 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:57,846 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:57,970 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:58,092 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:10:58,207 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:13,469 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:13,650 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:13,777 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:13,890 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:14,048 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:14,168 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:14,281 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:14,400 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:14,521 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:14,632 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:28,110 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:28,281 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:28,403 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:28,518 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:28,695 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:28,813 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:28,930 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:29,046 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:29,163 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:29,273 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:42,236 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:42,396 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:42,510 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:42,619 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:42,793 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:42,909 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:43,024 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:43,139 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:43,258 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:43,368 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:56,511 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:56,709 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:56,832 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:56,941 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:57,155 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:57,322 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:57,461 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:57,587 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:57,718 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:11:57,841 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:10,694 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:10,864 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:10,979 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:11,090 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:11,254 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:11,378 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:11,489 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:11,603 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:11,721 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:11,833 - app - ERROR - Unexpected error: 'NoneType' object has no attribute 'enabled'
+2025-06-08 19:12:39,990 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:12:40,777 - app - ERROR - Unexpected error: 'NoneType' object has no attribute '_inject_headers'
+2025-06-08 19:12:41,114 - app - ERROR - Unexpected error: 'NoneType' object has no attribute '_inject_headers'
+2025-06-08 19:13:00,161 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:13:00,234 - app - ERROR - Unexpected error: 'NoneType' object has no attribute '_inject_headers'
+2025-06-08 19:13:00,548 - app - ERROR - Unexpected error: 'NoneType' object has no attribute '_inject_headers'
+2025-06-08 19:13:14,100 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:13:27,006 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:13:39,555 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:33:47,235 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:34:06,693 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:35:09,468 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:35:36,300 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:38:14,857 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:39:48,595 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:41:27,732 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:41:48,009 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:43:18,788 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:46:35,514 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:47:21,122 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:47:21,132 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 19:48:37,093 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:48:37,099 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 19:55:53,465 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 19:55:53,478 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 20:21:29,895 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 20:21:29,909 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 20:30:13,699 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 20:30:13,706 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 20:31:20,149 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 20:31:20,161 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 20:54:51,415 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 20:54:51,421 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 20:56:06,748 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 20:56:06,755 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 21:41:51,169 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 21:41:51,182 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 21:48:12,314 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 21:48:12,322 - app - ERROR - Unexpected error: Unexpected error
+2025-06-08 21:51:01,392 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-08 21:51:01,399 - app - ERROR - Unexpected error: Simulated error
