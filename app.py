@@ -23,6 +23,7 @@ from routes import generate
 import slowapi.util
 from starlette.requests import Request
 from handlers import custom_rate_limit_exceeded_handler
+from contextlib import asynccontextmanager
 
 # Load environment variables from .env file
 load_dotenv()
@@ -32,6 +33,19 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 # Ensure rate limiting is disabled during tests
 DISABLE_RATE_LIMIT = os.getenv('TEST_ENV', 'false').lower() == 'true'
+
+# Debug print to confirm the value of DISABLE_RATE_LIMIT
+# print("🔧 DISABLE_RATE_LIMIT:", DISABLE_RATE_LIMIT)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup event
+    logger.info("Application startup")
+    if not OPENAI_API_KEY:
+        raise RuntimeError("Missing OpenAI API key")
+    yield
+    # Shutdown event
+    logger.info("Application shutdown")
 
 app = FastAPI(
     title="Cognie API",
@@ -46,7 +60,7 @@ app = FastAPI(
         "name": "MIT",
         "url": "https://opensource.org/licenses/MIT",
     },
-    lifespan="on"
+    lifespan=lifespan
 )
 
 # API Key Security
@@ -118,6 +132,9 @@ if app.state.limiter:
 # Define a decorator factory for conditional rate limiting
 def rate_limit_if_enabled(app, rate: str):
     def decorator(func):
+        # Check if rate limiting is disabled
+        if os.getenv('DISABLE_RATE_LIMIT', 'false').lower() == 'true':
+            return func
         limiter = getattr(app.state, "limiter", None)
         if limiter:
             return limiter.limit(rate)(func)
@@ -215,11 +232,11 @@ async def create_notification(notification: dict):
     notifications.append(notification)
     return notification
 
-@app.delete("/api/notifications/{notification_id}")
-async def delete_notification(notification_id: int):
-    global notifications
-    notifications = [notification for notification in notifications if notification['id'] != notification_id]
-    return {"message": "Notification deleted"}
+# @app.delete("/api/notifications/{notification_id}")
+# async def delete_notification(notification_id: int):
+#     global notifications
+#     notifications = [notification for notification in notifications if notification['id'] != notification_id]
+#     return {"message": "Notification deleted"}
 
 @app.get("/api/settings")
 async def get_settings():
@@ -257,15 +274,18 @@ async def delete_task(task_id: int):
 # Model Validation
 supported_models = ["gpt-3.5-turbo", "gpt-4"]
 
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Application startup")
-    if not OPENAI_API_KEY:
-        raise RuntimeError("Missing OpenAI API key")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("Application shutdown")
+@app.middleware("http")
+async def lifespan_middleware(request: Request, call_next):
+    if request.scope["type"] == "lifespan":
+        if request.scope["asgi"]["spec_version"] == "2.0":
+            if request.scope["lifespan"]["type"] == "startup":
+                logger.info("Application startup")
+                if not OPENAI_API_KEY:
+                    raise RuntimeError("Missing OpenAI API key")
+            elif request.scope["lifespan"]["type"] == "shutdown":
+                logger.info("Application shutdown")
+    response = await call_next(request)
+    return response
 
 @app.post("/generate-text", response_model=TextGenerationResponse, tags=["AI"], summary="Generate text using GPT", description="Generate text using OpenAI's GPT model based on the provided prompt.")
 @rate_limit_if_enabled(app, "5/minute")  # Rate limiting
@@ -337,22 +357,19 @@ async def stream_data():
 async def get_stream():
     return StreamingResponse(stream_data(), media_type="application/octet-stream")
 
-@app.post("/generate-flashcards", tags=["AI"], summary="Generate flashcards from notes", description="Turn raw notes or textbook content into flashcards.")
-async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None):
-    try:
-        # Example logic to generate flashcards
-        # This should be replaced with actual logic using OpenAI or another service
-        flashcards = []
-        for note in notes.split("\n"):
-            question = f"What is the key point of: {note}?"
-            answer = note  # Simplified example
-            flashcards.append({"question": question, "answer": answer})
-
-        return {"flashcards": flashcards}
-    except Exception as e:
-        logger.error(f"Error generating flashcards: {str(e)}")
-        error_response = ErrorResponse(error="Flashcard Generation Error", detail=str(e))
-        return JSONResponse(status_code=500, content=error_response.dict())
+# @app.post("/generate-flashcards", tags=["AI"], summary="Generate flashcards from notes", description="Turn raw notes or textbook content into flashcards.")
+# async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None):
+#     try:
+#         flashcards = []
+#         for note in notes.split("\n"):
+#             question = f"What is the key point of: {note}?"
+#             answer = note
+#             flashcards.append({"question": question, "answer": answer})
+#         return {"flashcards": flashcards}
+#     except Exception as e:
+#         logger.error(f"Error generating flashcards: {str(e)}")
+#         error_response = ErrorResponse(error="Flashcard Generation Error", detail=str(e))
+#         return JSONResponse(status_code=500, content=error_response.dict())
 
 # Example of adding examples to a Pydantic model
 class TaskUpdate(BaseModel):
@@ -417,7 +434,7 @@ async def simulate_openai_failure():
 
 @app.get("/force-error")
 async def force_error():
-    raise Exception("Simulated error")
+    raise Exception("Simulated error for testing error handling")
 
 # Ensure the generic exception handler is registered
 app.add_exception_handler(Exception, custom_exception_handler) 

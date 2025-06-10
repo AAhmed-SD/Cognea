@@ -9,6 +9,9 @@ load_dotenv()
 # Retrieve the OpenAI API key from environment variables
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
+# Debug print to verify API key loading
+print("🔑 Loaded OpenAI key:", repr(OPENAI_API_KEY))
+
 # Check if the API key is loaded
 if OPENAI_API_KEY:
     print("OpenAI API key loaded successfully.")
@@ -18,6 +21,8 @@ else:
 # Initialize OpenAI API client
 openai.api_key = OPENAI_API_KEY
 
+# Debug print to confirm API key is set
+print("🔑 OpenAI API key set:", repr(openai.api_key))
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def generate_openai_text(prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7, stop=None):

@@ -344,3 +344,84 @@ A detailed migration guide is available here: https://github.com/openai/openai-p
 2025-06-08 21:48:12,322 - app - ERROR - Unexpected error: Unexpected error
 2025-06-08 21:51:01,392 - app - ERROR - HTTP error: 400: Unsupported model
 2025-06-08 21:51:01,399 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 17:36:59,676 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 17:36:59,683 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 19:16:56,447 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 19:16:56,453 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 19:29:32,408 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 19:29:32,415 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 19:32:10,147 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 19:32:10,155 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 19:34:00,335 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 19:34:00,341 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 19:58:52,870 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 19:58:52,878 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:02:52,870 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 20:02:52,876 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:02:53,284 - app - ERROR - Unexpected error: 'id'
+2025-06-09 20:02:53,528 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:05:18,014 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 20:05:18,021 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:05:18,414 - app - ERROR - Unexpected error: 'id'
+2025-06-09 20:05:19,254 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:06:13,815 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 20:06:13,822 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:06:14,271 - app - ERROR - Unexpected error: 'id'
+2025-06-09 20:06:14,509 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:07:32,388 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 20:07:32,397 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:07:32,922 - app - ERROR - Unexpected error: 'id'
+2025-06-09 20:07:33,226 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:19:02,595 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 20:19:02,602 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:19:03,632 - app - ERROR - Unexpected error: 'id'
+2025-06-09 20:19:03,852 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:49:51,518 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 20:49:51,524 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:49:51,889 - app - ERROR - Unexpected error: 'id'
+2025-06-09 20:49:52,050 - app - ERROR - Unexpected error: Simulated error
+2025-06-09 20:53:58,837 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 20:53:58,844 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-09 20:53:59,322 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-09 20:55:07,341 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 20:55:07,352 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-09 20:55:07,839 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-09 20:57:51,825 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-09 20:57:51,831 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-09 20:57:52,317 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 10:44:16,490 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-10 10:44:16,497 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 10:44:18,283 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 10:45:19,174 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-10 10:45:19,180 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 10:45:19,751 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 12:38:38,031 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-10 12:38:38,039 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 12:38:39,973 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 12:41:04,673 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-10 12:41:04,691 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 12:41:05,203 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 12:41:34,160 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-10 12:41:34,167 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 12:41:34,646 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 12:43:14,178 - app - INFO - Application startup
+2025-06-10 12:43:14,178 - app - INFO - Application startup
+2025-06-10 12:43:22,111 - app - ERROR - HTTP error: 400: Unsupported model
+2025-06-10 12:43:22,122 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 12:43:22,740 - app - ERROR - Unexpected error: Simulated error for testing error handling
+2025-06-10 12:50:05,410 - app - INFO - Application shutdown
+2025-06-10 12:50:05,410 - app - INFO - Application shutdown
+2025-06-10 12:50:06,126 - app - INFO - Application startup
+2025-06-10 12:50:06,126 - app - INFO - Application startup
+2025-06-10 13:03:43,539 - app - INFO - Application shutdown
+2025-06-10 13:03:43,542 - app - INFO - Application shutdown
+2025-06-10 13:03:45,062 - app - INFO - Application startup
+2025-06-10 13:03:45,064 - app - INFO - Application startup
+2025-06-10 13:03:46,074 - app - INFO - Application shutdown
+2025-06-10 13:03:46,074 - app - INFO - Application shutdown
+2025-06-10 13:03:46,881 - app - INFO - Application startup
+2025-06-10 13:03:46,882 - app - INFO - Application startup
+2025-06-10 13:03:47,286 - app - INFO - Application shutdown
+2025-06-10 13:03:47,287 - app - INFO - Application shutdown
+2025-06-10 13:03:47,942 - app - INFO - Application startup
+2025-06-10 13:03:47,942 - app - INFO - Application startup

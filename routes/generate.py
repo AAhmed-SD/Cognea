@@ -114,7 +114,6 @@ async def generate_quiz_questions(deck_id: int):
     return questions
 
 @router.post("/quiz-me", summary="Generate Quiz Questions", description="Takes a deck ID and returns 3–5 questions from that deck to quiz the user.")
-@limiter.limit("5/minute")
 async def quiz_me(request: Request, request_data: QuizMeRequest):
     try:
         logging.info("Generating quiz questions")
@@ -955,4 +954,18 @@ async def example_endpoint(request: Request):
     except Exception as e:
         logging.error(f"Error processing request: {str(e)}")
         error_response = ErrorResponse(code=500, message="Internal Server Error")
+        return JSONResponse(status_code=500, content=error_response.dict())
+
+@router.post("/generate-flashcards", tags=["AI"], summary="Generate flashcards from notes", description="Turn raw notes or textbook content into flashcards.")
+async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None):
+    try:
+        flashcards = []
+        for note in notes.split("\n"):
+            question = f"What is the key point of: {note}?"
+            answer = note
+            flashcards.append({"question": question, "answer": answer})
+        return {"flashcards": flashcards}
+    except Exception as e:
+        logging.error(f"Error generating flashcards: {str(e)}")
+        error_response = ErrorResponse(error="Flashcard Generation Error", detail=str(e))
         return JSONResponse(status_code=500, content=error_response.dict()) 
