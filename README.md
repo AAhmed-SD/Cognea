@@ -4,6 +4,20 @@
 
 An AI-powered productivity assistant that auto-plans your schedule, reschedules missed tasks, and helps you remember what matters. Built for students, founders, and creators juggling complex lives.
 
+💡 What Cognie Does That Others Don’t
+✅ Adapts over time to your energy levels and routines
+✅ Auto-prioritizes based on your goals (e.g. “Revise for exam”)
+✅ Reschedules missed tasks with logic — not shame
+✅ Tracks memory retention + flashcards + reviews
+✅ Understands time constraints, attention span, & task difficulty
+✅ Feels like a coach, not a tool
+
+That’s rare. Right now, people stitch together:
+
+Notion + ChatGPT + Google Calendar + Quizlet + productivity blogs
+
+You’re offering a 1-stop cognitive productivity brain.
+
 ---
 
 ## 🚀 MVP Feature Set
