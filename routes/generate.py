@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Header, BackgroundTasks, Request
+from fastapi import APIRouter, HTTPException, Depends, Header, BackgroundTasks, Request, Response
 from models.text import TextGenerationRequest, TextGenerationResponse
 from services.openai_integration import generate_openai_text
 import logging
@@ -968,4 +968,20 @@ async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None
     except Exception as e:
         logging.error(f"Error generating flashcards: {str(e)}")
         error_response = ErrorResponse(error="Flashcard Generation Error", detail=str(e))
-        return JSONResponse(status_code=500, content=error_response.dict()) 
+        return JSONResponse(status_code=500, content=error_response.dict())
+
+@router.post("/simulate-openai-failure", summary="Simulate OpenAI downtime")
+async def simulate_openai_failure():
+    return Response(content='{"error": "OpenAI Down"}', status_code=503, media_type="application/json")
+
+@router.get("/force-error", summary="Force a generic error for testing")
+async def force_error():
+    return Response(content='{"message": "Simulated error for testing error handling"}', status_code=500, media_type="application/json")
+
+@router.get("/stream", summary="Stream endpoint placeholder")
+async def stream():
+    return {"message": "Stream started"}
+
+@router.get("/daily-brief", summary="Daily brief placeholder")
+async def daily_brief():
+    return {"brief": "This is your daily brief."} 

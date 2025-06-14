@@ -38,4 +38,14 @@
 - [ ] Implement monitoring tools
 - [ ] Optimize performance
 
+## Enterprise Auth & Feature Enforcement TODOs
+
+- [ ] Implement FastAPI Users integration for JWT/OAuth authentication (register, login, token endpoints)
+- [ ] Add SQLAlchemy user model and DB migration for persistent token storage
+- [ ] Add route protection with Depends(get_current_user) to all routers
+- [ ] Implement Celery app and background task for token refresh
+- [ ] Add per-user feature enforcement dependency and apply to feature endpoints
+
+*Requirements and code structure are ready, but these features are not yet implemented.*
+
 This checklist will help track progress and ensure all tasks are completed efficiently. 

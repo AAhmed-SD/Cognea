@@ -24,6 +24,8 @@ import slowapi.util
 from starlette.requests import Request
 from handlers import custom_rate_limit_exceeded_handler
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # Load environment variables from .env file
 load_dotenv()
@@ -57,8 +59,8 @@ app = FastAPI(
         "email": "support@cognie.app",
     },
     license_info={
-        "name": "MIT",
-        "url": "https://opensource.org/licenses/MIT",
+        "name": "Proprietary",
+        "url": "https://github.com/AAhmed-SD/Cognie/blob/main/LICENSE",
     },
     lifespan=lifespan
 )
@@ -119,7 +121,12 @@ async def initialize_middleware(app):
 if os.getenv('DISABLE_RATE_LIMIT', 'false').lower() == 'true':
     app.state.limiter = None
 else:
-    limiter = Limiter(key_func=get_remote_address)
+    limiter = Limiter(
+        key_func=get_remote_address,
+        default_limits=["100 per day", "10 per minute"],
+        storage_uri="redis://localhost:6379/0",
+        strategy="fixed-window"
+    )
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)
@@ -149,6 +156,7 @@ async def read_root():
     200: {"description": "Successful retrieval of users", "content": {"application/json": {"example": [{"id": 1, "name": "John Doe"}]}}},
     404: {"description": "Users not found"}
 })
+@rate_limit_if_enabled(app, "30/minute")
 async def get_users():
     cached_users = redis_client.get("users")
     if cached_users:
@@ -251,7 +259,11 @@ async def update_settings(settings_data: dict):
 async def get_tasks():
     return tasks
 
-@app.post("/api/tasks")
+@app.post("/api/tasks", tags=["Tasks"], summary="Create a new task", description="Create a new task.", responses={
+    200: {"description": "Task created successfully", "content": {"application/json": {"example": {"id": 1, "title": "New Task"}}}},
+    422: {"description": "Validation Error"}
+})
+@rate_limit_if_enabled(app, "20/minute")
 async def create_task(new_task: dict):
     new_task['id'] = len(tasks) + 1
     tasks.append(new_task)
@@ -288,7 +300,7 @@ async def lifespan_middleware(request: Request, call_next):
     return response
 
 @app.post("/generate-text", response_model=TextGenerationResponse, tags=["AI"], summary="Generate text using GPT", description="Generate text using OpenAI's GPT model based on the provided prompt.")
-@rate_limit_if_enabled(app, "5/minute")  # Rate limiting
+@rate_limit_if_enabled(app, "3/minute")
 async def generate_text_endpoint(request: Request, api_key: str = Depends(get_api_key)):
     try:
         request_data = await request.json()  # Parse the request body
@@ -434,7 +446,39 @@ async def simulate_openai_failure():
 
 @app.get("/force-error")
 async def force_error():
-    raise Exception("Simulated error for testing error handling")
+    # Instead of raising an exception, return a 500 JSON response
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Simulated error for testing error handling"}
+    )
 
 # Ensure the generic exception handler is registered
-app.add_exception_handler(Exception, custom_exception_handler) 
+app.add_exception_handler(Exception, custom_exception_handler)
+
+# Register all modular routers
+app.include_router(generate.router)
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Content-Security-Policy"] = "default-src 'self'"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        return response
+
+# Add security middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Add CORS middleware with strict settings
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://yourdomain.com"],  # Replace with your actual domain
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+    max_age=3600,
+) 

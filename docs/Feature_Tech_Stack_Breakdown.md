@@ -92,4 +92,14 @@
 - **Scheduler**: Celery beat (weekly job)
 - **HTML Emails**: Jinja2 + MJML or raw HTML templates
 - **ESP**: SendGrid, Mailgun, or Amazon SES
-- **Personalization**: Dynamic templating + AI summary injection 
+- **Personalization**: Dynamic templating + AI summary injection
+
+## Authentication & Feature Enforcement Roadmap
+
+- [ ] Implement FastAPI Users integration for JWT/OAuth authentication (register, login, token endpoints)
+- [ ] Add SQLAlchemy user model and DB migration for persistent token storage
+- [ ] Add route protection with Depends(get_current_user) to all routers
+- [ ] Implement Celery app and background task for token refresh
+- [ ] Add per-user feature enforcement dependency and apply to feature endpoints
+
+*Requirements and code structure are ready, but these features are not yet implemented.* 
