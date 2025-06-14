@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from typing import List, Optional
+from services.audit import log_audit_from_request, AuditAction
 
 router = APIRouter(prefix="/diary", tags=["Diary / Journal"])
 
@@ -20,23 +21,61 @@ class DiaryEntryCreate(BaseModel):
     date: str
 
 @router.post("/entry", response_model=DiaryEntry, summary="Create a new diary/journal entry")
-async def create_diary_entry(entry: DiaryEntryCreate):
+async def create_diary_entry(entry: DiaryEntryCreate, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(entry.user_id),
+        action=AuditAction.CREATE,
+        resource="diary_entry",
+        resource_id=None,
+        details={"payload": entry.dict()}
+    )
     return DiaryEntry(id=1, **entry.dict())
 
 @router.get("/entries/{user_id}", response_model=List[DiaryEntry], summary="List all diary entries for a user")
-async def list_diary_entries(user_id: int):
+async def list_diary_entries(user_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(user_id),
+        action=AuditAction.READ,
+        resource="diary_entry",
+        resource_id=None,
+        details={"list": True}
+    )
     return [DiaryEntry(id=1, user_id=user_id, text="Sample entry", mood="happy", tags=["sample"], date="2024-06-01")]
 
 @router.get("/entry/{entry_id}", response_model=DiaryEntry, summary="Retrieve a single diary entry")
-async def get_diary_entry(entry_id: int):
+async def get_diary_entry(entry_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=None,
+        action=AuditAction.READ,
+        resource="diary_entry",
+        resource_id=str(entry_id)
+    )
     return DiaryEntry(id=entry_id, user_id=1, text="Sample entry", mood="happy", tags=["sample"], date="2024-06-01")
 
 @router.put("/entry/{entry_id}", response_model=DiaryEntry, summary="Update a diary entry")
-async def update_diary_entry(entry_id: int, entry: DiaryEntryCreate):
+async def update_diary_entry(entry_id: int, entry: DiaryEntryCreate, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(entry.user_id),
+        action=AuditAction.UPDATE,
+        resource="diary_entry",
+        resource_id=str(entry_id),
+        details={"payload": entry.dict()}
+    )
     return DiaryEntry(id=entry_id, **entry.dict())
 
 @router.delete("/entry/{entry_id}", summary="Delete a diary entry")
-async def delete_diary_entry(entry_id: int):
+async def delete_diary_entry(entry_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=None,
+        action=AuditAction.DELETE,
+        resource="diary_entry",
+        resource_id=str(entry_id)
+    )
     return {"message": f"Diary entry {entry_id} deleted"}
 
 @router.get("/stats/{user_id}", summary="Get mood/sentiment trends over diary entries")
@@ -48,23 +87,56 @@ async def diary_reflect():
     return {"prompt": "What was the highlight of your week?"}
 
 @router.post("/diary-entry", summary="Create a new diary/journal entry (checklist)")
-async def create_diary_entry_checklist():
+async def create_diary_entry_checklist(request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=None,
+        action=AuditAction.CREATE,
+        resource="diary_entry_checklist"
+    )
     return {"message": "Created diary entry (checklist)"}
 
 @router.get("/diary-entries/{user_id}", summary="List all diary entries for a user (checklist)")
-async def list_diary_entries_checklist(user_id: int):
+async def list_diary_entries_checklist(user_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(user_id),
+        action=AuditAction.READ,
+        resource="diary_entry_checklist"
+    )
     return {"entries": []}
 
 @router.get("/diary-entry/{entry_id}", summary="Retrieve a single diary entry (checklist)")
-async def get_diary_entry_checklist(entry_id: int):
+async def get_diary_entry_checklist(entry_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=None,
+        action=AuditAction.READ,
+        resource="diary_entry_checklist",
+        resource_id=str(entry_id)
+    )
     return {"entry": {"id": entry_id}}
 
 @router.put("/diary-entry/{entry_id}", summary="Update a diary entry (checklist)")
-async def update_diary_entry_checklist(entry_id: int):
+async def update_diary_entry_checklist(entry_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=None,
+        action=AuditAction.UPDATE,
+        resource="diary_entry_checklist",
+        resource_id=str(entry_id)
+    )
     return {"message": f"Updated diary entry {entry_id} (checklist)"}
 
 @router.delete("/diary-entry/{entry_id}", summary="Delete a diary entry (checklist)")
-async def delete_diary_entry_checklist(entry_id: int):
+async def delete_diary_entry_checklist(entry_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=None,
+        action=AuditAction.DELETE,
+        resource="diary_entry_checklist",
+        resource_id=str(entry_id)
+    )
     return {"message": f"Deleted diary entry {entry_id} (checklist)"}
 
 @router.get("/diary-stats/{user_id}", summary="Get mood/sentiment trends over diary entries (checklist)")

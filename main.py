@@ -1,41 +1,14 @@
 import logging.config
 import os
-
-# Ensure the logs directory exists
-os.makedirs('logs', exist_ok=True)
-
-# Set up structured logging
-logging_config = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'default': {
-            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'logs/ai_usage.log',
-            'formatter': 'default',
-        },
-    },
-    'loggers': {
-        '': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
-
-logging.config.dictConfig(logging_config)
-
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from datetime import datetime
+
+from middleware.error_handler import error_handler, APIError
+from middleware.logging import LoggingMiddleware, RequestContextMiddleware
 
 from routes.diary import router as diary_router
 from routes.habits import router as habits_router
@@ -52,37 +25,53 @@ from routes.generate import router as generate_router
 from routes.user import router as user_router
 
 def create_app():
-    app = FastAPI(title="Personal Agent API", description="API for personal productivity and habits tracking.")
+    app = FastAPI(
+        title="Personal Agent API",
+        description="API for personal productivity and habits tracking.",
+        version="1.0.0",
+        docs_url="/api/docs",
+        redoc_url="/api/redoc",
+        openapi_url="/api/openapi.json"
+    )
+    
+    # Initialize rate limiter
     limiter = Limiter(key_func=get_remote_address)
 
-    # Add CORS middleware
+    # Add middleware in correct order
+    app.add_middleware(RequestContextMiddleware)  # First to add request context
+    app.add_middleware(LoggingMiddleware)  # Then logging
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=["*"],  # Configure this based on your needs
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # Conditionally add rate limiting middleware
+    # Add rate limiting middleware if not disabled
     if os.getenv("DISABLE_RATE_LIMIT") != "true":
         app.state.limiter = limiter
         app.add_middleware(limiter.middleware)
 
+    # Register error handlers
+    app.add_exception_handler(APIError, error_handler)
+    app.add_exception_handler(RateLimitExceeded, error_handler)
+    app.add_exception_handler(Exception, error_handler)
+
     # Include all routers
-    app.include_router(diary_router)
-    app.include_router(habits_router)
-    app.include_router(mood_router)
-    app.include_router(analytics_router)
-    app.include_router(profile_router)
-    app.include_router(privacy_router)
-    app.include_router(ai_router)
-    app.include_router(user_settings_router)
-    app.include_router(fitness_router)
-    app.include_router(calendar_router)
-    app.include_router(notion_router)
-    app.include_router(generate_router)
-    app.include_router(user_router)
+    app.include_router(diary_router, prefix="/api")
+    app.include_router(habits_router, prefix="/api")
+    app.include_router(mood_router, prefix="/api")
+    app.include_router(analytics_router, prefix="/api")
+    app.include_router(profile_router, prefix="/api")
+    app.include_router(privacy_router, prefix="/api")
+    app.include_router(ai_router, prefix="/api")
+    app.include_router(user_settings_router, prefix="/api")
+    app.include_router(fitness_router, prefix="/api")
+    app.include_router(calendar_router, prefix="/api")
+    app.include_router(notion_router, prefix="/api")
+    app.include_router(generate_router, prefix="/api")
+    app.include_router(user_router, prefix="/api")
 
     @app.get("/", tags=["Root"], summary="Root endpoint with meta tags for SEO")
     async def root():
@@ -93,6 +82,14 @@ def create_app():
                 "description": "API for personal productivity and habits tracking.",
                 "keywords": "productivity, habits, tracking, API"
             }
+        }
+
+    @app.get("/health", tags=["Health"], summary="Health check endpoint")
+    async def health_check():
+        return {
+            "status": "healthy",
+            "version": "1.0.0",
+            "timestamp": datetime.utcnow().isoformat()
         }
 
     return app

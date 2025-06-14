@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional, Dict, List
+from services.audit import log_audit_from_request, AuditAction
 
 router = APIRouter(prefix="/user/settings", tags=["User Settings"])
 
@@ -16,18 +17,37 @@ user_settings_db: Dict[int, UserSettings] = {}
 user_features_db: Dict[int, List[str]] = {}
 
 @router.get("/", response_model=UserSettings, summary="Retrieve all preferences")
-async def get_user_settings(user_id: int):
+async def get_user_settings(user_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(user_id),
+        action=AuditAction.READ,
+        resource="user_settings"
+    )
     settings = user_settings_db.get(user_id)
     if not settings:
         raise HTTPException(status_code=404, detail="User settings not found")
     return settings
 
 @router.post("/", response_model=UserSettings, summary="Update focus hours, energy curve, enabled modules, default views")
-async def update_user_settings(settings: UserSettings):
+async def update_user_settings(settings: UserSettings, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(settings.user_id),
+        action=AuditAction.UPDATE,
+        resource="user_settings",
+        details={"payload": settings.dict()}
+    )
     user_settings_db[settings.user_id] = settings
     return settings
 
 @router.get("/features", summary="Get toggles: flashcards, habits, etc.")
-async def get_feature_toggles(user_id: int):
+async def get_feature_toggles(user_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(user_id),
+        action=AuditAction.READ,
+        resource="user_features"
+    )
     features = user_features_db.get(user_id, ["flashcards", "habits", "calendar", "notion"])
     return {"user_id": user_id, "features": features} 

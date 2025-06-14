@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from typing import Optional, List, Dict
 from datetime import datetime, timedelta
+from services.audit import log_audit_from_request, AuditAction
 
 router = APIRouter(prefix="/analytics", tags=["Analytics & Trends"])
 
@@ -11,7 +12,13 @@ user_weekly_reviews_db: Dict[int, dict] = {}
 user_productivity_patterns_db: Dict[int, dict] = {}
 
 @router.get("/{user_id}", summary="Personalized dashboard (habits, mood, focus time, goals)")
-async def analytics_dashboard(user_id: int):
+async def analytics_dashboard(user_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(user_id),
+        action=AuditAction.READ,
+        resource="analytics_dashboard"
+    )
     # Simulate dashboard aggregation
     dashboard = user_analytics_db.get(user_id, {
         "habits": ["Read", "Exercise"],
@@ -25,7 +32,13 @@ async def analytics_dashboard(user_id: int):
     return {"user_id": user_id, "dashboard": dashboard}
 
 @router.get("/trends/{user_id}", summary="Visual insights over time (calendar heatmap, bar charts)")
-async def trends(user_id: int):
+async def trends(user_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(user_id),
+        action=AuditAction.READ,
+        resource="analytics_trends"
+    )
     # Simulate trend data
     trends = user_trends_db.get(user_id, [
         {"date": (datetime.now() - timedelta(days=i)).date().isoformat(), "score": 80 + i}
@@ -34,7 +47,13 @@ async def trends(user_id: int):
     return {"user_id": user_id, "trends": trends}
 
 @router.get("/weekly-review/{user_id}", summary="AI-generated summary of the week")
-async def weekly_review(user_id: int):
+async def weekly_review(user_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(user_id),
+        action=AuditAction.READ,
+        resource="analytics_weekly_review"
+    )
     # Simulate weekly review
     review = user_weekly_reviews_db.get(user_id, {
         "summary": "You had a productive week!",
@@ -45,7 +64,13 @@ async def weekly_review(user_id: int):
     return {"user_id": user_id, **review}
 
 @router.get("/productivity-patterns/{user_id}", summary="Best day/time insights")
-async def productivity_patterns(user_id: int):
+async def productivity_patterns(user_id: int, request: Request):
+    log_audit_from_request(
+        request=request,
+        user_id=str(user_id),
+        action=AuditAction.READ,
+        resource="analytics_productivity_patterns"
+    )
     # Simulate productivity pattern
     pattern = user_productivity_patterns_db.get(user_id, {
         "best_time": "morning",
