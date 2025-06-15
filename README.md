@@ -358,3 +358,86 @@ pytest
 3. Run database migrations.
 4. Start the FastAPI app: `uvicorn main:app --reload`
 5. Start the Celery worker: `celery -A app.celery_app worker --loglevel=info`
+
+# Onboarding & Operations Quick Reference
+
+## Run Tests
+
+```bash
+pytest tests/
+```
+
+## Run DB Migrations (after any model change)
+
+```bash
+alembic revision --autogenerate -m "describe your change"
+alembic upgrade head
+```
+
+## Back Up the Database
+
+- **Postgres:**
+  ```bash
+  pg_dump your_db > /backups/backup_$(date +%F).sql
+  ```
+- **SQLite:**
+  ```bash
+  cp /path/to/your_db.sqlite /backups/backup_$(date +%F).sqlite
+  ```
+
+## Restore the Database
+
+- **Postgres:**
+  ```bash
+  psql your_db < /backups/backup_YYYY-MM-DD.sql
+  ```
+- **SQLite:**
+  ```bash
+  sqlite3 /path/to/your_db.sqlite < /backups/backup_YYYY-MM-DD.sqlite
+  ```
+
+## Best Practices
+- Add a test for every new/changed endpoint in `tests/`
+- Run Alembic migrations after every model change
+- Schedule regular DB backups (cron job or CI/CD)
+- Only document what's needed for onboarding and ops
+
+## 🛠️ Technical Architecture
+
+## 🚩 Feature Flag System
+
+The application implements a robust feature flag system that enables controlled feature rollouts and A/B testing. This system is particularly useful for:
+- Gradual feature rollouts to specific user segments
+- A/B testing new features
+- Managing feature availability based on user types (e.g., students vs. regular users)
+- Time-based feature releases
+
+### Key Features
+- **Percentage-based Rollouts**: Gradually release features to a percentage of users
+- **User Type Targeting**: Enable features for specific user segments (e.g., students)
+- **Time-based Availability**: Schedule feature releases and end dates
+- **Global & User-specific Flags**: Control features at both global and individual user levels
+- **Complex Conditions**: Support for advanced feature availability rules
+
+### Usage Example
+```python
+# Create a new feature flag
+feature_flag = FeatureFlagService.create_feature_flag(
+    feature_name="new_student_feature",
+    description="A new feature for students",
+    is_globally_enabled=True,
+    rollout_percentage=50,  # Roll out to 50% of users
+    target_user_types=["student"],
+    start_date=datetime.utcnow()
+)
+
+# Check if a feature is enabled for a user
+is_enabled = user.has_feature("new_student_feature")
+```
+
+### Implementation Details
+- Built on PostgreSQL with JSON support
+- Redis caching for performance
+- RESTful API endpoints for management
+- Real-time feature flag updates
+- Comprehensive logging and analytics

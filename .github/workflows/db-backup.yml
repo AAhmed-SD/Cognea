@@ -1,0 +1,31 @@
+name: Daily Postgres Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install pg_dump
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Dump Postgres DB
+        env:
+          PGHOST: ${{ secrets.PGHOST }}
+          PGUSER: ${{ secrets.PGUSER }}
+          PGPASSWORD: ${{ secrets.PGPASSWORD }}
+          PGDATABASE: ${{ secrets.PGDATABASE }}
+        run: |
+          pg_dump -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" > backup_$(date +%F).sql
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: db-backup
+          path: backup_*.sql 

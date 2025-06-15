@@ -102,4 +102,43 @@
 - [ ] Implement Celery app and background task for token refresh
 - [ ] Add per-user feature enforcement dependency and apply to feature endpoints
 
+## 🚩 11. Feature Flag System
+**Goal**: Enable controlled feature rollouts and A/B testing.
+
+**✅ Tech**:
+- **Database**: PostgreSQL with JSON support for feature conditions
+- **Caching**: Redis for feature flag lookups
+- **Models**: SQLAlchemy models for feature flags and user preferences
+- **Service Layer**: FeatureFlagService for managing flags
+- **API**: FastAPI endpoints for flag management
+- **Frontend**: React hooks for feature flag checks
+
+**Implementation Details**:
+- Percentage-based rollouts
+- User type targeting
+- Time-based availability
+- Global & user-specific flags
+- Complex conditions support
+- Real-time updates
+- Comprehensive logging
+
+**Example Usage**:
+```python
+# Backend
+feature_flag = FeatureFlagService.create_feature_flag(
+    feature_name="new_student_feature",
+    rollout_percentage=50,
+    target_user_types=["student"]
+)
+
+# Frontend
+const isFeatureEnabled = useFeatureFlag("new_student_feature");
+```
+
+**Monitoring & Analytics**:
+- Feature adoption rates
+- User engagement metrics
+- A/B test results
+- Performance impact tracking
+
 *Requirements and code structure are ready, but these features are not yet implemented.* 

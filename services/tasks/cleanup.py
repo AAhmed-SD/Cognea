@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from models.database import SessionLocal
 from models.diary import DiaryEntry
 from models.user import User
+from services.feature_flag_service import FeatureFlagService
 
 logger = logging.getLogger(__name__)
 
