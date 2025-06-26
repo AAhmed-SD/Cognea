@@ -198,10 +198,65 @@ You're offering a 1-stop cognitive productivity brain.
   - Revision planner & flashcards
   - Smart schedule suggestions around study blocks
   - Track grades or test dates (optional)
-- **For Entrepreneurs / 9-5s**:
-  - Meeting blockers + focus sessions
-  - Balance tasks across personal/professional goals
-  - AI nudges for reflection + weekly review
+
+---
+
+## 🚀 Advanced Feature Set - Future Revenue Expansion
+
+### 📚 Exam-Code Import System
+**What the user sees:** Text-box: "Enter AQA-8300-H" → full paper loads in-app in seconds.
+
+**How it works under the hood:** Pre-scraped PDF → parsed into JSON → stored in exam_questions table.
+
+**First-release scope:** AQA GCSE Maths (H) + Edexcel A-Level Biology (Paper 1) only.
+
+
+### ✍️ AI-Marked Answers
+**What the user sees:** Student types or uploads photo; hits Submit → instant mark, model answer & explanation.
+
+**How it works under the hood:** Short answers: regex / numeric range. Essays: GPT-4o with board rubric prompt & temperature 0.
+
+**First-release scope:** Limited to ≤250-word responses; rubric confidence shown (★ rating).
+
+
+- Tutor partnerships: 30% revenue share
+
+### 📈 Revision Heat-Map
+**What the user sees:** Colour grid of syllabus topics: red (weak) → green (strong).
+
+**How it works under the hood:** Aggregates mark data per topic ID; cron job recalculates nightly.
+
+**First-release scope:** Topic summary only; drill questions in v2.
+
+
+
+### 🔄 Smart Study Plan Sync
+**What the user sees:** Weak topics auto-push into Cognie schedule as spaced-repetition tasks.
+
+**How it works under the hood:** Existing /suggest-reschedule AI endpoint extended to accept weak_topics input.
+
+**First-release scope:** Generates weekly "Past-paper practice" blocks; can be toggled off.
+
+
+### 👨‍🏫 Teacher / Tutor Dashboard α
+**What the user sees:** Class view: student list, average score, weakest topics. CSV export.
+
+**How it works under the hood:** JWT role = teacher; queries student tables; no write actions yet.
+
+**First-release scope:** Read-only; email digest of progress.
+
+
+### 🏫 School Affiliate Codes
+**What the user sees:** Students sign-up with "GREENWOOD-30" → see discount & school crest.
+
+**How it works under the hood:** affiliates table links code → school → commission %. Stripe metadata tags each payment.
+
+**First-release scope:** Flat 30% revenue share, quarterly payout via Stripe Connect.
+
+### Implementation Priority:
+1. **Phase 1 (Months 1-3):** AI-Marked Answers, Revision Heat-Map
+2. **Phase 2 (Months 4-6):** Exam-Code Import, Smart Study Plan Sync
+3. **Phase 3 (Months 7-9):** Teacher Dashboard, School Affiliate Codes
 
 ---
 

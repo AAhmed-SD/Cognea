@@ -2,13 +2,11 @@ import logging.config
 import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
 from datetime import datetime
 
 from middleware.error_handler import error_handler, APIError
 from middleware.logging import LoggingMiddleware, RequestContextMiddleware
+from middleware.rate_limit import RateLimiter
 
 from routes.diary import router as diary_router
 from routes.habits import router as habits_router
@@ -23,8 +21,9 @@ from routes.calendar import router as calendar_router
 from routes.notion import router as notion_router
 from routes.generate import router as generate_router
 from routes.user import router as user_router
+from routes.auth import router as auth_router
 
-def create_app():
+def create_app(redis_client=None):
     app = FastAPI(
         title="Personal Agent API",
         description="API for personal productivity and habits tracking.",
@@ -33,9 +32,6 @@ def create_app():
         redoc_url="/api/redoc",
         openapi_url="/api/openapi.json"
     )
-    
-    # Initialize rate limiter
-    limiter = Limiter(key_func=get_remote_address)
 
     # Add middleware in correct order
     app.add_middleware(RequestContextMiddleware)  # First to add request context
@@ -48,14 +44,21 @@ def create_app():
         allow_headers=["*"],
     )
 
-    # Add rate limiting middleware if not disabled
-    if os.getenv("DISABLE_RATE_LIMIT") != "true":
-        app.state.limiter = limiter
-        app.add_middleware(limiter.middleware)
+    # Add rate limiting middleware if not disabled and Redis client is provided
+    if os.getenv("DISABLE_RATE_LIMIT") != "true" and redis_client is not None:
+        print(f"Setting up rate limiter with Redis client: {redis_client}")
+        rate_limiter = RateLimiter(redis_client, requests_per_minute=10)
+        
+        @app.middleware("http")
+        async def rate_limit_middleware(request: Request, call_next):
+            print(f"Rate limit middleware called for {request.url}")
+            await rate_limiter.check_rate_limit(request)
+            return await call_next(request)
+    else:
+        print(f"Rate limiting disabled. DISABLE_RATE_LIMIT={os.getenv('DISABLE_RATE_LIMIT')}, redis_client={redis_client is not None}")
 
     # Register error handlers
     app.add_exception_handler(APIError, error_handler)
-    app.add_exception_handler(RateLimitExceeded, error_handler)
     app.add_exception_handler(Exception, error_handler)
 
     # Include all routers
@@ -72,6 +75,7 @@ def create_app():
     app.include_router(notion_router, prefix="/api")
     app.include_router(generate_router, prefix="/api")
     app.include_router(user_router, prefix="/api")
+    app.include_router(auth_router)
 
     @app.get("/", tags=["Root"], summary="Root endpoint with meta tags for SEO")
     async def root():
