@@ -30,6 +30,7 @@ from routes.goals import router as goals_router
 from routes.schedule_blocks import router as schedule_blocks_router
 from routes.flashcards import router as flashcards_router
 from routes.notifications import router as notifications_router
+from routes.stripe import router as stripe_router
 
 # Load environment variables from .env file
 load_dotenv()
@@ -178,11 +179,15 @@ def create_app(redis_client=None):
     app.include_router(schedule_blocks_router, prefix="/api")
     app.include_router(flashcards_router, prefix="/api")
     app.include_router(notifications_router, prefix="/api")
+    app.include_router(stripe_router, prefix="/api")
 
     @app.get("/", tags=["Root"], summary="Root endpoint with meta tags for SEO")
-    async def root():
+    async def root(request: Request):
+        challenge = request.query_params.get("challenge")
+        if challenge:
+            return {"challenge": challenge}
         return {
-            "message": "Welcome to the Personal Agent API",
+            "message": "Welcome to Cognie!",
             "meta": {
                 "title": "Personal Agent API",
                 "description": "API for personal productivity and habits tracking.",

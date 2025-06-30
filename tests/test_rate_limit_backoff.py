@@ -66,11 +66,12 @@ class TestRateLimitBackoff:
                 with pytest.raises(Exception, match="Max retries exceeded"):
                     await redis_client.safe_call("test", mock_429_func, max_retries=2)
 
-                # Should have slept with exponential back-off
-                assert mock_sleep.call_count == 2
-                # Check exponential back-off: 1s, 2s
+                # Should have slept with exponential back-off (3 retries: 0, 1, 2)
+                assert mock_sleep.call_count == 3
+                # Check exponential back-off: 1s, 2s, 4s
                 assert mock_sleep.call_args_list[0][0][0] == 1.0
                 assert mock_sleep.call_args_list[1][0][0] == 2.0
+                assert mock_sleep.call_args_list[2][0][0] == 4.0
 
     @pytest.mark.asyncio
     async def test_safe_call_429_recovery(self, redis_client):

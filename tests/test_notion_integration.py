@@ -41,17 +41,15 @@ class TestNotionClient:
     @pytest.mark.asyncio
     async def test_notion_client_initialization(self):
         """Test Notion client initialization."""
-        with patch.dict("os.environ", {"NOTION_API_KEY": "test_key"}):
-            client = NotionClient(api_key="test_key")
-            assert client.api_key == "test_key"
-            assert client.config.api_key == "test_key"
+        client = NotionClient(api_key="test_key")
+        assert client.api_key == "test_key"
+        assert client.base_url == "https://api.notion.com/v1"
 
     @pytest.mark.asyncio
     async def test_notion_client_missing_api_key(self):
         """Test Notion client initialization without API key."""
-        with patch.dict("os.environ", {}, clear=True):
-            with pytest.raises(ValueError, match="Notion API key is required"):
-                NotionClient()
+        with pytest.raises(TypeError, match="missing 1 required positional argument"):
+            NotionClient()
 
 
 class TestNotionFlashcardGenerator:
@@ -185,6 +183,9 @@ async def test_notion_integration_end_to_end(
     mock_notion_client, mock_openai_service, mock_supabase
 ):
     """Test end-to-end Notion integration workflow."""
+    # Add api_key attribute to mock
+    mock_notion_client.api_key = "test_api_key"
+
     # Mock the page data
     mock_page_data = {
         "id": "test_page_id",

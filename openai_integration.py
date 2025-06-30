@@ -1,5 +1,4 @@
 import os
-import openai
 from dotenv import load_dotenv
 import logging
 from services.rate_limited_queue import get_openai_queue
@@ -29,13 +28,16 @@ async def generate_text(
     if not openai_api_key:
         logger.error("OpenAI API key not found in environment variables")
         raise ValueError("OpenAI API key is required")
-    
+
     openai_queue = get_openai_queue()
     try:
         payload = {
             "model": model,
             "messages": [
-                {"role": "system", "content": "You are a helpful productivity assistant."},
+                {
+                    "role": "system",
+                    "content": "You are a helpful productivity assistant.",
+                },
                 {"role": "user", "content": prompt},
             ],
             "max_tokens": max_tokens,
@@ -47,7 +49,7 @@ async def generate_text(
             method="POST",
             endpoint="chat/completions",
             api_key=openai_api_key,
-            **payload
+            **payload,
         )
         response = await result_future
         generated_text = response["choices"][0]["message"]["content"].strip()
@@ -60,6 +62,7 @@ async def generate_text(
 # Example usage
 if __name__ == "__main__":
     import asyncio
+
     prompt = "What is the weather like today?"
     text, tokens = asyncio.run(generate_text(prompt, temperature=0.5, stop=["."]))
     print(f"Generated Text: {text}")

@@ -87,8 +87,10 @@ class SimpleScheduler:
         # Availability factor (how well task fits in time slot)
         availability_factor = self._calculate_availability_factor(task, time_slot)
 
-        # Energy factor (match task energy requirement with user energy)
-        energy_factor = self._calculate_energy_factor(task, time_slot, user_energy)
+        # Energy factor (match task energy requirement with time slot energy level)
+        energy_factor = self._calculate_energy_factor(
+            task, time_slot, time_slot.energy_level
+        )
 
         # Time of day factor
         time_factor = self._calculate_time_factor(time_slot)

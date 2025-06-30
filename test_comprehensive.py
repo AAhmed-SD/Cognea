@@ -1,3 +1,9 @@
+import os
+
+# Disable rate limiting for tests
+os.environ["DISABLE_RATE_LIMIT"] = "true"
+os.environ["TEST_ENV"] = "true"
+
 import pytest
 from fastapi.testclient import TestClient
 from main import app

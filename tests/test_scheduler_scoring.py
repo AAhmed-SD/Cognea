@@ -110,7 +110,7 @@ class TestSchedulerScoring:
     def test_calculate_task_score_energy(self, scheduler):
         """Test that task scoring considers energy compatibility."""
         now = datetime.now(UTC)
-        
+
         high_energy_task = Task(
             id="high_energy",
             title="High Energy Task",
@@ -137,15 +137,19 @@ class TestSchedulerScoring:
         )
 
         # High energy task should score better in high energy slot
-        high_energy_score = scheduler.calculate_task_score(high_energy_task, high_energy_slot)
-        low_energy_score = scheduler.calculate_task_score(high_energy_task, low_energy_slot)
+        high_energy_score = scheduler.calculate_task_score(
+            high_energy_task, high_energy_slot
+        )
+        low_energy_score = scheduler.calculate_task_score(
+            high_energy_task, low_energy_slot
+        )
 
         assert high_energy_score > low_energy_score
 
     def test_calculate_task_score_time_of_day(self, scheduler):
         """Test that task scoring considers time of day."""
         now = datetime.now(UTC)
-        
+
         task = Task(
             id="test_task",
             title="Test Task",

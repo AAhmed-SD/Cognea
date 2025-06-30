@@ -4,7 +4,7 @@ Rate-limited queue service for API calls.
 
 import asyncio
 import logging
-from typing import Dict, Any, Optional
+from typing import Optional
 from datetime import datetime, UTC
 from .redis_client import get_redis_client
 
@@ -17,7 +17,7 @@ class RateLimitedQueue:
     def __init__(self, service_name: str, rate_limit: int = 3):
         """
         Initialize rate-limited queue.
-        
+
         Args:
             service_name: Name of the service (e.g., 'openai', 'notion')
             rate_limit: Requests per second
@@ -33,25 +33,27 @@ class RateLimitedQueue:
     ) -> asyncio.Future:
         """
         Enqueue a request for processing.
-        
+
         Args:
             method: HTTP method
             endpoint: API endpoint
             api_key: API key for authentication
             **kwargs: Additional request parameters
-            
+
         Returns:
             Future that will resolve with the response
         """
         future = asyncio.Future()
-        await self.queue.put({
-            "method": method,
-            "endpoint": endpoint,
-            "api_key": api_key,
-            "kwargs": kwargs,
-            "future": future,
-            "timestamp": datetime.now(UTC)
-        })
+        await self.queue.put(
+            {
+                "method": method,
+                "endpoint": endpoint,
+                "api_key": api_key,
+                "kwargs": kwargs,
+                "future": future,
+                "timestamp": datetime.now(UTC),
+            }
+        )
         return future
 
     async def _process_queue(self):
@@ -60,7 +62,7 @@ class RateLimitedQueue:
             try:
                 # Get next request from queue
                 request_data = await asyncio.wait_for(self.queue.get(), timeout=1.0)
-                
+
                 # Use safe_call for rate limiting and back-off
                 result = await self.redis_client.safe_call(
                     self.service_name,
@@ -68,13 +70,13 @@ class RateLimitedQueue:
                     request_data["method"],
                     request_data["endpoint"],
                     request_data["api_key"],
-                    **request_data["kwargs"]
+                    **request_data["kwargs"],
                 )
-                
+
                 # Set result on future
                 if not request_data["future"].done():
                     request_data["future"].set_result(result)
-                    
+
             except asyncio.TimeoutError:
                 continue
             except Exception as e:
@@ -82,7 +84,9 @@ class RateLimitedQueue:
                 if not request_data["future"].done():
                     request_data["future"].set_exception(e)
 
-    async def _make_api_request(self, method: str, endpoint: str, api_key: str, **kwargs):
+    async def _make_api_request(
+        self, method: str, endpoint: str, api_key: str, **kwargs
+    ):
         """
         Make the actual API request.
         This is a placeholder - implement actual API calls here.
@@ -130,4 +134,4 @@ def get_stripe_queue() -> RateLimitedQueue:
     global _stripe_queue
     if _stripe_queue is None:
         _stripe_queue = RateLimitedQueue("stripe", rate_limit=10)
-    return _stripe_queue 
+    return _stripe_queue

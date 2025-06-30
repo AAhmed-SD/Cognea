@@ -15,7 +15,6 @@ import base64
 
 from services.notion import NotionClient, NotionFlashcardGenerator, NotionSyncManager
 from services.ai.openai_service import get_openai_service
-from services.notion.rate_limited_queue import get_notion_queue
 from services.rate_limited_queue import get_notion_queue
 
 logger = logging.getLogger(__name__)
@@ -156,50 +155,51 @@ async def notion_auth_callback(
         "Content-Type": "application/json",
     }
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{NOTION_API_BASE}/oauth/token", json=token_data, headers=headers
+    queue = get_notion_queue()
+    response = await queue.enqueue_request(
+        method="POST",
+        endpoint="/oauth/token",
+        data=token_data,
+        headers=headers,
+    )
+    if response.status_code != 200:
+        logger.error(
+            f"OAuth token exchange failed: {response.status_code} - {response.text}"
         )
-        if response.status_code != 200:
-            logger.error(
-                f"OAuth token exchange failed: {response.status_code} - {response.text}"
-            )
-            raise HTTPException(
-                status_code=400, detail="Failed to exchange code for token"
-            )
+        raise HTTPException(status_code=400, detail="Failed to exchange code for token")
 
-        token_info = response.json()
+    token_info = response.json()
 
-        # Store connection info in Supabase
-        supabase = get_supabase_client()
-        connection_data = {
-            "user_id": current_user["id"],
-            "access_token": token_info["access_token"],
-            "workspace_id": token_info["workspace_id"],
-            "workspace_name": token_info.get("workspace_name", ""),
-            "connected_at": datetime.now().isoformat(),
-            "bot_id": token_info.get("bot_id", ""),
-        }
+    # Store connection info in Supabase
+    supabase = get_supabase_client()
+    connection_data = {
+        "user_id": current_user["id"],
+        "access_token": token_info["access_token"],
+        "workspace_id": token_info["workspace_id"],
+        "workspace_name": token_info.get("workspace_name", ""),
+        "connected_at": datetime.now().isoformat(),
+        "bot_id": token_info.get("bot_id", ""),
+    }
 
-        # Upsert connection
-        existing = (
-            supabase.table("notion_connections")
-            .select("*")
-            .eq("user_id", current_user["id"])
-            .execute()
-        )
-        if existing.data:
-            supabase.table("notion_connections").update(connection_data).eq(
-                "user_id", current_user["id"]
-            ).execute()
-        else:
-            supabase.table("notion_connections").insert(connection_data).execute()
+    # Upsert connection
+    existing = (
+        supabase.table("notion_connections")
+        .select("*")
+        .eq("user_id", current_user["id"])
+        .execute()
+    )
+    if existing.data:
+        supabase.table("notion_connections").update(connection_data).eq(
+            "user_id", current_user["id"]
+        ).execute()
+    else:
+        supabase.table("notion_connections").insert(connection_data).execute()
 
-        return {
-            "success": True,
-            "workspace_name": token_info.get("workspace_name", ""),
-            "connected_at": datetime.now().isoformat(),
-        }
+    return {
+        "success": True,
+        "workspace_name": token_info.get("workspace_name", ""),
+        "connected_at": datetime.now().isoformat(),
+    }
 
 
 @router.get("/databases", summary="List user's Notion databases")
@@ -222,7 +222,7 @@ async def list_notion_databases(current_user: dict = Depends(get_current_user)):
 
     # Use rate-limited queue for Notion API calls
     notion_client = NotionClient(api_key=connection["access_token"])
-    queue = get_notion_queue(notion_client)
+    queue = get_notion_queue()
 
     try:
         # Enqueue the search request
@@ -274,6 +274,7 @@ async def sync_notion_database(
         "Authorization": f"Bearer {connection['access_token']}",
         "Notion-Version": "2022-06-28",
     }
+    queue = get_notion_queue()
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{NOTION_API_BASE}/databases/{request.database_id}/query", headers=headers
@@ -371,33 +372,34 @@ async def create_notion_task(
     if request.tags:
         properties["Tags"] = {"multi_select": [{"name": tag} for tag in request.tags]}
     page_data = {"parent": {"database_id": database_id}, "properties": properties}
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{NOTION_API_BASE}/pages", json=page_data, headers=headers
-        )
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=400, detail="Failed to create task in Notion"
-            )
-        created_page = response.json()
-        # Store created task in Supabase
-        task_data = {
-            "user_id": current_user["id"],
-            "notion_id": created_page["id"],
-            "title": request.title,
-            "due_date": request.due_date,
-            "priority": request.priority,
-            "tags": request.tags,
-            "created_time": created_page["created_time"],
-            "last_edited_time": created_page["created_time"],
-        }
-        supabase.table("notion_tasks").insert(task_data).execute()
-        return {
-            "success": True,
-            "task_id": created_page["id"],
-            "title": request.title,
-            "created_time": created_page["created_time"],
-        }
+    queue = get_notion_queue()
+    response = await queue.enqueue_request(
+        method="POST",
+        endpoint="/pages",
+        data=page_data,
+        headers=headers,
+    )
+    if response.status_code != 200:
+        raise HTTPException(status_code=400, detail="Failed to create task in Notion")
+    created_page = response.json()
+    # Store created task in Supabase
+    task_data = {
+        "user_id": current_user["id"],
+        "notion_id": created_page["id"],
+        "title": request.title,
+        "due_date": request.due_date,
+        "priority": request.priority,
+        "tags": request.tags,
+        "created_time": created_page["created_time"],
+        "last_edited_time": created_page["created_time"],
+    }
+    supabase.table("notion_tasks").insert(task_data).execute()
+    return {
+        "success": True,
+        "task_id": created_page["id"],
+        "title": request.title,
+        "created_time": created_page["created_time"],
+    }
 
 
 @router.post("/webhook/notion", summary="Receive Notion webhooks")
@@ -421,14 +423,22 @@ async def receive_notion_webhook(
                 body, x_notion_signature, webhook_secret
             ):
                 logger.warning("Invalid webhook signature received")
-                raise HTTPException(status_code=401, detail="Invalid webhook signature")
+                # Return 200 to prevent Notion retries, even on signature failure
+                return {"status": "error", "message": "Invalid webhook signature"}
+        elif webhook_secret and not x_notion_signature:
+            # In production, require signature
+            logger.warning("Missing webhook signature in production")
+            return {"status": "error", "message": "Missing webhook signature"}
+        elif not webhook_secret:
+            # Development mode - allow without signature
+            logger.info("Development mode: webhook signature verification disabled")
 
         # Parse the webhook payload
         try:
             payload = json.loads(body_str)
         except json.JSONDecodeError:
             logger.error("Invalid JSON in webhook payload")
-            raise HTTPException(status_code=400, detail="Invalid JSON payload")
+            return {"status": "error", "message": "Invalid JSON payload"}
 
         # Extract webhook data
         webhook_type = payload.get("type")
@@ -436,7 +446,7 @@ async def receive_notion_webhook(
 
         if not workspace_id:
             logger.error("Missing workspace_id in webhook payload")
-            raise HTTPException(status_code=400, detail="Missing workspace_id")
+            return {"status": "error", "message": "Missing workspace_id"}
 
         # Find user by workspace_id (not current_user dependency)
         supabase = get_supabase_client()
@@ -524,8 +534,6 @@ async def receive_notion_webhook(
             "queued": True,
         }
 
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Error processing webhook: {str(e)}")
         # Still return 200 to prevent Notion from retrying
@@ -636,7 +644,7 @@ async def get_notion_pages(notion_client: NotionClient = Depends(get_notion_clie
             endpoint="search",
             api_key=notion_client.api_key,
             query="",
-            filter_params={"property": "object", "value": "page"}
+            filter_params={"property": "object", "value": "page"},
         )
         pages = await pages_future
 
@@ -645,7 +653,7 @@ async def get_notion_pages(notion_client: NotionClient = Depends(get_notion_clie
             endpoint="search",
             api_key=notion_client.api_key,
             query="",
-            filter_params={"property": "object", "value": "database"}
+            filter_params={"property": "object", "value": "database"},
         )
         databases = await databases_future
 
@@ -940,7 +948,7 @@ async def queue_notion_sync(
             notion_client = NotionClient(
                 api_key=user_settings.data[0]["notion_api_key"]
             )
-            notion_queue = get_notion_queue(notion_client)
+            notion_queue = get_notion_queue()
 
             # Queue the sync operation
             await notion_queue.enqueue_request(
@@ -1036,6 +1044,50 @@ async def internal_sync(
     except Exception as e:
         logger.error(f"Internal sync failed for user {user_id}: {e}")
         return {"status": "error", "message": str(e)}
+
+
+@router.post("/auth", summary="Authenticate with Notion API key")
+async def authenticate_notion(
+    request: dict, current_user: dict = Depends(get_current_user)
+):
+    """Authenticate user with Notion API key."""
+    api_key = request.get("api_key")
+    if not api_key:
+        raise HTTPException(status_code=400, detail="API key is required")
+
+    try:
+        # Test the API key by making a simple request
+        notion_client = NotionClient(api_key)
+        queue = get_notion_queue()
+        await queue.enqueue_request(
+            method="POST",
+            endpoint="search",
+            api_key=notion_client.api_key,
+            query="",
+            filter_params={"property": "object", "value": "page"},
+        )
+
+        # Store the API key in user settings
+        supabase = get_supabase_client()
+        user_settings = {
+            "user_id": current_user["id"],
+            "notion_api_key": api_key,
+            "updated_at": datetime.now().isoformat(),
+        }
+
+        # Upsert user settings
+        supabase.table("user_settings").upsert(user_settings).execute()
+
+        return {"status": "connected", "message": "Notion authentication successful"}
+    except Exception as e:
+        logger.error(f"Notion authentication failed: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid Notion API key")
+
+
+@router.get("/webhook/notion/verify", summary="Verify Notion webhook")
+async def verify_notion_webhook(challenge: str):
+    """Handle Notion webhook verification challenge."""
+    return {"challenge": challenge}
 
 
 # Import os for environment variables

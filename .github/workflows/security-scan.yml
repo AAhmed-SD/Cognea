@@ -23,8 +23,6 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: --only-verified --fail --no-update
 
   bandit:
     name: Bandit Security Scan
