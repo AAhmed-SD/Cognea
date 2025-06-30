@@ -65,4 +65,30 @@ BEGIN
     ) THEN
         ALTER TABLE user_settings ADD COLUMN notion_api_key TEXT;
     END IF;
-END $$; 
+END $$;
+
+-- Add unique indexes to prevent duplicates and race conditions
+CREATE UNIQUE INDEX IF NOT EXISTS idx_notion_connections_user_workspace 
+ON notion_connections(user_id, workspace_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_notion_sync_status_user_page 
+ON notion_sync_status(user_id, notion_page_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_flashcards_user_source 
+ON flashcards(user_id, source_page_id) WHERE source_page_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_flashcards_user_source_db 
+ON flashcards(user_id, source_database_id) WHERE source_database_id IS NOT NULL;
+
+-- Add indexes for performance
+CREATE INDEX IF NOT EXISTS idx_notion_connections_workspace_id 
+ON notion_connections(workspace_id);
+
+CREATE INDEX IF NOT EXISTS idx_notion_sync_status_last_synced 
+ON notion_sync_status(last_synced_ts);
+
+CREATE INDEX IF NOT EXISTS idx_flashcards_source_page 
+ON flashcards(source_page_id) WHERE source_page_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_flashcards_source_database 
+ON flashcards(source_database_id) WHERE source_database_id IS NOT NULL; 

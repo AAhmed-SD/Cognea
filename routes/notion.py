@@ -11,6 +11,7 @@ from urllib.parse import urlencode
 import logging
 import hmac
 import hashlib
+import base64
 
 from services.notion import NotionClient, NotionFlashcardGenerator, NotionSyncManager
 from services.ai.openai_service import get_openai_service
@@ -117,15 +118,22 @@ async def notion_auth_callback(
 ):
     if not NOTION_CLIENT_SECRET:
         raise HTTPException(status_code=500, detail="Notion client secret not configured")
+    
     token_data = {
         "grant_type": "authorization_code",
         "code": request.code,
         "redirect_uri": NOTION_REDIRECT_URI
     }
+    
+    # Properly encode Basic auth credentials
+    credentials = f"{NOTION_CLIENT_ID}:{NOTION_CLIENT_SECRET}"
+    encoded_credentials = base64.b64encode(credentials.encode()).decode()
+    
     headers = {
-        "Authorization": f"Basic {NOTION_CLIENT_ID}:{NOTION_CLIENT_SECRET}",
+        "Authorization": f"Basic {encoded_credentials}",
         "Content-Type": "application/json"
     }
+    
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{NOTION_API_BASE}/oauth/token",
@@ -133,8 +141,11 @@ async def notion_auth_callback(
             headers=headers
         )
         if response.status_code != 200:
+            logger.error(f"OAuth token exchange failed: {response.status_code} - {response.text}")
             raise HTTPException(status_code=400, detail="Failed to exchange code for token")
+        
         token_info = response.json()
+        
         # Store connection info in Supabase
         supabase = get_supabase_client()
         connection_data = {
@@ -145,12 +156,14 @@ async def notion_auth_callback(
             "connected_at": datetime.now().isoformat(),
             "bot_id": token_info.get("bot_id", "")
         }
+        
         # Upsert connection
         existing = supabase.table("notion_connections").select("*").eq("user_id", current_user["id"]).execute()
         if existing.data:
             supabase.table("notion_connections").update(connection_data).eq("user_id", current_user["id"]).execute()
         else:
             supabase.table("notion_connections").insert(connection_data).execute()
+        
         return {
             "success": True,
             "workspace_name": token_info.get("workspace_name", ""),
@@ -163,20 +176,30 @@ async def list_notion_databases(current_user: dict = Depends(get_current_user)):
     connection_result = supabase.table("notion_connections").select("*").eq("user_id", current_user["id"]).execute()
     if not connection_result.data:
         raise HTTPException(status_code=401, detail="Notion not connected")
+    
     connection = connection_result.data[0]
     headers = {
         "Authorization": f"Bearer {connection['access_token']}",
         "Notion-Version": "2022-06-28"
     }
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{NOTION_API_BASE}/search",
-            json={"filter": {"property": "object", "value": "database"}},
-            headers=headers
+    
+    # Use rate-limited queue for Notion API calls
+    notion_client = NotionClient(api_key=connection['access_token'])
+    queue = get_notion_queue(notion_client)
+    
+    try:
+        # Enqueue the search request
+        future = await queue.enqueue_request(
+            method="POST",
+            endpoint="/search",
+            data={"filter": {"property": "object", "value": "database"}},
+            headers=headers,
+            priority=1
         )
-        if response.status_code != 200:
-            raise HTTPException(status_code=400, detail="Failed to fetch databases")
-        databases = response.json().get("results", [])
+        
+        response_data = await future
+        
+        databases = response_data.get("results", [])
         return {
             "success": True,
             "databases": [
@@ -189,6 +212,9 @@ async def list_notion_databases(current_user: dict = Depends(get_current_user)):
                 for db in databases
             ]
         }
+    except Exception as e:
+        logger.error(f"Error fetching Notion databases: {e}")
+        raise HTTPException(status_code=400, detail="Failed to fetch databases")
 
 @router.post("/sync/database", summary="Sync with a specific Notion database")
 async def sync_notion_database(
@@ -322,43 +348,138 @@ async def create_notion_task(
             "created_time": created_page["created_time"]
         }
 
-@router.post("/webhook", summary="Handle Notion webhook events")
-async def handle_notion_webhook(
+@router.post("/webhook/notion", summary="Receive Notion webhooks")
+async def receive_notion_webhook(
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    x_notion_signature: str = Header(None),
+    x_notion_timestamp: str = Header(None)
 ):
-    webhook_data = await request.json()
-    event_type = webhook_data.get("type")
-    # Optionally store webhook events in Supabase for audit/logging
-    supabase = get_supabase_client()
-    event_data = {
-        "user_id": current_user["id"],
-        "event_type": event_type,
-        "payload": webhook_data,
-        "timestamp": datetime.now().isoformat()
-    }
-    supabase.table("notion_webhooks").insert(event_data).execute()
-    if event_type == "page.updated":
-        page_id = webhook_data.get("page", {}).get("id")
+    """
+    Receive and process Notion webhooks with proper security and echo prevention.
+    """
+    try:
+        # Get the raw body for signature verification
+        body = await request.body()
+        body_str = body.decode('utf-8')
+        
+        # Verify webhook signature if provided (required in production)
+        webhook_secret = os.getenv("NOTION_WEBHOOK_SECRET")
+        if webhook_secret and x_notion_signature:
+            if not verify_notion_webhook_signature(body, x_notion_signature, webhook_secret):
+                logger.warning("Invalid webhook signature received")
+                raise HTTPException(status_code=401, detail="Invalid webhook signature")
+        
+        # Parse the webhook payload
+        try:
+            payload = json.loads(body_str)
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON in webhook payload")
+            raise HTTPException(status_code=400, detail="Invalid JSON payload")
+        
+        # Extract webhook data
+        webhook_type = payload.get("type")
+        workspace_id = payload.get("workspace_id")
+        
+        if not workspace_id:
+            logger.error("Missing workspace_id in webhook payload")
+            raise HTTPException(status_code=400, detail="Missing workspace_id")
+        
+        # Find user by workspace_id (not current_user dependency)
+        supabase = get_supabase_client()
+        connection_result = supabase.table("notion_connections").select("user_id").eq("workspace_id", workspace_id).execute()
+        
+        if not connection_result.data:
+            logger.warning(f"No user found for workspace_id: {workspace_id}")
+            # Return 200 to acknowledge receipt even if no user found
+            return {"status": "success", "message": "Webhook received (no user found)"}
+        
+        user_id = connection_result.data[0]["user_id"]
+        
+        # Extract page/database info from payload
+        page_id = None
+        database_id = None
+        last_edited_time = None
+        
+        # Handle different webhook event types
+        if webhook_type in ["page.updated", "page.content_updated"]:
+            page_id = payload.get("page", {}).get("id")
+            last_edited_time = payload.get("page", {}).get("last_edited_time")
+        elif webhook_type in ["database.updated", "database.content_updated"]:
+            database_id = payload.get("database", {}).get("id")
+            last_edited_time = payload.get("database", {}).get("last_edited_time")
+        elif webhook_type in ["page.created", "database.created"]:
+            # Handle creation events
+            if "page" in payload:
+                page_id = payload["page"]["id"]
+                last_edited_time = payload["page"]["last_edited_time"]
+            elif "database" in payload:
+                database_id = payload["database"]["id"]
+                last_edited_time = payload["database"]["last_edited_time"]
+        
+        # Echo prevention: Check if this is a recent sync
+        if page_id or database_id:
+            # Check last_synced_ts to prevent echo loops
+            sync_key = f"last_synced_{user_id}_{page_id or database_id}"
+            last_synced = supabase.table("notion_sync_status").select("last_synced_ts").eq("user_id", user_id).eq("notion_page_id", page_id or database_id).execute()
+            
+            if last_synced.data:
+                last_synced_ts = last_synced.data[0]["last_synced_ts"]
+                if last_edited_time and last_synced_ts:
+                    # If the last_edited_time is older than our last sync, ignore it
+                    try:
+                        last_edited_dt = datetime.fromisoformat(last_edited_time.replace('Z', '+00:00'))
+                        last_synced_dt = datetime.fromisoformat(last_synced_ts.replace('Z', '+00:00'))
+                        if last_edited_dt <= last_synced_dt:
+                            logger.info(f"Ignoring echo webhook for {page_id or database_id}")
+                            return {"status": "success", "message": "Echo webhook ignored"}
+                    except ValueError:
+                        logger.warning("Invalid timestamp format in webhook")
+        
+        # Queue the sync job for background processing (ACK immediately)
+        await queue_notion_sync(user_id, page_id, database_id, last_edited_time)
+        
+        logger.info(f"Webhook queued for processing: {webhook_type} - {page_id or database_id}")
+        
+        # Return 200 immediately (under 5 seconds rule)
         return {
-            "success": True,
-            "event": "page_updated",
-            "page_id": page_id,
-            "timestamp": datetime.now().isoformat()
+            "status": "success", 
+            "message": "Webhook received and queued for processing",
+            "webhook_type": webhook_type,
+            "queued": True
         }
-    elif event_type == "database.updated":
-        database_id = webhook_data.get("database", {}).get("id")
-        return {
-            "success": True,
-            "event": "database_updated",
-            "database_id": database_id,
-            "timestamp": datetime.now().isoformat()
-        }
-    return {
-        "success": True,
-        "event": "unknown",
-        "timestamp": datetime.now().isoformat()
-    }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing webhook: {str(e)}")
+        # Still return 200 to prevent Notion from retrying
+        return {"status": "error", "message": "Webhook processing error"}
+
+def verify_notion_webhook_signature(body: bytes, signature: str, secret: str) -> bool:
+    """
+    Verify Notion webhook signature using HMAC-SHA256.
+    
+    Args:
+        body: Raw request body
+        signature: X-Notion-Signature header value
+        secret: Webhook secret from Notion
+    
+    Returns:
+        True if signature is valid, False otherwise
+    """
+    try:
+        # Create HMAC signature
+        expected_signature = hmac.new(
+            secret.encode('utf-8'),
+            body,
+            hashlib.sha256
+        ).hexdigest()
+        
+        # Compare signatures
+        return hmac.compare_digest(f"sha256={expected_signature}", signature)
+    except Exception as e:
+        logger.error(f"Error verifying webhook signature: {str(e)}")
+        return False
 
 @router.get("/status", summary="Get Notion connection status")
 async def get_notion_status(current_user: dict = Depends(get_current_user)):
@@ -409,50 +530,6 @@ async def get_notion_client(current_user: dict = Depends(get_current_user)) -> N
 async def get_ai_service():
     """Get OpenAI service."""
     return get_openai_service()
-
-def verify_notion_webhook_signature(body: bytes, signature: str, secret: str) -> bool:
-    """Verify Notion webhook signature."""
-    try:
-        expected_signature = hmac.new(
-            secret.encode('utf-8'),
-            body,
-            hashlib.sha256
-        ).hexdigest()
-        
-        return hmac.compare_digest(f"sha256={expected_signature}", signature)
-    except Exception as e:
-        logger.error(f"Error verifying webhook signature: {e}")
-        return False
-
-@router.post("/auth", summary="Authenticate with Notion")
-async def authenticate_notion(
-    auth_request: NotionAuthRequest,
-    current_user: dict = Depends(get_current_user)
-):
-    """Authenticate with Notion and save API key."""
-    try:
-        # Test the API key by making a simple request
-        notion_client = NotionClient(api_key=auth_request.api_key)
-        
-        # Try to get user info (this will fail if API key is invalid)
-        await notion_client.search(query="", filter_params={"property": "object", "value": "page"})
-        
-        # Save API key to user settings
-        supabase = get_supabase_client()
-        supabase.table("user_settings").upsert({
-            "user_id": current_user["id"],
-            "notion_api_key": auth_request.api_key,
-            "updated_at": datetime.now(UTC).isoformat()
-        }).execute()
-        
-        return {"message": "Notion authentication successful", "status": "connected"}
-        
-    except Exception as e:
-        logger.error(f"Notion authentication failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid Notion API key or authentication failed"
-        )
 
 @router.get("/pages", summary="Get user's Notion pages")
 async def get_notion_pages(
@@ -728,97 +805,30 @@ async def generate_flashcards_from_text(
             detail=f"Failed to generate flashcards: {str(e)}"
         )
 
-# Webhook endpoints
-@router.post("/webhook/notion", summary="Receive Notion webhooks")
-async def receive_notion_webhook(
-    request: Request,
-    x_notion_signature: str = Header(None),
-    x_notion_timestamp: str = Header(None)
-):
-    """Receive webhooks from Notion when pages/databases change."""
-    try:
-        # Get webhook body
-        body = await request.body()
-        body_str = body.decode('utf-8')
-        
-        # Verify webhook signature (if signature is provided)
-        if x_notion_signature:
-            # Get webhook secret from environment
-            webhook_secret = os.getenv("NOTION_WEBHOOK_SECRET")
-            if webhook_secret and not verify_notion_webhook_signature(body, x_notion_signature, webhook_secret):
-                logger.warning("Invalid webhook signature")
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid signature")
-        
-        # Parse webhook event
-        try:
-            event_data = json.loads(body_str)
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON in webhook body")
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON")
-        
-        # Extract event information
-        event_type = event_data.get("type")
-        page_id = event_data.get("page", {}).get("id")
-        database_id = event_data.get("database", {}).get("id")
-        last_edited_time = event_data.get("page", {}).get("last_edited_time") or event_data.get("database", {}).get("last_edited_time")
-        
-        logger.info(f"Received Notion webhook: {event_type} for {'page' if page_id else 'database'} {page_id or database_id}")
-        
-        # Process webhook based on event type
-        if event_type in ["page.updated", "database.updated"]:
-            # Queue sync operation using rate-limited queue
-            await queue_notion_sync(page_id, database_id, last_edited_time)
-        
-        return {"status": "success", "message": "Webhook processed"}
-        
-    except Exception as e:
-        logger.error(f"Error processing Notion webhook: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Webhook processing failed")
-
-@router.get("/webhook/notion/verify", summary="Verify Notion webhook")
-async def verify_notion_webhook(challenge: str):
-    """Verify Notion webhook subscription."""
-    return {"challenge": challenge}
-
-async def queue_notion_sync(page_id: Optional[str], database_id: Optional[str], last_edited_time: Optional[str]):
+async def queue_notion_sync(user_id: str, page_id: Optional[str], database_id: Optional[str], last_edited_time: Optional[str]):
     """Queue a Notion sync operation using the rate-limited queue."""
     try:
-        # Get all users who have this page/database synced
+        # Get user's Notion client
         supabase = get_supabase_client()
+        user_settings = supabase.table("user_settings").select("notion_api_key").eq("user_id", user_id).execute()
         
-        if page_id:
-            # Find users who have synced this page
-            result = supabase.table("flashcards").select("user_id").eq("source_page_id", page_id).execute()
-        elif database_id:
-            # Find users who have synced this database
-            result = supabase.table("flashcards").select("user_id").eq("source_database_id", database_id).execute()
-        else:
-            return
-        
-        user_ids = list(set([item["user_id"] for item in result.data]))
-        
-        # Queue sync for each user
-        for user_id in user_ids:
-            # Get user's Notion client
-            user_settings = supabase.table("user_settings").select("notion_api_key").eq("user_id", user_id).execute()
+        if user_settings.data and user_settings.data[0].get("notion_api_key"):
+            notion_client = NotionClient(api_key=user_settings.data[0]["notion_api_key"])
+            notion_queue = get_notion_queue(notion_client)
             
-            if user_settings.data and user_settings.data[0].get("notion_api_key"):
-                notion_client = NotionClient(api_key=user_settings.data[0]["notion_api_key"])
-                notion_queue = get_notion_queue(notion_client)
-                
-                # Queue the sync operation
-                await notion_queue.enqueue_request(
-                    method="POST",
-                    endpoint="/internal/sync",
-                    data={
-                        "user_id": user_id,
-                        "page_id": page_id,
-                        "database_id": database_id,
-                        "last_edited_time": last_edited_time
-                    }
-                )
+            # Queue the sync operation
+            await notion_queue.enqueue_request(
+                method="POST",
+                endpoint="/internal/sync",
+                data={
+                    "user_id": user_id,
+                    "page_id": page_id,
+                    "database_id": database_id,
+                    "last_edited_time": last_edited_time
+                }
+            )
         
-        logger.info(f"Queued sync for {len(user_ids)} users")
+        logger.info(f"Queued sync for user {user_id}, page {page_id or database_id}")
         
     except Exception as e:
         logger.error(f"Error queuing Notion sync: {e}")

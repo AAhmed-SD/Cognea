@@ -6,8 +6,9 @@ import pytest
 import json
 import hmac
 import hashlib
+import base64
 from datetime import datetime, UTC
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, AsyncMock
 
 from fastapi.testclient import TestClient
 from main import app
@@ -18,7 +19,7 @@ client = TestClient(app)
 def mock_supabase():
     """Mock Supabase client."""
     with patch('routes.notion.get_supabase_client') as mock:
-        mock_client = MagicMock()
+        mock_client = AsyncMock()
         mock.return_value = mock_client
         yield mock_client
 
@@ -26,7 +27,7 @@ def mock_supabase():
 def mock_notion_client():
     """Mock Notion client."""
     with patch('routes.notion.NotionClient') as mock:
-        mock_client = MagicMock()
+        mock_client = AsyncMock()
         mock.return_value = mock_client
         yield mock_client
 
@@ -34,7 +35,7 @@ def mock_notion_client():
 def mock_ai_service():
     """Mock AI service."""
     with patch('routes.notion.get_openai_service') as mock:
-        mock_service = MagicMock()
+        mock_service = AsyncMock()
         mock.return_value = mock_service
         yield mock_service
 
@@ -42,15 +43,32 @@ def mock_ai_service():
 def mock_notion_queue():
     """Mock Notion queue."""
     with patch('routes.notion.get_notion_queue') as mock:
-        mock_queue = MagicMock()
+        mock_queue = AsyncMock()
         mock.return_value = mock_queue
         yield mock_queue
 
-def create_webhook_signature(body: str, secret: str) -> str:
-    """Create a valid webhook signature for testing."""
+@pytest.fixture
+def notion_webhook_secret():
+    return "test_webhook_secret_123"
+
+@pytest.fixture
+def notion_webhook_payload():
+    return {
+        "type": "page.updated",
+        "workspace_id": "test_workspace_123",
+        "page": {
+            "id": "test_page_123",
+            "last_edited_time": "2024-01-01T12:00:00.000Z"
+        }
+    }
+
+@pytest.fixture
+def notion_webhook_signature(notion_webhook_payload, notion_webhook_secret):
+    """Generate a valid webhook signature for testing."""
+    body = json.dumps(notion_webhook_payload).encode('utf-8')
     signature = hmac.new(
-        secret.encode('utf-8'),
-        body.encode('utf-8'),
+        notion_webhook_secret.encode('utf-8'),
+        body,
         hashlib.sha256
     ).hexdigest()
     return f"sha256={signature}"
@@ -58,310 +76,371 @@ def create_webhook_signature(body: str, secret: str) -> str:
 class TestNotionWebhooks:
     """Test Notion webhook endpoints."""
     
-    def test_webhook_verification(self):
+    @patch('routes.notion.get_supabase_client')
+    @patch('routes.notion.queue_notion_sync')
+    def test_webhook_verification_success(
+        self, 
+        mock_queue_sync, 
+        mock_supabase, 
+        notion_webhook_payload, 
+        notion_webhook_signature,
+        notion_webhook_secret
+    ):
+        """Test successful webhook verification and processing."""
+        # Mock Supabase responses
+        mock_supabase_instance = AsyncMock()
+        mock_supabase.return_value = mock_supabase_instance
+        
+        # Mock user connection lookup
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
+            {"user_id": "test_user_123"}
+        ]
+        
+        # Mock sync status lookup (no existing sync)
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = []
+        
+        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': notion_webhook_secret}):
+            response = client.post(
+                "/api/notion/webhook/notion",
+                json=notion_webhook_payload,
+                headers={
+                    "X-Notion-Signature": notion_webhook_signature,
+                    "X-Notion-Timestamp": "1640995200"
+                }
+            )
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["queued"] is True
+        assert data["webhook_type"] == "page.updated"
+        
+        # Verify sync was queued
+        mock_queue_sync.assert_called_once_with(
+            "test_user_123", 
+            "test_page_123", 
+            None, 
+            "2024-01-01T12:00:00.000Z"
+        )
+    
+    @patch('routes.notion.get_supabase_client')
+    def test_webhook_invalid_signature(
+        self, 
+        mock_supabase, 
+        notion_webhook_payload,
+        notion_webhook_secret
+    ):
+        """Test webhook rejection with invalid signature."""
+        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': notion_webhook_secret}):
+            response = client.post(
+                "/api/notion/webhook/notion",
+                json=notion_webhook_payload,
+                headers={
+                    "X-Notion-Signature": "sha256=invalid_signature",
+                    "X-Notion-Timestamp": "1640995200"
+                }
+            )
+        
+        assert response.status_code == 401
+        assert "Invalid webhook signature" in response.json()["detail"]
+    
+    @patch('routes.notion.get_supabase_client')
+    def test_webhook_no_signature_development(
+        self, 
+        mock_supabase, 
+        notion_webhook_payload
+    ):
+        """Test webhook processing without signature in development."""
+        # Mock Supabase responses
+        mock_supabase_instance = AsyncMock()
+        mock_supabase.return_value = mock_supabase_instance
+        
+        # Mock user connection lookup
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
+            {"user_id": "test_user_123"}
+        ]
+        
+        # Mock sync status lookup (no existing sync)
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = []
+        
+        # No webhook secret in environment (development mode)
+        with patch.dict('os.environ', {}, clear=True):
+            response = client.post(
+                "/api/notion/webhook/notion",
+                json=notion_webhook_payload
+            )
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+    
+    @patch('routes.notion.get_supabase_client')
+    def test_webhook_echo_prevention(
+        self, 
+        mock_supabase, 
+        notion_webhook_payload, 
+        notion_webhook_signature,
+        notion_webhook_secret
+    ):
+        """Test echo prevention by checking last_synced_ts."""
+        # Mock Supabase responses
+        mock_supabase_instance = AsyncMock()
+        mock_supabase.return_value = mock_supabase_instance
+        
+        # Mock user connection lookup
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
+            {"user_id": "test_user_123"}
+        ]
+        
+        # Mock existing sync with newer timestamp (echo prevention)
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = [
+            {"last_synced_ts": "2024-01-01T13:00:00.000Z"}  # Newer than webhook timestamp
+        ]
+        
+        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': notion_webhook_secret}):
+            response = client.post(
+                "/api/notion/webhook/notion",
+                json=notion_webhook_payload,
+                headers={
+                    "X-Notion-Signature": notion_webhook_signature,
+                    "X-Notion-Timestamp": "1640995200"
+                }
+            )
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert "Echo webhook ignored" in data["message"]
+    
+    @patch('routes.notion.get_supabase_client')
+    def test_webhook_no_user_found(
+        self, 
+        mock_supabase, 
+        notion_webhook_payload, 
+        notion_webhook_signature,
+        notion_webhook_secret
+    ):
+        """Test webhook handling when no user is found for workspace."""
+        # Mock Supabase responses - no user found
+        mock_supabase_instance = AsyncMock()
+        mock_supabase.return_value = mock_supabase_instance
+        
+        # Mock empty user connection lookup
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.execute.return_value.data = []
+        
+        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': notion_webhook_secret}):
+            response = client.post(
+                "/api/notion/webhook/notion",
+                json=notion_webhook_payload,
+                headers={
+                    "X-Notion-Signature": notion_webhook_signature,
+                    "X-Notion-Timestamp": "1640995200"
+                }
+            )
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert "no user found" in data["message"]
+    
+    def test_webhook_invalid_json(self, notion_webhook_secret):
+        """Test webhook rejection with invalid JSON."""
+        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': notion_webhook_secret}):
+            response = client.post(
+                "/api/notion/webhook/notion",
+                data="invalid json",
+                headers={
+                    "X-Notion-Signature": "sha256=test",
+                    "X-Notion-Timestamp": "1640995200"
+                }
+            )
+        
+        assert response.status_code == 400
+        assert "Invalid JSON payload" in response.json()["detail"]
+    
+    def test_webhook_missing_workspace_id(self, notion_webhook_secret):
+        """Test webhook rejection with missing workspace_id."""
+        invalid_payload = {
+            "type": "page.updated",
+            "page": {"id": "test_page_123"}
+            # Missing workspace_id
+        }
+        
+        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': notion_webhook_secret}):
+            response = client.post(
+                "/api/notion/webhook/notion",
+                json=invalid_payload,
+                headers={
+                    "X-Notion-Signature": "sha256=test",
+                    "X-Notion-Timestamp": "1640995200"
+                }
+            )
+        
+        assert response.status_code == 400
+        assert "Missing workspace_id" in response.json()["detail"]
+    
+    def test_webhook_verification_endpoint(self):
         """Test webhook verification endpoint."""
         challenge = "test_challenge_123"
         response = client.get(f"/api/notion/webhook/notion/verify?challenge={challenge}")
         
         assert response.status_code == 200
-        assert response.json() == {"challenge": challenge}
+        data = response.json()
+        assert data["challenge"] == challenge
     
-    def test_webhook_with_valid_signature(self, mock_supabase, mock_notion_queue):
-        """Test webhook processing with valid signature."""
-        # Mock environment variable
-        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': 'test_secret'}):
-            # Create webhook payload
-            webhook_data = {
-                "type": "page.updated",
-                "page": {
-                    "id": "test_page_id",
-                    "last_edited_time": "2024-01-01T12:00:00.000Z"
-                }
+    @patch('routes.notion.get_supabase_client')
+    @patch('routes.notion.queue_notion_sync')
+    def test_webhook_database_updated(
+        self, 
+        mock_queue_sync, 
+        mock_supabase, 
+        notion_webhook_secret
+    ):
+        """Test webhook processing for database.updated events."""
+        database_payload = {
+            "type": "database.updated",
+            "workspace_id": "test_workspace_123",
+            "database": {
+                "id": "test_database_123",
+                "last_edited_time": "2024-01-01T12:00:00.000Z"
             }
-            
-            body = json.dumps(webhook_data)
-            signature = create_webhook_signature(body, "test_secret")
-            
-            # Mock Supabase response for finding users
-            mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
-                {"user_id": "user1"},
-                {"user_id": "user2"}
-            ]
-            
-            # Mock user settings
-            mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
-                {"notion_api_key": "test_api_key"}
-            ]
-            
-            response = client.post(
-                "/api/notion/webhook/notion",
-                headers={
-                    "Content-Type": "application/json",
-                    "X-Notion-Signature": signature
-                },
-                data=body
-            )
-            
-            assert response.status_code == 200
-            assert response.json() == {"status": "success", "message": "Webhook processed"}
-    
-    def test_webhook_with_invalid_signature(self):
-        """Test webhook processing with invalid signature."""
-        # Mock environment variable
-        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': 'test_secret'}):
-            webhook_data = {
-                "type": "page.updated",
-                "page": {"id": "test_page_id"}
-            }
-            
-            body = json.dumps(webhook_data)
-            invalid_signature = "sha256=invalid_signature"
-            
-            response = client.post(
-                "/api/notion/webhook/notion",
-                headers={
-                    "Content-Type": "application/json",
-                    "X-Notion-Signature": invalid_signature
-                },
-                data=body
-            )
-            
-            assert response.status_code == 401
-            assert "Invalid signature" in response.json()["detail"]
-    
-    def test_webhook_without_signature(self):
-        """Test webhook processing without signature (should still work for testing)."""
-        webhook_data = {
-            "type": "page.updated",
-            "page": {"id": "test_page_id"}
         }
         
-        body = json.dumps(webhook_data)
+        # Generate signature for database payload
+        body = json.dumps(database_payload).encode('utf-8')
+        signature = hmac.new(
+            notion_webhook_secret.encode('utf-8'),
+            body,
+            hashlib.sha256
+        ).hexdigest()
+        db_signature = f"sha256={signature}"
         
-        response = client.post(
-            "/api/notion/webhook/notion",
-            headers={"Content-Type": "application/json"},
-            data=body
-        )
+        # Mock Supabase responses
+        mock_supabase_instance = AsyncMock()
+        mock_supabase.return_value = mock_supabase_instance
         
-        # Should work without signature if NOTION_WEBHOOK_SECRET is not set
-        assert response.status_code == 200
-    
-    def test_webhook_invalid_json(self):
-        """Test webhook processing with invalid JSON."""
-        response = client.post(
-            "/api/notion/webhook/notion",
-            headers={"Content-Type": "application/json"},
-            data="invalid json"
-        )
+        # Mock user connection lookup
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
+            {"user_id": "test_user_123"}
+        ]
         
-        assert response.status_code == 400
-        assert "Invalid JSON" in response.json()["detail"]
-    
-    def test_webhook_database_updated(self, mock_supabase, mock_notion_queue):
-        """Test webhook processing for database updates."""
-        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': 'test_secret'}):
-            webhook_data = {
-                "type": "database.updated",
-                "database": {
-                    "id": "test_database_id",
-                    "last_edited_time": "2024-01-01T12:00:00.000Z"
-                }
-            }
-            
-            body = json.dumps(webhook_data)
-            signature = create_webhook_signature(body, "test_secret")
-            
-            # Mock Supabase responses
-            mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
-                {"user_id": "user1"}
-            ]
-            
+        # Mock sync status lookup (no existing sync)
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = []
+        
+        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': notion_webhook_secret}):
             response = client.post(
                 "/api/notion/webhook/notion",
+                json=database_payload,
                 headers={
-                    "Content-Type": "application/json",
-                    "X-Notion-Signature": signature
-                },
-                data=body
+                    "X-Notion-Signature": db_signature,
+                    "X-Notion-Timestamp": "1640995200"
+                }
             )
-            
-            assert response.status_code == 200
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["webhook_type"] == "database.updated"
+        
+        # Verify sync was queued with database_id
+        mock_queue_sync.assert_called_once_with(
+            "test_user_123", 
+            None, 
+            "test_database_123", 
+            "2024-01-01T12:00:00.000Z"
+        )
     
-    def test_webhook_unsupported_event_type(self, mock_supabase):
-        """Test webhook processing for unsupported event types."""
-        webhook_data = {
-            "type": "page.deleted",
-            "page": {"id": "test_page_id"}
+    @patch('routes.notion.get_supabase_client')
+    @patch('routes.notion.queue_notion_sync')
+    def test_webhook_page_created(
+        self, 
+        mock_queue_sync, 
+        mock_supabase, 
+        notion_webhook_secret
+    ):
+        """Test webhook processing for page.created events."""
+        page_created_payload = {
+            "type": "page.created",
+            "workspace_id": "test_workspace_123",
+            "page": {
+                "id": "new_page_123",
+                "last_edited_time": "2024-01-01T12:00:00.000Z"
+            }
         }
         
-        body = json.dumps(webhook_data)
+        # Generate signature for page created payload
+        body = json.dumps(page_created_payload).encode('utf-8')
+        signature = hmac.new(
+            notion_webhook_secret.encode('utf-8'),
+            body,
+            hashlib.sha256
+        ).hexdigest()
+        created_signature = f"sha256={signature}"
         
-        response = client.post(
-            "/api/notion/webhook/notion",
-            headers={"Content-Type": "application/json"},
-            data=body
-        )
+        # Mock Supabase responses
+        mock_supabase_instance = AsyncMock()
+        mock_supabase.return_value = mock_supabase_instance
         
-        # Should still return success but not queue sync
-        assert response.status_code == 200
-    
-    def test_internal_sync_endpoint(self, mock_supabase, mock_notion_client, mock_ai_service):
-        """Test internal sync endpoint."""
-        # Mock user settings
-        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
-            {"notion_api_key": "test_api_key"}
+        # Mock user connection lookup
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
+            {"user_id": "test_user_123"}
         ]
         
-        # Mock sync status check (no recent sync)
-        mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = []
+        # Mock sync status lookup (no existing sync)
+        mock_supabase_instance.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = []
         
-        # Mock sync manager
-        with patch('routes.notion.NotionSyncManager') as mock_sync_manager:
-            mock_manager = MagicMock()
-            mock_sync_manager.return_value = mock_manager
-            
-            # Mock sync result
-            mock_sync_status = MagicMock()
-            mock_sync_status.items_synced = 5
-            mock_manager.sync_page_to_flashcards.return_value = mock_sync_status
-            
+        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': notion_webhook_secret}):
             response = client.post(
-                "/api/notion/internal/sync",
-                json={
-                    "user_id": "test_user",
-                    "page_id": "test_page_id",
-                    "last_edited_time": "2024-01-01T12:00:00.000Z"
+                "/api/notion/webhook/notion",
+                json=page_created_payload,
+                headers={
+                    "X-Notion-Signature": created_signature,
+                    "X-Notion-Timestamp": "1640995200"
                 }
             )
-            
-            assert response.status_code == 200
-            assert response.json()["status"] == "success"
-            assert response.json()["items_synced"] == 5
-    
-    def test_internal_sync_no_api_key(self, mock_supabase):
-        """Test internal sync when user has no API key."""
-        # Mock empty user settings
-        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = []
-        
-        response = client.post(
-            "/api/notion/internal/sync",
-            json={
-                "user_id": "test_user",
-                "page_id": "test_page_id"
-            }
-        )
         
         assert response.status_code == 200
-        assert response.json()["status"] == "error"
-        assert "No Notion API key configured" in response.json()["message"]
-    
-    def test_internal_sync_debounce(self, mock_supabase, mock_notion_client, mock_ai_service):
-        """Test internal sync debouncing for recent changes."""
-        # Mock user settings
-        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
-            {"notion_api_key": "test_api_key"}
-        ]
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["webhook_type"] == "page.created"
         
-        # Mock recent sync (within 30 seconds)
-        recent_time = datetime.now(UTC).isoformat()
-        mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = [
-            {"last_sync_time": recent_time}
-        ]
-        
-        response = client.post(
-            "/api/notion/internal/sync",
-            json={
-                "user_id": "test_user",
-                "page_id": "test_page_id",
-                "last_edited_time": recent_time
-            }
+        # Verify sync was queued
+        mock_queue_sync.assert_called_once_with(
+            "test_user_123", 
+            "new_page_123", 
+            None, 
+            "2024-01-01T12:00:00.000Z"
         )
-        
-        assert response.status_code == 200
-        assert response.json()["status"] == "skipped"
-        assert "Sync too recent" in response.json()["message"]
     
-    def test_internal_sync_database(self, mock_supabase, mock_notion_client, mock_ai_service):
-        """Test internal sync for database."""
-        # Mock user settings
-        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
-            {"notion_api_key": "test_api_key"}
-        ]
-        
-        # Mock sync status check
-        mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = []
-        
-        # Mock sync manager
-        with patch('routes.notion.NotionSyncManager') as mock_sync_manager:
-            mock_manager = MagicMock()
-            mock_sync_manager.return_value = mock_manager
-            
-            # Mock sync result
-            mock_sync_status = MagicMock()
-            mock_sync_status.items_synced = 3
-            mock_manager.sync_database_to_flashcards.return_value = mock_sync_status
-            
-            response = client.post(
-                "/api/notion/internal/sync",
-                json={
-                    "user_id": "test_user",
-                    "database_id": "test_database_id"
-                }
-            )
-            
-            assert response.status_code == 200
-            assert response.json()["status"] == "success"
-            assert response.json()["items_synced"] == 3
-    
-    def test_internal_sync_no_id_provided(self):
-        """Test internal sync without page_id or database_id."""
-        response = client.post(
-            "/api/notion/internal/sync",
-            json={"user_id": "test_user"}
-        )
-        
-        assert response.status_code == 200
-        assert response.json()["status"] == "error"
-        assert "No page_id or database_id provided" in response.json()["message"]
-    
-    def test_webhook_error_handling(self, mock_supabase):
-        """Test webhook error handling."""
+    @patch('routes.notion.get_supabase_client')
+    def test_webhook_error_handling(
+        self, 
+        mock_supabase, 
+        notion_webhook_payload, 
+        notion_webhook_signature,
+        notion_webhook_secret
+    ):
+        """Test webhook error handling returns 200 to prevent retries."""
         # Mock Supabase to raise an exception
-        mock_supabase.table.side_effect = Exception("Database error")
+        mock_supabase_instance = AsyncMock()
+        mock_supabase.return_value = mock_supabase_instance
+        mock_supabase_instance.table.side_effect = Exception("Database error")
         
-        webhook_data = {
-            "type": "page.updated",
-            "page": {"id": "test_page_id"}
-        }
+        with patch.dict('os.environ', {'NOTION_WEBHOOK_SECRET': notion_webhook_secret}):
+            response = client.post(
+                "/api/notion/webhook/notion",
+                json=notion_webhook_payload,
+                headers={
+                    "X-Notion-Signature": notion_webhook_signature,
+                    "X-Notion-Timestamp": "1640995200"
+                }
+            )
         
-        body = json.dumps(webhook_data)
-        
-        response = client.post(
-            "/api/notion/webhook/notion",
-            headers={"Content-Type": "application/json"},
-            data=body
-        )
-        
-        assert response.status_code == 500
-        assert "Webhook processing failed" in response.json()["detail"]
-    
-    def test_internal_sync_error_handling(self, mock_supabase):
-        """Test internal sync error handling."""
-        # Mock user settings to raise an exception
-        mock_supabase.table.side_effect = Exception("Database error")
-        
-        response = client.post(
-            "/api/notion/internal/sync",
-            json={
-                "user_id": "test_user",
-                "page_id": "test_page_id"
-            }
-        )
-        
+        # Should return 200 even on error to prevent Notion retries
         assert response.status_code == 200
-        assert response.json()["status"] == "error"
-        assert "Database error" in response.json()["message"]
+        data = response.json()
+        assert data["status"] == "error"
+        assert "Webhook processing error" in data["message"]
 
 class TestNotionAuthentication:
     """Test Notion authentication endpoints."""
@@ -372,7 +451,7 @@ class TestNotionAuthentication:
         mock_notion_client.return_value.search.return_value = []
         
         # Mock user settings update
-        mock_supabase.table.return_value.upsert.return_value.execute.return_value = MagicMock()
+        mock_supabase.table.return_value.upsert.return_value.execute.return_value = AsyncMock()
         
         response = client.post(
             "/api/notion/auth",
