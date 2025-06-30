@@ -1,26 +1,30 @@
 import os
+import openai
 from dotenv import load_dotenv
-from openai import OpenAI
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Retrieve the OpenAI API key from environment variables
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Check if the API key is loaded
-if OPENAI_API_KEY:
-    print("OpenAI API key loaded successfully.")
-else:
+if not OPENAI_API_KEY:
+    logger.error("OpenAI API key not found in environment variables")
     print("Error: OpenAI API key not found. Please check your .env file.")
-
-# Verify the API key
-print(f"Using OpenAI API Key: {OPENAI_API_KEY}")
+    raise ValueError("OpenAI API key is required")
 
 # Initialize OpenAI API client
-client = OpenAI(api_key=OPENAI_API_KEY)
+openai.api_key = OPENAI_API_KEY
 
-def generate_text(prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7, stop=None):
+logger.info("OpenAI integration initialized successfully")
+
+
+def generate_text(
+    prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7, stop=None
+):
     """
     Generate text using OpenAI's GPT model.
 
@@ -32,22 +36,26 @@ def generate_text(prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7
     :return: Generated text or an error message.
     """
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=model,
             messages=[
-                {"role": "system", "content": "You are a helpful productivity assistant."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a helpful productivity assistant.",
+                },
+                {"role": "user", "content": prompt},
             ],
             max_tokens=max_tokens,
             temperature=temperature,
             stop=stop,
-            n=1
+            n=1,
         )
         generated_text = response.choices[0].message.content.strip()
         total_tokens = response.usage.total_tokens
         return generated_text, total_tokens
     except Exception as e:
         raise ValueError(f"OpenAI error: {str(e)}")
+
 
 # Example usage
 if __name__ == "__main__":
@@ -57,4 +65,4 @@ if __name__ == "__main__":
 # Placeholder for OpenAI API integration logic
 # def generate_text(prompt):
 #     # Implement the function to call OpenAI API
-#     pass 
+#     pass

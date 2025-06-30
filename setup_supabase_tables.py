@@ -3,7 +3,7 @@
 Setup Supabase tables for the Personal Agent application.
 """
 from services.supabase import supabase
-import os
+
 
 def create_audit_logs_table():
     """Create the audit_logs table in Supabase."""
@@ -27,11 +27,11 @@ def create_audit_logs_table():
         CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON audit_logs(resource);
         CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
         """
-        
-        result = supabase.rpc('exec_sql', {'sql': sql}).execute()
+
+        result = supabase.rpc("exec_sql", {"sql": sql}).execute()
         print("✅ audit_logs table created successfully!")
         return True
-        
+
     except Exception as e:
         print(f"❌ Error creating audit_logs table: {e}")
         # Try alternative approach using direct SQL
@@ -42,6 +42,7 @@ def create_audit_logs_table():
         except Exception as e2:
             print(f"❌ Table does not exist and cannot be created: {e2}")
             return False
+
 
 def create_diary_entries_table():
     """Create the diary_entries table in Supabase."""
@@ -64,12 +65,12 @@ def create_diary_entries_table():
         -- Create index on created_at for sorting
         CREATE INDEX IF NOT EXISTS idx_diary_entries_created_at ON diary_entries(created_at DESC);
         """
-        
+
         # Execute the SQL using Supabase's RPC (Remote Procedure Call)
-        result = supabase.rpc('exec_sql', {'sql': sql}).execute()
+        result = supabase.rpc("exec_sql", {"sql": sql}).execute()
         print("✅ diary_entries table created successfully!")
         return True
-        
+
     except Exception as e:
         print(f"❌ Error creating diary_entries table: {e}")
         # Try alternative approach using direct SQL
@@ -81,6 +82,7 @@ def create_diary_entries_table():
         except Exception as e2:
             print(f"❌ Table does not exist and cannot be created: {e2}")
             return False
+
 
 def create_users_table():
     """Create the users table in Supabase."""
@@ -96,14 +98,15 @@ def create_users_table():
         
         CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
         """
-        
-        result = supabase.rpc('exec_sql', {'sql': sql}).execute()
+
+        result = supabase.rpc("exec_sql", {"sql": sql}).execute()
         print("✅ users table created successfully!")
         return True
-        
+
     except Exception as e:
         print(f"❌ Error creating users table: {e}")
         return False
+
 
 def setup_row_level_security():
     """Setup Row Level Security (RLS) for data protection."""
@@ -125,28 +128,29 @@ def setup_row_level_security():
         CREATE POLICY "Users can delete own diary entries" ON diary_entries
             FOR DELETE USING (auth.uid()::text = user_id::text);
         """
-        
-        result = supabase.rpc('exec_sql', {'sql': sql}).execute()
+
+        result = supabase.rpc("exec_sql", {"sql": sql}).execute()
         print("✅ Row Level Security enabled!")
         return True
-        
+
     except Exception as e:
         print(f"⚠️  RLS setup failed (this is optional): {e}")
         return False
+
 
 def main():
     """Main setup function."""
     print("🚀 Setting up Supabase tables...")
     print("=" * 40)
-    
+
     # Create tables
     users_ok = create_users_table()
     diary_ok = create_diary_entries_table()
     audit_ok = create_audit_logs_table()
-    
+
     # Setup security (optional)
     rls_ok = setup_row_level_security()
-    
+
     if users_ok and diary_ok and audit_ok:
         print("\n🎉 Database setup completed successfully!")
         print("Your Supabase database is ready to use.")
@@ -154,5 +158,6 @@ def main():
         print("\n⚠️  Some tables could not be created.")
         print("You may need to create them manually in the Supabase dashboard.")
 
+
 if __name__ == "__main__":
-    main() 
+    main()

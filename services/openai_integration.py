@@ -2,12 +2,19 @@ import os
 from dotenv import load_dotenv
 import openai
 from tenacity import retry, stop_after_attempt, wait_exponential
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Retrieve the OpenAI API key from environment variables
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+# Load OpenAI API key from environment
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not OPENAI_API_KEY:
+    logger.error("OpenAI API key not found in environment variables")
+    raise ValueError("OpenAI API key is required")
 
 # Debug print to verify API key loading
 print("🔑 Loaded OpenAI key:", repr(OPENAI_API_KEY))
@@ -18,14 +25,19 @@ if OPENAI_API_KEY:
 else:
     print("Error: OpenAI API key not found. Please check your .env file.")
 
-# Initialize OpenAI API client
+# Configure OpenAI client
 openai.api_key = OPENAI_API_KEY
 
 # Debug print to confirm API key is set
 print("🔑 OpenAI API key set:", repr(openai.api_key))
 
+logger.info("OpenAI integration initialized successfully")
+
+
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-def generate_openai_text(prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7, stop=None):
+def generate_openai_text(
+    prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7, stop=None
+):
     """
     Generate text using OpenAI's GPT model.
 
@@ -40,23 +52,27 @@ def generate_openai_text(prompt, model="gpt-3.5-turbo", max_tokens=500, temperat
         response = openai.ChatCompletion.create(
             model=model,
             messages=[
-                {"role": "system", "content": "You are a helpful productivity assistant."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a helpful productivity assistant.",
+                },
+                {"role": "user", "content": prompt},
             ],
             max_tokens=max_tokens,
             temperature=temperature,
             stop=stop,
-            n=1
+            n=1,
         )
-        generated_text = response.choices[0].message['content'].strip()
-        total_tokens = response.usage.total_tokens if 'usage' in response else None
+        generated_text = response.choices[0].message["content"].strip()
+        total_tokens = response.usage.total_tokens if "usage" in response else None
         return {"generated_text": generated_text, "total_tokens": total_tokens}, None
     except Exception as e:
         return {"error": str(e), "type": "OpenAIError"}, None
+
 
 # Example usage
 if __name__ == "__main__":
     prompt = "What is the weather like today?"
     text, tokens = generate_openai_text(prompt, temperature=0.5, stop=["."])
     print(f"Generated Text: {text}")
-    print(f"Total Tokens Used: {tokens}") 
+    print(f"Total Tokens Used: {tokens}")

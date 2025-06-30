@@ -1,11 +1,13 @@
 """
 Flashcard model for the Personal Agent application.
 """
+
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
 from pydantic import ConfigDict
+
 
 class FlashcardBase(BaseModel):
     question: str = Field(..., min_length=1)
@@ -14,8 +16,10 @@ class FlashcardBase(BaseModel):
     deck_id: Optional[UUID] = None
     deck_name: Optional[str] = None
 
+
 class FlashcardCreate(FlashcardBase):
     user_id: UUID
+
 
 class FlashcardUpdate(BaseModel):
     question: Optional[str] = Field(None, min_length=1)
@@ -28,6 +32,7 @@ class FlashcardUpdate(BaseModel):
     ease_factor: Optional[float] = None
     interval: Optional[int] = None
 
+
 class Flashcard(FlashcardBase):
     id: UUID
     user_id: UUID
@@ -37,5 +42,5 @@ class Flashcard(FlashcardBase):
     interval: int = 1
     created_at: datetime
     updated_at: datetime
-    
-    model_config = ConfigDict(from_attributes=True) 
+
+    model_config = ConfigDict(from_attributes=True)

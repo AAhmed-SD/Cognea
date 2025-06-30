@@ -1,8 +1,10 @@
 from typing import List
 
+
 class Flashcard:
     # Placeholder for the Flashcard model
     pass
+
 
 class ReviewEngine:
     def __init__(self, user_id: str):
@@ -37,4 +39,4 @@ class ReviewEngine:
         Returns an overall confidence level (0-1) for this flashcard.
         Based on past correctness, ease factor, last review date, etc.
         """
-        pass 
+        pass

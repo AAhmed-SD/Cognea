@@ -1,6 +1,7 @@
-from fastapi import Request, Depends
+from fastapi import Request
 from typing import Optional, Dict, Any
 from services.audit import log_audit_from_request, AuditAction
+
 
 class AuditLogger:
     def __init__(self, action: AuditAction, resource: str):
@@ -20,9 +21,10 @@ class AuditLogger:
             action=self.action,
             resource=self.resource,
             resource_id=resource_id,
-            details=details
+            details=details,
         )
+
 
 # Usage example in a route:
 # from services.audit_dependency import AuditLogger
-# @router.post("/something", dependencies=[Depends(AuditLogger(AuditAction.CREATE, "something"))]) 
+# @router.post("/something", dependencies=[Depends(AuditLogger(AuditAction.CREATE, "something"))])

@@ -13,7 +13,7 @@ celery_app = Celery(
     "personal_agent",
     broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"),
     backend=os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0"),
-    include=["services.tasks"]
+    include=["services.tasks"],
 )
 
 # Celery settings
@@ -47,7 +47,7 @@ celery_app.conf.update(
         "email": {
             "exchange": "email",
             "routing_key": "email",
-        }
+        },
     },
     task_routes={
         "services.tasks.notion.*": {"queue": "notion"},
@@ -62,9 +62,10 @@ celery_app.conf.update(
         "cleanup-old-tasks": {
             "task": "services.tasks.cleanup.cleanup_old_tasks",
             "schedule": timedelta(days=1),
-        }
-    }
+        },
+    },
 )
+
 
 @after_setup_logger.connect
 def setup_loggers(logger: logging.Logger, *args: Any, **kwargs: Dict[str, Any]) -> None:
@@ -72,15 +73,15 @@ def setup_loggers(logger: logging.Logger, *args: Any, **kwargs: Dict[str, Any]) 
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
-    
+
     # File handler
     fh = logging.FileHandler("logs/celery.log")
     fh.setFormatter(formatter)
     logger.addHandler(fh)
-    
+
     # Console handler
     ch = logging.StreamHandler()
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    
-    logger.setLevel(logging.INFO) 
+
+    logger.setLevel(logging.INFO)

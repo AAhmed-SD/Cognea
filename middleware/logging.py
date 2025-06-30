@@ -3,12 +3,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 import time
 import logging
-import json
 from typing import Callable
 import uuid
 from datetime import datetime, UTC
 
 logger = logging.getLogger(__name__)
+
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     def __init__(
@@ -18,7 +18,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         exclude_methods: set = None,
         log_request_body: bool = False,
         log_response_body: bool = False,
-        max_body_size: int = 1024 * 1024  # 1MB
+        max_body_size: int = 1024 * 1024,  # 1MB
     ):
         super().__init__(app)
         self.exclude_paths = exclude_paths or set()
@@ -30,8 +30,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Skip logging for excluded paths/methods
         if (
-            request.url.path in self.exclude_paths or
-            request.method in self.exclude_methods
+            request.url.path in self.exclude_paths
+            or request.method in self.exclude_methods
         ):
             return await call_next(request)
 
@@ -92,11 +92,17 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
             # Log based on status code
             if response.status_code >= 500:
-                logger.error("Server error response", extra={"response_data": response_log})
+                logger.error(
+                    "Server error response", extra={"response_data": response_log}
+                )
             elif response.status_code >= 400:
-                logger.warning("Client error response", extra={"response_data": response_log})
+                logger.warning(
+                    "Client error response", extra={"response_data": response_log}
+                )
             else:
-                logger.info("Successful response", extra={"response_data": response_log})
+                logger.info(
+                    "Successful response", extra={"response_data": response_log}
+                )
 
             return response
 
@@ -107,14 +113,16 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 extra={
                     "request_id": request_id,
                     "error": str(e),
-                    "process_time_ms": round(process_time * 1000, 2)
+                    "process_time_ms": round(process_time * 1000, 2),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
+
 class RequestContextMiddleware(BaseHTTPMiddleware):
     """Middleware to add request context to logging."""
+
     def __init__(self, app: ASGIApp):
         super().__init__(app)
 
@@ -144,4 +152,4 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             return response
         finally:
             # Remove filter
-            logger.removeFilter(ContextFilter()) 
+            logger.removeFilter(ContextFilter())

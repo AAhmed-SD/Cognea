@@ -7,6 +7,7 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+
 class AuditAction(Enum):
     CREATE = "create"
     READ = "read"
@@ -16,6 +17,7 @@ class AuditAction(Enum):
     LOGOUT = "logout"
     SIGNUP = "signup"
 
+
 def log_audit_event(
     user_id: Optional[str],
     action: AuditAction,
@@ -24,12 +26,12 @@ def log_audit_event(
     ip_address: Optional[str] = None,
     user_agent: Optional[str] = None,
     details: Optional[Dict[str, Any]] = None,
-    db: Optional[Any] = None  # Keep for compatibility but not used
+    db: Optional[Any] = None,  # Keep for compatibility but not used
 ) -> None:
     """Log an audit event to the database using Supabase."""
     try:
         supabase = get_supabase_client()
-        
+
         audit_data = {
             "user_id": user_id,
             "action": action.value,
@@ -38,17 +40,18 @@ def log_audit_event(
             "ip_address": ip_address,
             "user_agent": user_agent,
             "details": details,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
-        
+
         # Insert audit log into Supabase
         result = supabase.table("audit_logs").insert(audit_data).execute()
-        
+
         logger.info(f"Audit log: {action} {resource} {resource_id} by {user_id}")
     except Exception as exc:
         logger.error(f"Failed to log audit event: {exc}")
         # Don't fail the main operation if audit logging fails
         # This could happen if the audit_logs table doesn't exist yet
+
 
 def extract_request_context(request: Request) -> Dict[str, Any]:
     """Extract context info from FastAPI request for audit logging."""
@@ -57,6 +60,7 @@ def extract_request_context(request: Request) -> Dict[str, Any]:
         "user_agent": request.headers.get("user-agent"),
     }
 
+
 def log_audit_from_request(
     request: Request,
     user_id: Optional[str],
@@ -64,7 +68,7 @@ def log_audit_from_request(
     resource: str,
     resource_id: Optional[str] = None,
     details: Optional[Dict[str, Any]] = None,
-    db: Optional[Any] = None
+    db: Optional[Any] = None,
 ) -> None:
     ctx = extract_request_context(request)
     log_audit_event(
@@ -75,5 +79,5 @@ def log_audit_from_request(
         ip_address=ctx["ip_address"],
         user_agent=ctx["user_agent"],
         details=details,
-        db=db
-    ) 
+        db=db,
+    )

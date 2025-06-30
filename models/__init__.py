@@ -9,15 +9,8 @@ from .schedule_block import ScheduleBlock
 from .flashcard import Flashcard
 from .notification import Notification
 
-__all__ = [
-    "User",
-    "Task", 
-    "Goal",
-    "ScheduleBlock",
-    "Flashcard",
-    "Notification"
-]
+__all__ = ["User", "Task", "Goal", "ScheduleBlock", "Flashcard", "Notification"]
 
-# Models package initialization 
+# Models package initialization
 # All SQLAlchemy models have been removed in favor of Supabase
-# Only Pydantic models remain for request/response validation 
+# Only Pydantic models remain for request/response validation

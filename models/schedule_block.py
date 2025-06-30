@@ -1,11 +1,13 @@
 """
 Schedule Block model for the Personal Agent application.
 """
+
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
 from pydantic import ConfigDict
+
 
 class ScheduleBlockBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
@@ -19,8 +21,10 @@ class ScheduleBlockBase(BaseModel):
     rescheduled_count: int = 0
     color_code: Optional[str] = None
 
+
 class ScheduleBlockCreate(ScheduleBlockBase):
     user_id: UUID
+
 
 class ScheduleBlockUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
@@ -34,10 +38,11 @@ class ScheduleBlockUpdate(BaseModel):
     rescheduled_count: Optional[int] = None
     color_code: Optional[str] = None
 
+
 class ScheduleBlock(ScheduleBlockBase):
     id: UUID
     user_id: UUID
     created_at: datetime
     updated_at: datetime
-    
-    model_config = ConfigDict(from_attributes=True) 
+
+    model_config = ConfigDict(from_attributes=True)
