@@ -1,29 +1,41 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float
-from sqlalchemy.orm import relationship
+"""
+Flashcard model for the Personal Agent application.
+"""
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from datetime import datetime
-from models.database import Base
+from uuid import UUID
 
-class Flashcard(Base):
-    __tablename__ = "flashcards"
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    front = Column(String, nullable=False)
-    back = Column(String, nullable=False)
-    topic = Column(String, nullable=False)
-    difficulty = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+class FlashcardBase(BaseModel):
+    question: str = Field(..., min_length=1)
+    answer: str = Field(..., min_length=1)
+    tags: Optional[List[str]] = Field(default_factory=list)
+    deck_id: Optional[UUID] = None
+    deck_name: Optional[str] = None
 
-    user = relationship("User", back_populates="flashcards")
-    reviews = relationship("FlashcardReview", back_populates="flashcard")
+class FlashcardCreate(FlashcardBase):
+    user_id: UUID
 
-class FlashcardReview(Base):
-    __tablename__ = "flashcard_reviews"
-    id = Column(Integer, primary_key=True, index=True)
-    flashcard_id = Column(Integer, ForeignKey("flashcards.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    response = Column(String, nullable=False)
-    confidence = Column(Float, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+class FlashcardUpdate(BaseModel):
+    question: Optional[str] = Field(None, min_length=1)
+    answer: Optional[str] = Field(None, min_length=1)
+    tags: Optional[List[str]] = None
+    deck_id: Optional[UUID] = None
+    deck_name: Optional[str] = None
+    last_reviewed_at: Optional[datetime] = None
+    next_review_date: Optional[datetime] = None
+    ease_factor: Optional[float] = None
+    interval: Optional[int] = None
 
-    flashcard = relationship("Flashcard", back_populates="reviews")
-    user = relationship("User", back_populates="flashcard_reviews") 
+class Flashcard(FlashcardBase):
+    id: UUID
+    user_id: UUID
+    last_reviewed_at: Optional[datetime] = None
+    next_review_date: Optional[datetime] = None
+    ease_factor: float = 2.5
+    interval: int = 1
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True 

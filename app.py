@@ -415,20 +415,81 @@ async def custom_exception_handler(request: Request, exc: Exception):
 
 @app.get("/daily-brief", tags=["AI"], summary="Generate a daily brief", description="Generate a daily summary of tasks, priorities, missed tasks, and a reflection.")
 async def daily_brief():
-    today = datetime.now().date()
-    # Example logic for generating a daily brief
-    completed_tasks = [task for task in tasks if task.get('completed', False)]
-    pending_tasks = [task for task in tasks if not task.get('completed', False)]
-    missed_tasks = [task for task in tasks if not task.get('completed', False) and task.get('due_date') and task['due_date'] < today]
-    reflection = "Reflect on your day: What went well? What could be improved?"
+    try:
+        today = datetime.now().date()
+        
+        # Get real data from database instead of in-memory storage
+        from services.supabase import get_supabase_client
+        supabase = get_supabase_client()
+        
+        # Fetch all tasks (in a real app, this would be filtered by user_id)
+        result = supabase.table("tasks").select("*").execute()
+        all_tasks = result.data if result.data else []
+        
+        # Filter tasks by completion status and due date
+        completed_tasks = [task for task in all_tasks if task.get('status') == 'completed']
+        pending_tasks = [task for task in all_tasks if task.get('status') == 'pending']
+        
+        # Calculate missed tasks (due date is in the past and not completed)
+        missed_tasks = []
+        for task in all_tasks:
+            if task.get('due_date'):
+                due_date = datetime.fromisoformat(task['due_date'].replace('Z', '+00:00')).date()
+                if due_date < today and task.get('status') != 'completed':
+                    missed_tasks.append(task)
+        
+        # Generate AI-powered reflection
+        from services.openai_integration import generate_openai_text
+        
+        task_summary = f"""
+Completed Tasks: {len(completed_tasks)}
+- {', '.join([task.get('title', 'Unknown') for task in completed_tasks[:5]])}
 
-    return {
-        "date": today.isoformat(),
-        "completed_tasks": completed_tasks,
-        "pending_tasks": pending_tasks,
-        "missed_tasks": missed_tasks,
-        "reflection": reflection
-    }
+Pending Tasks: {len(pending_tasks)}
+- {', '.join([task.get('title', 'Unknown') for task in pending_tasks[:5]])}
+
+Missed Tasks: {len(missed_tasks)}
+- {', '.join([task.get('title', 'Unknown') for task in missed_tasks[:5]])}
+"""
+        
+        reflection_prompt = f"""Based on the following task summary for {today}, provide a brief, encouraging reflection:
+
+{task_summary}
+
+Write a 2-3 sentence reflection that:
+1. Acknowledges accomplishments
+2. Provides gentle encouragement for missed tasks
+3. Suggests one actionable improvement for tomorrow
+
+Keep it positive and actionable."""
+
+        try:
+            reflection_response = await generate_openai_text(
+                prompt=reflection_prompt,
+                model="gpt-4-turbo-preview",
+                max_tokens=150,
+                temperature=0.7
+            )
+            reflection = reflection_response.get('generated_text', 'Reflect on your day: What went well? What could be improved?')
+        except Exception as e:
+            logging.error(f"Error generating reflection: {str(e)}")
+            reflection = "Reflect on your day: What went well? What could be improved?"
+
+        return {
+            "date": today.isoformat(),
+            "completed_tasks": completed_tasks,
+            "pending_tasks": pending_tasks,
+            "missed_tasks": missed_tasks,
+            "reflection": reflection,
+            "summary": {
+                "total_tasks": len(all_tasks),
+                "completion_rate": len(completed_tasks) / len(all_tasks) * 100 if all_tasks else 0,
+                "missed_rate": len(missed_tasks) / len(all_tasks) * 100 if all_tasks else 0
+            }
+        }
+    except Exception as e:
+        logging.error(f"Error generating daily brief: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Include the generate router to access /quiz-me endpoint
 app.include_router(generate.router)

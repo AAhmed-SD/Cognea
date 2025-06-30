@@ -1,35 +1,18 @@
 import pytest
+import pytest_asyncio
 import asyncio
 from typing import AsyncGenerator, Generator
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from httpx import AsyncClient, ASGITransport
 import os
 import sys
 
-from main import app
-from models.database import Base
-from services.auth import create_access_token
-
-# Add project root to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Test database URL
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-
-# Create async engine for testing
-engine = create_async_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-
-# Create async session factory
-TestingSessionLocal = sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False
-)
+from main import create_app
+from services.supabase import get_supabase_client
+from services.auth import create_access_token
+from datetime import datetime, timedelta
 
 @pytest.fixture(scope="session")
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
@@ -38,33 +21,49 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     yield loop
     loop.close()
 
-@pytest.fixture(scope="session")
-async def test_db_setup():
-    """Create test database tables before tests and drop after."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+@pytest_asyncio.fixture(scope="function")
+async def supabase_client():
+    """Get Supabase client for testing."""
+    return get_supabase_client()
 
-@pytest.fixture(scope="function")
-async def db_session(test_db_setup) -> AsyncGenerator[AsyncSession, None]:
-    """Create a fresh database session for each test."""
-    async with TestingSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+@pytest_asyncio.fixture(scope="function")
+async def db_session(supabase_client):
+    """Create a mock database session for compatibility."""
+    # Return a mock object that has the same interface as SQLAlchemy session
+    class MockSession:
+        def __init__(self, supabase_client):
+            self.supabase = supabase_client
+            self.added_items = []
+        
+        def add(self, item):
+            self.added_items.append(item)
+        
+        def add_all(self, items):
+            self.added_items.extend(items)
+        
+        async def commit(self):
+            # For now, just clear the items since we're using Supabase directly
+            self.added_items.clear()
+        
+        async def close(self):
+            pass
+    
+    session = MockSession(supabase_client)
+    yield session
+    await session.close()
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def async_client(db_session) -> AsyncGenerator[AsyncClient, None]:
     """Create an async client for testing."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    app = create_app()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
 
 @pytest.fixture(scope="function")
 def test_client() -> Generator[TestClient, None, None]:
     """Create a test client for synchronous testing."""
+    app = create_app()
     with TestClient(app) as client:
         yield client
 
@@ -88,7 +87,7 @@ def admin_headers(test_admin_token) -> dict:
     """Create authorization headers with test admin token."""
     return {"Authorization": f"Bearer {test_admin_token}"}
 
-@pytest.fixture(autouse=True, scope="function")
+@pytest_asyncio.fixture(autouse=True, scope="function")
 async def setup_test_environment():
     """Setup test environment variables and cleanup."""
     os.environ["TEST_ENV"] = "true"

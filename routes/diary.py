@@ -1,27 +1,33 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from typing import List, Optional
+from services.supabase import get_supabase_client
 from services.audit import log_audit_from_request, AuditAction
+from datetime import datetime, UTC
 
 router = APIRouter(prefix="/diary", tags=["Diary / Journal"])
 
-class DiaryEntry(BaseModel):
+class DiaryEntryBase(BaseModel):
+    content: str
+    mood: str
+    tags: Optional[List[str]] = []
+
+class DiaryEntryCreate(DiaryEntryBase):
+    user_id: int
+
+class DiaryEntryUpdate(DiaryEntryBase):
+    pass
+
+class DiaryEntryOut(DiaryEntryBase):
     id: int
     user_id: int
-    text: str
-    mood: Optional[str]
-    tags: Optional[List[str]]
-    date: str
+    created_at: datetime
+    updated_at: datetime
+    class Config:
+        orm_mode = True
 
-class DiaryEntryCreate(BaseModel):
-    user_id: int
-    text: str
-    mood: Optional[str]
-    tags: Optional[List[str]]
-    date: str
-
-@router.post("/entry", response_model=DiaryEntry, summary="Create a new diary/journal entry")
-async def create_diary_entry(entry: DiaryEntryCreate, request: Request):
+@router.post("/entry", response_model=DiaryEntryOut, summary="Create a new diary/journal entry")
+def create_diary_entry(entry: DiaryEntryCreate, request: Request):
     log_audit_from_request(
         request=request,
         user_id=str(entry.user_id),
@@ -30,10 +36,30 @@ async def create_diary_entry(entry: DiaryEntryCreate, request: Request):
         resource_id=None,
         details={"payload": entry.dict()}
     )
-    return DiaryEntry(id=1, **entry.dict())
+    
+    supabase = get_supabase_client()
+    
+    # Prepare data for insertion
+    data = {
+        "user_id": entry.user_id,
+        "content": entry.content,
+        "mood": entry.mood,
+        "tags": entry.tags or [],
+        "created_at": datetime.now(UTC).isoformat(),
+        "updated_at": datetime.now(UTC).isoformat()
+    }
+    
+    try:
+        result = supabase.table("diary_entries").insert(data).execute()
+        if result.data:
+            return result.data[0]
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create diary entry")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-@router.get("/entries/{user_id}", response_model=List[DiaryEntry], summary="List all diary entries for a user")
-async def list_diary_entries(user_id: int, request: Request):
+@router.get("/entries/{user_id}", response_model=List[DiaryEntryOut], summary="List all diary entries for a user")
+def list_diary_entries(user_id: int, request: Request):
     log_audit_from_request(
         request=request,
         user_id=str(user_id),
@@ -42,10 +68,21 @@ async def list_diary_entries(user_id: int, request: Request):
         resource_id=None,
         details={"list": True}
     )
-    return [DiaryEntry(id=1, user_id=user_id, text="Sample entry", mood="happy", tags=["sample"], date="2024-06-01")]
+    
+    supabase = get_supabase_client()
+    
+    try:
+        result = supabase.table("diary_entries")\
+            .select("*")\
+            .eq("user_id", user_id)\
+            .order("created_at", desc=True)\
+            .execute()
+        return result.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-@router.get("/entry/{entry_id}", response_model=DiaryEntry, summary="Retrieve a single diary entry")
-async def get_diary_entry(entry_id: int, request: Request):
+@router.get("/entry/{entry_id}", response_model=DiaryEntryOut, summary="Retrieve a single diary entry")
+def get_diary_entry(entry_id: int, request: Request):
     log_audit_from_request(
         request=request,
         user_id=None,
@@ -53,30 +90,108 @@ async def get_diary_entry(entry_id: int, request: Request):
         resource="diary_entry",
         resource_id=str(entry_id)
     )
-    return DiaryEntry(id=entry_id, user_id=1, text="Sample entry", mood="happy", tags=["sample"], date="2024-06-01")
+    
+    supabase = get_supabase_client()
+    
+    try:
+        result = supabase.table("diary_entries")\
+            .select("*")\
+            .eq("id", entry_id)\
+            .execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Diary entry not found")
+        
+        return result.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-@router.put("/entry/{entry_id}", response_model=DiaryEntry, summary="Update a diary entry")
-async def update_diary_entry(entry_id: int, entry: DiaryEntryCreate, request: Request):
-    log_audit_from_request(
-        request=request,
-        user_id=str(entry.user_id),
-        action=AuditAction.UPDATE,
-        resource="diary_entry",
-        resource_id=str(entry_id),
-        details={"payload": entry.dict()}
-    )
-    return DiaryEntry(id=entry_id, **entry.dict())
+@router.put("/entry/{entry_id}", response_model=DiaryEntryOut, summary="Update a diary entry")
+def update_diary_entry(entry_id: int, entry: DiaryEntryUpdate, request: Request):
+    supabase = get_supabase_client()
+    
+    # First check if entry exists and get user_id
+    try:
+        existing = supabase.table("diary_entries")\
+            .select("user_id")\
+            .eq("id", entry_id)\
+            .execute()
+        
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Diary entry not found")
+        
+        user_id = existing.data[0]["user_id"]
+        
+        log_audit_from_request(
+            request=request,
+            user_id=str(user_id),
+            action=AuditAction.UPDATE,
+            resource="diary_entry",
+            resource_id=str(entry_id),
+            details={"payload": entry.dict()}
+        )
+        
+        # Update data
+        update_data = {
+            "content": entry.content,
+            "mood": entry.mood,
+            "tags": entry.tags or [],
+            "updated_at": datetime.now(UTC).isoformat()
+        }
+        
+        result = supabase.table("diary_entries")\
+            .update(update_data)\
+            .eq("id", entry_id)\
+            .execute()
+        
+        if result.data:
+            return result.data[0]
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update diary entry")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.delete("/entry/{entry_id}", summary="Delete a diary entry")
-async def delete_diary_entry(entry_id: int, request: Request):
-    log_audit_from_request(
-        request=request,
-        user_id=None,
-        action=AuditAction.DELETE,
-        resource="diary_entry",
-        resource_id=str(entry_id)
-    )
-    return {"message": f"Diary entry {entry_id} deleted"}
+def delete_diary_entry(entry_id: int, request: Request):
+    supabase = get_supabase_client()
+    
+    # First check if entry exists and get user_id
+    try:
+        existing = supabase.table("diary_entries")\
+            .select("user_id")\
+            .eq("id", entry_id)\
+            .execute()
+        
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Diary entry not found")
+        
+        user_id = existing.data[0]["user_id"]
+        
+        log_audit_from_request(
+            request=request,
+            user_id=str(user_id),
+            action=AuditAction.DELETE,
+            resource="diary_entry",
+            resource_id=str(entry_id)
+        )
+        
+        # Delete the entry
+        result = supabase.table("diary_entries")\
+            .delete()\
+            .eq("id", entry_id)\
+            .execute()
+        
+        return {"message": f"Diary entry {entry_id} deleted"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.get("/stats/{user_id}", summary="Get mood/sentiment trends over diary entries")
 async def diary_stats(user_id: int):

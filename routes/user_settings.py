@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 from services.audit import log_audit_from_request, AuditAction
+from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/user/settings", tags=["User Settings"])
 
@@ -12,10 +13,6 @@ class UserSettings(BaseModel):
     enabled_modules: Optional[str]
     default_views: Optional[str]
 
-# In-memory storage for user settings
-user_settings_db: Dict[int, UserSettings] = {}
-user_features_db: Dict[int, List[str]] = {}
-
 @router.get("/", response_model=UserSettings, summary="Retrieve all preferences")
 async def get_user_settings(user_id: int, request: Request):
     log_audit_from_request(
@@ -24,10 +21,15 @@ async def get_user_settings(user_id: int, request: Request):
         action=AuditAction.READ,
         resource="user_settings"
     )
-    settings = user_settings_db.get(user_id)
-    if not settings:
+    
+    supabase = get_supabase_client()
+    result = supabase.table("user_settings").select("*").eq("user_id", user_id).execute()
+    
+    if not result.data:
         raise HTTPException(status_code=404, detail="User settings not found")
-    return settings
+    
+    settings_data = result.data[0]
+    return UserSettings(**settings_data)
 
 @router.post("/", response_model=UserSettings, summary="Update focus hours, energy curve, enabled modules, default views")
 async def update_user_settings(settings: UserSettings, request: Request):
@@ -38,8 +40,23 @@ async def update_user_settings(settings: UserSettings, request: Request):
         resource="user_settings",
         details={"payload": settings.dict()}
     )
-    user_settings_db[settings.user_id] = settings
-    return settings
+    
+    supabase = get_supabase_client()
+    
+    # Check if settings exist for this user
+    existing_result = supabase.table("user_settings").select("*").eq("user_id", settings.user_id).execute()
+    
+    if existing_result.data:
+        # Update existing settings
+        result = supabase.table("user_settings").update(settings.dict()).eq("user_id", settings.user_id).execute()
+    else:
+        # Create new settings
+        result = supabase.table("user_settings").insert(settings.dict()).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to update user settings")
+    
+    return UserSettings(**result.data[0])
 
 @router.get("/features", summary="Get toggles: flashcards, habits, etc.")
 async def get_feature_toggles(user_id: int, request: Request):
@@ -49,5 +66,14 @@ async def get_feature_toggles(user_id: int, request: Request):
         action=AuditAction.READ,
         resource="user_features"
     )
-    features = user_features_db.get(user_id, ["flashcards", "habits", "calendar", "notion"])
+    
+    supabase = get_supabase_client()
+    result = supabase.table("user_features").select("*").eq("user_id", user_id).execute()
+    
+    if result.data:
+        features = result.data[0].get("features", ["flashcards", "habits", "calendar", "notion"])
+    else:
+        # Default features if none found
+        features = ["flashcards", "habits", "calendar", "notion"]
+    
     return {"user_id": user_id, "features": features} 

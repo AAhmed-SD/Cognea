@@ -2,21 +2,13 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, List, Optional
 from datetime import datetime
 from pydantic import BaseModel, confloat
-from sqlalchemy.orm import Session
-from models.database import get_db
-from models.user import User
-from models.plan import Plan
-from models.flashcard import Flashcard, FlashcardReview
+from services.supabase import get_supabase_client
 from services.auth import get_current_user
+from services.cost_tracking import cost_tracking_service
+import logging
 
 # Remove the /ai prefix since it's already added in main.py
 router = APIRouter(tags=["AI & Personalization"])
-
-# In-memory storage for AI insights and check-ins
-ai_insights_db: Dict[int, dict] = {}
-routine_templates_db: Dict[int, dict] = {}
-auto_checkins_db: Dict[int, List[str]] = {}
-manual_checkins_db: Dict[int, List[dict]] = {}
 
 class PlanPreferences(BaseModel):
     focus_areas: List[str]
@@ -66,9 +58,13 @@ class SmartScheduleRequest(BaseModel):
 @router.post("/plan-day", summary="Generate a daily plan based on preferences")
 async def plan_day(
     request: PlanDayRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
+    # Check budget limits before making AI call
+    budget_check = await cost_tracking_service.check_budget_limits(current_user["id"])
+    if budget_check["daily_exceeded"] or budget_check["monthly_exceeded"]:
+        raise HTTPException(status_code=429, detail="Budget limit exceeded")
+    
     # In a real implementation, this would use OpenAI or another AI service
     # to generate a personalized plan based on preferences
     schedule = [
@@ -84,21 +80,36 @@ async def plan_day(
         }
     ]
 
-    # Create plan in database
-    plan = Plan(
-        date=datetime.fromisoformat(request.date),
-        preferences=request.preferences.model_dump(),
-        schedule=schedule,
-        user_id=current_user.id
+    # Track API usage (mock values for now)
+    await cost_tracking_service.track_api_call(
+        user_id=current_user["id"],
+        endpoint="/plan-day",
+        model="gpt-4",
+        input_tokens=150,
+        output_tokens=200,
+        cost_usd=0.01
     )
+
+    # Create plan in Supabase
+    supabase = get_supabase_client()
+    plan_data = {
+        "user_id": current_user["id"],
+        "date": request.date,
+        "preferences": request.preferences.model_dump(),
+        "schedule": schedule,
+        "created_at": datetime.utcnow().isoformat()
+    }
     
-    db.add(plan)
-    db.commit()
-    db.refresh(plan)
+    result = supabase.table("plans").insert(plan_data).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to create plan")
+    
+    plan = result.data[0]
     
     return {
         "success": True,
-        "plan_id": plan.id,
+        "plan_id": plan["id"],
         "plan": {
             "date": request.date,
             "schedule": schedule
@@ -108,9 +119,13 @@ async def plan_day(
 @router.post("/generate-flashcards", summary="Generate flashcards for a topic")
 async def generate_flashcards(
     request: FlashcardRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
+    # Check budget limits before making AI call
+    budget_check = await cost_tracking_service.check_budget_limits(current_user["id"])
+    if budget_check["daily_exceeded"] or budget_check["monthly_exceeded"]:
+        raise HTTPException(status_code=429, detail="Budget limit exceeded")
+    
     # In a real implementation, this would use OpenAI or another AI service
     # to generate flashcards based on the topic and difficulty
     flashcard_data = [
@@ -136,98 +151,121 @@ async def generate_flashcards(
         }
     ]
     
-    # Create flashcards in database
-    flashcards = []
-    for data in flashcard_data[:request.count]:
-        flashcard = Flashcard(
-            user_id=current_user.id,
-            topic=request.topic,
-            difficulty=request.difficulty,
-            front=data["front"],
-            back=data["back"]
-        )
-        db.add(flashcard)
-        flashcards.append(flashcard)
+    # Track API usage (mock values for now)
+    await cost_tracking_service.track_api_call(
+        user_id=current_user["id"],
+        endpoint="/generate-flashcards",
+        model="gpt-4",
+        input_tokens=100,
+        output_tokens=300,
+        cost_usd=0.015
+    )
     
-    db.commit()
+    # Create flashcards in Supabase
+    supabase = get_supabase_client()
+    flashcards_to_insert = []
+    
+    for data in flashcard_data[:request.count]:
+        flashcard_data = {
+            "user_id": current_user["id"],
+            "topic": request.topic,
+            "difficulty": request.difficulty,
+            "front": data["front"],
+            "back": data["back"],
+            "created_at": datetime.utcnow().isoformat()
+        }
+        flashcards_to_insert.append(flashcard_data)
+    
+    result = supabase.table("flashcards").insert(flashcards_to_insert).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to create flashcards")
     
     # Return flashcards with IDs
     return {
         "success": True,
         "flashcards": [
             {
-                "id": f.id,
-                "front": f.front,
-                "back": f.back,
-                "topic": f.topic,
-                "difficulty": f.difficulty
+                "id": f["id"],
+                "front": f["front"],
+                "back": f["back"],
+                "topic": f["topic"],
+                "difficulty": f["difficulty"]
             }
-            for f in flashcards
+            for f in result.data
         ]
     }
 
 @router.post("/complete-review", summary="Submit a flashcard review")
 async def review_flashcard(
     request: FlashcardReviewRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     # Check if flashcard exists and belongs to user
-    flashcard = db.query(Flashcard).filter(
-        Flashcard.id == request.flashcard_id,
-        Flashcard.user_id == current_user.id
-    ).first()
+    supabase = get_supabase_client()
     
-    if not flashcard:
+    flashcard_result = supabase.table("flashcards").select("*").eq("id", request.flashcard_id).eq("user_id", current_user["id"]).execute()
+    
+    if not flashcard_result.data:
         raise HTTPException(status_code=404, detail="Flashcard not found")
     
-    # Create review
-    review = FlashcardReview(
-        flashcard_id=flashcard.id,
-        user_id=current_user.id,
-        response=request.response,
-        confidence=request.confidence
-    )
+    flashcard = flashcard_result.data[0]
     
-    db.add(review)
-    db.commit()
-    db.refresh(review)
+    # Create review in Supabase
+    review_data = {
+        "flashcard_id": flashcard["id"],
+        "user_id": current_user["id"],
+        "response": request.response,
+        "confidence": request.confidence,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    result = supabase.table("flashcard_reviews").insert(review_data).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to create review")
+    
+    review = result.data[0]
     
     return {
         "success": True,
-        "review_id": review.id
+        "review_id": review["id"]
     }
 
 @router.get("/plan/{plan_id}", summary="Get a plan by ID")
 async def get_plan(
     plan_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
-    plan = db.query(Plan).filter(Plan.id == plan_id).first()
-    if not plan:
+    supabase = get_supabase_client()
+    
+    result = supabase.table("plans").select("*").eq("id", plan_id).execute()
+    
+    if not result.data:
         raise HTTPException(status_code=404, detail="Plan not found")
     
+    plan = result.data[0]
+    
     # Row-level security: only allow access to own plans
-    if plan.user_id != current_user.id:
+    if plan["user_id"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Not authorized to access this plan")
     
     return {
         "success": True,
         "plan": {
-            "id": plan.id,
-            "date": plan.date.isoformat(),
-            "preferences": plan.preferences,
-            "schedule": plan.schedule
+            "id": plan["id"],
+            "date": plan["date"],
+            "preferences": plan["preferences"],
+            "schedule": plan["schedule"]
         }
     }
 
 @router.post("/insights", summary="Generate AI insights based on user data")
 async def generate_insights(
     request: InsightRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
-    # In a real implementation, this would analyze user data and generate insights
+    # TODO: In a real implementation, this would analyze user data and generate insights
     # using AI/ML models. For now, we'll return mock insights.
     insights = {
         "productivity_trends": [
@@ -261,63 +299,173 @@ async def generate_insights(
 
 @router.get("/insights/latest", summary="Get latest AI insights")
 async def get_latest_insights(
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
-    # In a real implementation, this would fetch the most recent insights
-    # from a database. For now, we'll return mock data.
-    latest_insights = {
-        "generated_at": datetime.utcnow().isoformat(),
-        "summary": "You've been making steady progress in your learning goals",
-        "key_metrics": {
-            "productivity_score": 85,
-            "learning_efficiency": 92,
-            "habit_consistency": 78
+    try:
+        # Get user's recent data from database
+        supabase = get_supabase_client()
+        
+        # Fetch recent tasks, goals, and schedule blocks
+        tasks_result = supabase.table("tasks").select("*").eq("user_id", current_user['id']).limit(20).execute()
+        goals_result = supabase.table("goals").select("*").eq("user_id", current_user['id']).limit(10).execute()
+        schedule_result = supabase.table("schedule_blocks").select("*").eq("user_id", current_user['id']).limit(20).execute()
+        
+        tasks = tasks_result.data if tasks_result.data else []
+        goals = goals_result.data if goals_result.data else []
+        schedule_blocks = schedule_result.data if schedule_result.data else []
+        
+        # Real OpenAI integration for insights generation
+        data_summary = f"""
+Recent Tasks: {len(tasks)} tasks
+- Completed: {len([t for t in tasks if t.get('status') == 'completed'])}
+- Pending: {len([t for t in tasks if t.get('status') == 'pending'])}
+- High Priority: {len([t for t in tasks if t.get('priority') == 'high'])}
+
+Recent Goals: {len(goals)} goals
+- Active: {len([g for g in goals if g.get('status') == 'active'])}
+- Progress Range: {min([g.get('progress', 0) for g in goals])}% - {max([g.get('progress', 0) for g in goals])}%
+
+Schedule Blocks: {len(schedule_blocks)} blocks
+- Fixed: {len([s for s in schedule_blocks if s.get('is_fixed')])}
+- Rescheduled: {len([s for s in schedule_blocks if s.get('is_rescheduled')])}
+"""
+
+        prompt = f"""Based on the following user data, generate personalized productivity insights:
+
+{data_summary}
+
+Provide insights in JSON format:
+{{
+    "summary": "Brief summary of user's productivity patterns",
+    "key_metrics": {{
+        "productivity_score": 0-100,
+        "learning_efficiency": 0-100,
+        "habit_consistency": 0-100
+    }},
+    "recommendations": [
+        "Specific actionable recommendation 1",
+        "Specific actionable recommendation 2",
+        "Specific actionable recommendation 3"
+    ]
+}}
+
+Focus on actionable insights that can help improve productivity and goal achievement."""
+
+        # Call OpenAI API
+        from services.openai_integration import generate_openai_text
+        response = await generate_openai_text(
+            prompt=prompt,
+            model="gpt-4-turbo-preview",
+            max_tokens=800,
+            temperature=0.3
+        )
+        
+        # Parse the response
+        import json
+        try:
+            response_text = response.get('generated_text', '')
+            start_idx = response_text.find('{')
+            end_idx = response_text.rfind('}') + 1
+            if start_idx != -1 and end_idx != 0:
+                json_str = response_text[start_idx:end_idx]
+                parsed = json.loads(json_str)
+                insights = {
+                    "generated_at": datetime.utcnow().isoformat(),
+                    "summary": parsed.get("summary", "You've been making steady progress in your learning goals"),
+                    "key_metrics": parsed.get("key_metrics", {
+                        "productivity_score": 85,
+                        "learning_efficiency": 92,
+                        "habit_consistency": 78
+                    }),
+                    "recommendations": parsed.get("recommendations", [
+                        "Continue with your current productivity patterns",
+                        "Consider adding more breaks between deep work sessions",
+                        "Review your goals weekly to maintain focus"
+                    ])
+                }
+            else:
+                # Fallback insights
+                insights = {
+                    "generated_at": datetime.utcnow().isoformat(),
+                    "summary": "You've been making steady progress in your learning goals",
+                    "key_metrics": {
+                        "productivity_score": 85,
+                        "learning_efficiency": 92,
+                        "habit_consistency": 78
+                    },
+                    "recommendations": [
+                        "Continue with your current productivity patterns",
+                        "Consider adding more breaks between deep work sessions",
+                        "Review your goals weekly to maintain focus"
+                    ]
+                }
+        except json.JSONDecodeError:
+            # Fallback if JSON parsing fails
+            insights = {
+                "generated_at": datetime.utcnow().isoformat(),
+                "summary": "You've been making steady progress in your learning goals",
+                "key_metrics": {
+                    "productivity_score": 85,
+                    "learning_efficiency": 92,
+                    "habit_consistency": 78
+                },
+                "recommendations": [
+                    "Continue with your current productivity patterns",
+                    "Consider adding more breaks between deep work sessions",
+                    "Review your goals weekly to maintain focus"
+                ]
+            }
+        
+        return {
+            "success": True,
+            "insights": insights
         }
-    }
-    
-    return {
-        "success": True,
-        "insights": latest_insights
-    }
+    except Exception as e:
+        logging.error(f"Error generating insights: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/routine-template/{user_id}", summary="Generate/update optimal week schedule")
 async def routine_template(user_id: int):
-    template = routine_templates_db.get(user_id, {
+    # TODO: In a real implementation, this would generate/retrieve routine templates
+    # from Supabase. For now, we'll return mock data.
+    template = {
         "template": "Optimal week schedule generated.",
         "blocks": [
             {"day": "Monday", "focus": "Deep Work", "start": "09:00", "end": "12:00"},
             {"day": "Friday", "focus": "Review & Plan", "start": "15:00", "end": "16:00"}
         ]
-    })
+    }
     return {"user_id": user_id, **template}
 
 @router.get("/auto-checkins/{user_id}", summary="Daily or weekly prompts for consistency")
 async def auto_checkins(user_id: int):
-    checkins = auto_checkins_db.get(user_id, [
+    # TODO: In a real implementation, this would fetch check-ins from Supabase
+    # For now, we'll return mock data.
+    checkins = [
         "Did you complete your morning routine?",
         "What was your biggest win this week?"
-    ])
+    ]
     return {"user_id": user_id, "checkins": checkins}
 
 @router.post("/trigger-checkin/{user_id}", summary="Manual trigger for a check-in via UI")
 async def trigger_checkin(user_id: int):
+    # TODO: In a real implementation, this would store check-ins in Supabase
+    # For now, we'll return mock data.
     now = datetime.now().isoformat()
-    manual_checkins_db.setdefault(user_id, []).append({"timestamp": now, "status": "triggered"})
     return {"user_id": user_id, "status": "Check-in triggered.", "timestamp": now}
 
 @router.post("/goals/track", summary="Track and analyze goal progress")
 async def track_goal_progress(
     request: GoalRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """Track a new goal and provide AI-powered progress analysis"""
     
-    # In a real implementation, this would store goals in a database
+    # TODO: In a real implementation, this would store goals in Supabase
     # and use AI to analyze progress patterns
     
     goal_analysis = {
-        "goal_id": f"goal_{current_user.id}_{datetime.now().timestamp()}",
+        "goal_id": f"goal_{current_user['id']}_{datetime.now().timestamp()}",
         "title": request.title,
         "progress_estimate": 0,
         "milestones": [
@@ -343,11 +491,11 @@ async def track_goal_progress(
 @router.post("/habits/suggest", summary="Get AI-powered habit suggestions")
 async def suggest_habits(
     request: HabitSuggestionRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """Generate personalized habit suggestions based on user preferences"""
     
-    # AI analysis of user preferences and current habits
+    # TODO: AI analysis of user preferences and current habits
     habit_suggestions = {
         "morning_routine": [
             {
@@ -400,11 +548,11 @@ async def suggest_habits(
 @router.post("/productivity/analyze", summary="Analyze productivity patterns")
 async def analyze_productivity(
     request: ProductivityAnalysisRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """Analyze user productivity patterns and provide insights"""
     
-    # Mock productivity analysis - in real implementation, this would
+    # TODO: Mock productivity analysis - in real implementation, this would
     # analyze actual user data from calendar, habits, and learning activities
     
     productivity_analysis = {
@@ -459,11 +607,11 @@ async def analyze_productivity(
 @router.post("/schedule/optimize", summary="Optimize schedule using AI")
 async def optimize_schedule(
     request: SmartScheduleRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """Use AI to optimize task scheduling based on priorities and preferences"""
     
-    # AI scheduling algorithm would consider:
+    # TODO: AI scheduling algorithm would consider:
     # - Task priority and deadlines
     # - User's peak productivity hours
     # - Energy levels throughout the day
@@ -528,9 +676,12 @@ async def optimize_schedule(
 
 @router.get("/insights/weekly-summary", summary="Get weekly productivity summary")
 async def get_weekly_summary(
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """Generate a comprehensive weekly productivity summary"""
+    
+    # TODO: In a real implementation, this would analyze actual user data
+    # from Supabase tables and generate insights
     
     weekly_summary = {
         "week_ending": datetime.now().strftime("%Y-%m-%d"),

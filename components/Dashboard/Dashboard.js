@@ -4,8 +4,10 @@ import apiService from '../../services/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [insights, setInsights] = useState(null);
-  const [weeklySummary, setWeeklySummary] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [trendsData, setTrendsData] = useState(null);
+  const [weeklyReview, setWeeklyReview] = useState(null);
+  const [productivityPatterns, setProductivityPatterns] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -16,14 +18,27 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [insightsData, summaryData] = await Promise.all([
-        apiService.getLatestInsights(),
-        apiService.getWeeklySummary()
+      const [dashboard, trends, review, patterns] = await Promise.all([
+        apiService.getDashboard(),
+        apiService.getTrends(),
+        apiService.getWeeklyReview(),
+        apiService.getProductivityPatterns()
       ]);
-      setInsights(insightsData.insights);
-      setWeeklySummary(summaryData.weekly_summary);
+      
+      setDashboardData(dashboard.dashboard);
+      setTrendsData(trends.trends);
+      setWeeklyReview(review);
+      setProductivityPatterns(patterns);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
+      // Set default data if API fails
+      setDashboardData({
+        habits: [],
+        focus_time: [],
+        goals: [],
+        task_stats: { total: 0, completed: 0, pending: 0, completion_rate: 0 },
+        productivity_score: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -40,7 +55,8 @@ const Dashboard = () => {
       };
       const response = await apiService.planDay(planData);
       console.log('Day planned:', response);
-      // You could show a success message or update the UI
+      // Refresh dashboard data after planning
+      await loadDashboardData();
     } catch (error) {
       console.error('Failed to plan day:', error);
     }
@@ -159,35 +175,47 @@ const Dashboard = () => {
                         stroke="currentColor"
                         strokeWidth="4"
                         fill="transparent"
-                        strokeDasharray={`${(insights?.key_metrics?.productivity_score || 0) * 1.76} 176`}
+                        strokeDasharray={`${(dashboardData?.productivity_score || 0) * 1.76} 176`}
                         className="text-blue-600"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-xl font-bold text-gray-900">
-                        {insights?.key_metrics?.productivity_score || 0}%
+                        {dashboardData?.productivity_score || 0}%
                       </span>
                     </div>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">This week</p>
                     <p className="text-lg font-semibold text-gray-900">
-                      {insights?.summary || 'Great progress!'}
+                      {dashboardData?.task_stats?.completion_rate > 80 ? 'Excellent progress!' : 
+                       dashboardData?.task_stats?.completion_rate > 60 ? 'Good progress!' : 
+                       'Keep going!'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Weekly Summary */}
+              {/* Task Stats */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">This Week</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Task Overview</h3>
                 <div className="space-y-3">
-                  {weeklySummary?.key_achievements?.slice(0, 3).map((achievement, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm text-gray-700">{achievement}</span>
-                    </div>
-                  ))}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">Total Tasks</span>
+                    <span className="font-semibold text-gray-900">{dashboardData?.task_stats?.total || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">Completed</span>
+                    <span className="font-semibold text-green-600">{dashboardData?.task_stats?.completed || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">Pending</span>
+                    <span className="font-semibold text-orange-600">{dashboardData?.task_stats?.pending || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">Completion Rate</span>
+                    <span className="font-semibold text-gray-900">{Math.round(dashboardData?.task_stats?.completion_rate || 0)}%</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -196,33 +224,76 @@ const Dashboard = () => {
           {activeTab === 'productivity' && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900">Productivity Analysis</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900">Peak Hours</h4>
-                  <p className="text-sm text-gray-600 mt-1">09:00 - 11:00</p>
+              
+              {/* Productivity Patterns */}
+              {productivityPatterns && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-900">Peak Hours</h4>
+                    <p className="text-sm text-gray-600 mt-1 capitalize">{productivityPatterns.best_time || 'Morning'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-900">Best Day</h4>
+                    <p className="text-sm text-gray-600 mt-1">{productivityPatterns.best_day || 'Monday'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-900">Focus Blocks</h4>
+                    <p className="text-sm text-gray-600 mt-1">{productivityPatterns.focus_blocks?.length || 0} scheduled</p>
+                  </div>
                 </div>
+              )}
+
+              {/* Focus Time Chart */}
+              {dashboardData?.focus_time && dashboardData.focus_time.length > 0 && (
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900">Focus Time</h4>
-                  <p className="text-sm text-gray-600 mt-1">18.5 hours</p>
+                  <h4 className="font-medium text-gray-900 mb-4">Focus Time (Last 7 Days)</h4>
+                  <div className="flex items-end space-x-2 h-32">
+                    {dashboardData.focus_time.slice(-7).map((day, index) => (
+                      <div key={index} className="flex-1 flex flex-col items-center">
+                        <div 
+                          className="bg-blue-500 rounded-t w-full"
+                          style={{ height: `${Math.max(10, (day.minutes / 480) * 100)}%` }}
+                        ></div>
+                        <span className="text-xs text-gray-600 mt-1">{day.date.split('-')[2]}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900">Tasks Completed</h4>
-                  <p className="text-sm text-gray-600 mt-1">23 this week</p>
-                </div>
-              </div>
+              )}
             </div>
           )}
 
           {activeTab === 'learning' && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900">Learning Progress</h3>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Flashcard Mastery</h4>
-                <div className="flex items-center space-x-2">
-                  <div className="flex-1 bg-blue-200 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '80%' }}></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-900">Active Goals</h4>
+                  <div className="mt-2 space-y-2">
+                    {dashboardData?.goals?.slice(0, 3).map((goal, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-sm text-gray-700">{goal}</span>
+                      </div>
+                    ))}
+                    {(!dashboardData?.goals || dashboardData.goals.length === 0) && (
+                      <p className="text-sm text-gray-500">No active goals</p>
+                    )}
                   </div>
-                  <span className="text-sm font-medium text-gray-900">80%</span>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-900">Current Habits</h4>
+                  <div className="mt-2 space-y-2">
+                    {dashboardData?.habits?.slice(0, 3).map((habit, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm text-gray-700">{habit}</span>
+                      </div>
+                    ))}
+                    {(!dashboardData?.habits || dashboardData.habits.length === 0) && (
+                      <p className="text-sm text-gray-500">No active habits</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -231,16 +302,49 @@ const Dashboard = () => {
           {activeTab === 'habits' && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900">Habit Tracking</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900">Current Streak</h4>
-                  <p className="text-2xl font-bold text-indigo-600">5 days</p>
+              
+              {/* Weekly Review */}
+              {weeklyReview && (
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-4">Weekly Summary</h4>
+                  <p className="text-gray-700 mb-4">{weeklyReview.summary}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{weeklyReview.completed_tasks}</div>
+                      <div className="text-sm text-gray-600">Completed</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-600">{weeklyReview.missed_tasks}</div>
+                      <div className="text-sm text-gray-600">Missed</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{weeklyReview.streak}</div>
+                      <div className="text-sm text-gray-600">Day Streak</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{weeklyReview.total_tasks}</div>
+                      <div className="text-sm text-gray-600">Total</div>
+                    </div>
+                  </div>
                 </div>
+              )}
+
+              {/* Trends Chart */}
+              {trendsData && trendsData.length > 0 && (
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900">Best Streak</h4>
-                  <p className="text-2xl font-bold text-green-600">12 days</p>
+                  <h4 className="font-medium text-gray-900 mb-4">Productivity Trends (Last 30 Days)</h4>
+                  <div className="flex items-end space-x-1 h-32">
+                    {trendsData.slice(-30).map((day, index) => (
+                      <div key={index} className="flex-1 flex flex-col items-center">
+                        <div 
+                          className="bg-green-500 rounded-t w-full"
+                          style={{ height: `${Math.max(2, day.score)}%` }}
+                        ></div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>

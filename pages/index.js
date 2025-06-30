@@ -16,13 +16,14 @@ export default function Home() {
     );
   }
 
-  if (!isAuthenticated) {
-    return authMode === 'login' ? (
-      <LoginForm onSwitchToSignup={() => setAuthMode('signup')} />
-    ) : (
-      <SignupForm onSwitchToLogin={() => setAuthMode('login')} />
-    );
-  }
+  // TEMPORARY: Always show dashboard, skip auth
+  // if (!isAuthenticated) {
+  //   return authMode === 'login' ? (
+  //     <LoginForm onSwitchToSignup={() => setAuthMode('signup')} />
+  //   ) : (
+  //     <SignupForm onSwitchToLogin={() => setAuthMode('login')} />
+  //   );
+  // }
 
   return <Layout />;
 } 

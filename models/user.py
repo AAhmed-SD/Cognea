@@ -1,15 +1,37 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
-from models.database import Base
+"""
+User model for the Personal Agent application.
+"""
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional, Dict, Any
+from datetime import datetime
+from uuid import UUID
 
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    name = Column(String, nullable=True)
+class UserBase(BaseModel):
+    email: EmailStr
+    preferences: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    energy_curve: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    default_scheduling_rules: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    smart_planning_enabled: bool = True
+    encryption_enabled: bool = False
 
-    audit_logs = relationship("AuditLog", back_populates="user")
-    plans = relationship("Plan", back_populates="user")
-    flashcards = relationship("Flashcard", back_populates="user")
-    flashcard_reviews = relationship("FlashcardReview", back_populates="user") 
+class UserCreate(UserBase):
+    password: str = Field(..., min_length=8)
+
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    preferences: Optional[Dict[str, Any]] = None
+    energy_curve: Optional[Dict[str, Any]] = None
+    default_scheduling_rules: Optional[Dict[str, Any]] = None
+    smart_planning_enabled: Optional[bool] = None
+    encryption_enabled: Optional[bool] = None
+
+class User(UserBase):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class UserInDB(User):
+    hashed_password: str 

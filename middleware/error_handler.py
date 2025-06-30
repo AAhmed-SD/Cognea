@@ -1,7 +1,6 @@
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from sqlalchemy.exc import SQLAlchemyError
 from typing import Union, Dict, Any
 import logging
 import traceback
@@ -82,15 +81,6 @@ async def error_handler(request: Request, exc: Exception) -> JSONResponse:
                 "code": "VALIDATION_ERROR",
                 "message": "Invalid request data",
                 "details": {"validation_errors": exc.errors()},
-                "error_id": error_id
-            }
-        }
-    elif isinstance(exc, SQLAlchemyError):
-        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        error_response = {
-            "error": {
-                "code": "DATABASE_ERROR",
-                "message": "Database operation failed",
                 "error_id": error_id
             }
         }

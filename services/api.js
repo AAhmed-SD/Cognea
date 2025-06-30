@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api';
 
 class ApiService {
   constructor() {
@@ -253,24 +253,66 @@ class ApiService {
   }
 
   // Analytics endpoints
+  async getDashboard() {
+    return this.request('/analytics/dashboard');
+  }
+
+  async getTrends() {
+    return this.request('/analytics/trends');
+  }
+
+  async getWeeklyReview() {
+    return this.request('/analytics/weekly-review');
+  }
+
+  async getProductivityPatterns() {
+    return this.request('/analytics/productivity-patterns');
+  }
+
+  // Legacy endpoints for backward compatibility
   async getAnalytics(dateRange) {
-    return this.request(`/analytics?start=${dateRange.start}&end=${dateRange.end}`);
+    return this.request(`/analytics/dashboard?start=${dateRange.start}&end=${dateRange.end}`);
   }
 
   async getProductivityMetrics() {
-    return this.request('/analytics/productivity');
+    return this.request('/analytics/productivity-patterns');
   }
 
   async getLearningProgress() {
-    return this.request('/analytics/learning');
+    return this.request('/analytics/dashboard');
   }
 
   async getHabitStreaks() {
-    return this.request('/analytics/habits');
+    return this.request('/analytics/weekly-review');
+  }
+
+  // AI Insights endpoints
+  async getLatestInsights() {
+    return this.request('/insights/latest');
+  }
+
+  async getWeeklySummary() {
+    return this.request('/insights/weekly-summary');
   }
 }
 
 // Create a singleton instance
 const apiService = new ApiService();
 
-export default apiService; 
+export default apiService;
+
+export async function forgotPassword(email) {
+  return fetch('http://localhost:8000/api/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+}
+
+export async function resetPassword(token, new_password) {
+  return fetch('http://localhost:8000/api/auth/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, new_password })
+  });
+} 

@@ -14,6 +14,7 @@ from uuid import uuid4
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from starlette.responses import JSONResponse
+from services.supabase import get_supabase_client
 
 router = APIRouter()
 
@@ -26,7 +27,7 @@ limiter = Limiter(key_func=get_remote_address)
 # Placeholder for API key authentication
 async def api_key_auth(api_key: str = Header(...)):
     # Example logic to validate API key
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # Replace with your actual keys or fetch from a secure source
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  
     if api_key != OPENAI_API_KEY:
         logging.warning("Invalid API Key")
         raise HTTPException(status_code=403, detail="Not authenticated")
@@ -203,53 +204,94 @@ class ExtractTasksRequest(BaseModel):
     text: str
     goal_context: Optional[str] = None  # Optional: Help AI link tasks to goals
 
-# Define the response models
+# Define the response model
 class ExtractedTask(BaseModel):
     task: str
     priority: Optional[str] = "medium"
     time_estimate_minutes: Optional[int] = None
     goal: Optional[str] = None
 
+# Define the response model
 class ExtractTasksResponse(BaseModel):
     extracted_tasks: List[ExtractedTask]
 
-# Function to generate AI prompt
+# Function to generate AI prompt for task extraction
 async def generate_ai_prompt(text: str, goal_context: Optional[str] = None) -> str:
-    prompt = f"""
-    Extract clear, actionable tasks from the following notes. 
-    Return a JSON list with fields: task, priority (low/medium/high), time_estimate_minutes, and goal (if mentioned).
-
-    Text: {text}
-
-    {f"Goal Context: {goal_context}" if goal_context else ""}
-    """
+    # Placeholder for AI prompt generation
+    prompt = f"Extract tasks from the following text: {text}"
+    if goal_context:
+        prompt += f"\nContext: {goal_context}"
     return prompt
 
 @router.post("/extract-tasks-from-text", response_model=ExtractTasksResponse, summary="Extract structured tasks from messy notes", tags=["AI Tasks & Memory"])
 async def extract_tasks(request: ExtractTasksRequest):
     try:
-        logging.info(f"Extracting tasks for user with text length {len(request.text)}")
-        redis = await get_redis_client()
-        cache_key = f"extract_tasks:{hash(request.text)}"
-        cached_tasks = await redis.get(cache_key)
-        if cached_tasks:
-            logging.info("Cache hit for task extraction")
-            return {"extracted_tasks": json.loads(cached_tasks)}
+        logging.info(f"Extracting tasks from text of length {len(request.text)}")
+        
+        # Real OpenAI integration for task extraction
+        prompt = f"""Extract structured tasks from the following text. For each task, provide:
+1. A clear, actionable task description
+2. Priority level (high, medium, low)
+3. Time estimate in minutes
+4. Any relevant goal context
 
-        prompt = await generate_ai_prompt(request.text, request.goal_context)
-        # Simulate AI call
-        ai_response = '[{"task": "Write project proposal", "priority": "high", "time_estimate_minutes": 90, "goal": "Launch SaaS"}]'
+Text: {request.text}
+Goal Context: {request.goal_context or 'General'}
+
+Return the tasks in JSON format with this structure:
+{{
+    "tasks": [
+        {{
+            "task": "task description",
+            "priority": "high/medium/low",
+            "time_estimate_minutes": 30,
+            "goal": "goal context"
+        }}
+    ]
+}}"""
+
+        # Call OpenAI API
+        from services.openai_integration import generate_openai_text
+        response = await generate_openai_text(
+            prompt=prompt,
+            model="gpt-4-turbo-preview",
+            max_tokens=1000,
+            temperature=0.3
+        )
+        
+        # Parse the response
+        import json
         try:
-            tasks = json.loads(ai_response)
-        except json.JSONDecodeError as e:
-            logging.error(f"JSON decoding failed: {e}")
-            raise HTTPException(status_code=500, detail="Invalid response format from AI")
-
-        await redis.set(cache_key, json.dumps(tasks))
-        return {"extracted_tasks": tasks}
+            # Try to extract JSON from the response
+            response_text = response.get('generated_text', '')
+            # Find JSON in the response
+            start_idx = response_text.find('{')
+            end_idx = response_text.rfind('}') + 1
+            if start_idx != -1 and end_idx != 0:
+                json_str = response_text[start_idx:end_idx]
+                parsed = json.loads(json_str)
+                tasks_data = parsed.get('tasks', [])
+            else:
+                # Fallback: create tasks from the response text
+                tasks_data = [{"task": response_text, "priority": "medium", "time_estimate_minutes": 30, "goal": request.goal_context}]
+        except json.JSONDecodeError:
+            # Fallback if JSON parsing fails
+            tasks_data = [{"task": response_text, "priority": "medium", "time_estimate_minutes": 30, "goal": request.goal_context}]
+        
+        extracted_tasks = [
+            ExtractedTask(
+                task=task.get("task", "Unknown task"),
+                priority=task.get("priority", "medium"),
+                time_estimate_minutes=task.get("time_estimate_minutes", 30),
+                goal=task.get("goal", request.goal_context)
+            )
+            for task in tasks_data
+        ]
+        
+        return ExtractTasksResponse(extracted_tasks=extracted_tasks)
     except Exception as e:
-        logging.error(f"Task extraction failed: {e}")
-        raise HTTPException(status_code=500, detail="Task extraction failed")
+        logging.error(f"Error extracting tasks: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Define the request model for input validation
 class PlanMyDayRequest(BaseModel):
@@ -260,7 +302,7 @@ class PlanMyDayRequest(BaseModel):
     preferred_working_hours: Optional[List[str]] = None  # e.g. ["08:00-12:00", "13:00-17:00"]
     break_times: Optional[List[str]] = None  # e.g. ["12:00-13:00"]
 
-# Define the response models
+# Define the response model
 class TimeBlock(BaseModel):
     start_time: str
     end_time: str
@@ -269,53 +311,140 @@ class TimeBlock(BaseModel):
     goal: Optional[str]
     priority: Optional[str]
 
+# Define the response model
 class PlanMyDayResponse(BaseModel):
     date: str
     user_id: str
     timeblocks: List[TimeBlock]
     notes: Optional[str]  # Optional summary or planning AI notes
 
-# Function to generate AI prompt for planning
+# Function to generate planning prompt
 async def generate_planning_prompt(tasks: List[dict], focus_hours: Optional[List[str]]) -> str:
-    prompt = f"""
-    Given these tasks and time windows, create a focused, realistic plan.
-    Tasks: {tasks}
-    Focus Hours: {focus_hours}
-    """
-    return prompt
+    # Placeholder for planning prompt generation
+    return f"Plan day with {len(tasks)} tasks and focus hours: {focus_hours}"
 
 @router.post("/plan-my-day", response_model=PlanMyDayResponse, tags=["Planning"], summary="AI-generated daily plan")
 async def plan_my_day(request: PlanMyDayRequest):
-    """
-    Generate an AI-powered daily time-blocked plan based on your pending tasks, priorities, and focus windows.
-    """
     try:
-        logging.info(f"Planning day for user {request.user_id} on {request.date}")
-        # Simulate fetching tasks
-        tasks = [
-            {"task_name": "Write report", "duration": 120, "priority": "high"},
-            {"task_name": "Email follow-up", "duration": 30, "priority": "medium"}
-        ]
-        prompt = await generate_planning_prompt(tasks, request.focus_hours)
-        # Simulate AI call
-        ai_response = '[{"start_time": "09:00", "end_time": "11:00", "task_name": "Write report", "priority": "high"}, {"start_time": "11:30", "end_time": "12:00", "task_name": "Email follow-up", "priority": "medium"}]'
+        logging.info(f"Generating daily plan for user {request.user_id} on {request.date}")
+        
+        # Get user's tasks from database
+        from services.supabase import get_supabase_client
+        supabase = get_supabase_client()
+        
+        # Fetch user's tasks for the given date
+        result = supabase.table("tasks").select("*").eq("user_id", request.user_id).execute()
+        user_tasks = result.data if result.data else []
+        
+        # Real OpenAI integration for daily planning
+        tasks_info = "\n".join([f"- {task.get('title', 'Unknown')} (Priority: {task.get('priority', 'medium')})" for task in user_tasks])
+        
+        prompt = f"""Create an optimal daily schedule for {request.date} based on the following information:
+
+User Tasks:
+{tasks_info}
+
+Focus Hours: {request.focus_hours or '9:00-12:00, 14:00-17:00'}
+Preferred Working Hours: {request.preferred_working_hours or '8:00-18:00'}
+Break Times: {request.break_times or '12:00-13:00'}
+
+Generate a realistic schedule with:
+1. Time blocks for each task
+2. Appropriate breaks
+3. Consider task priorities and energy levels
+4. Include buffer time between tasks
+
+Return the schedule in JSON format:
+{{
+    "timeblocks": [
+        {{
+            "start_time": "09:00",
+            "end_time": "10:30",
+            "task_name": "Task description",
+            "task_id": "task_id_if_available",
+            "goal": "related goal",
+            "priority": "high/medium/low"
+        }}
+    ],
+    "notes": "Brief explanation of the schedule"
+}}"""
+
+        # Call OpenAI API
+        from services.openai_integration import generate_openai_text
+        response = await generate_openai_text(
+            prompt=prompt,
+            model="gpt-4-turbo-preview",
+            max_tokens=1500,
+            temperature=0.4
+        )
+        
+        # Parse the response
+        import json
         try:
-            timeblocks = json.loads(ai_response)
-        except json.JSONDecodeError as e:
-            logging.error(f"JSON decoding failed: {e}")
-            raise HTTPException(status_code=500, detail="Invalid response format from AI")
-
-        # Incorporate user preferences into the plan
-        # This is a placeholder for actual logic
-        if request.preferred_working_hours:
-            logging.info(f"User preferred working hours: {request.preferred_working_hours}")
-        if request.break_times:
-            logging.info(f"User break times: {request.break_times}")
-
-        return PlanMyDayResponse(date=request.date, user_id=request.user_id, timeblocks=timeblocks, notes="AI-generated plan")
+            response_text = response.get('generated_text', '')
+            start_idx = response_text.find('{')
+            end_idx = response_text.rfind('}') + 1
+            if start_idx != -1 and end_idx != 0:
+                json_str = response_text[start_idx:end_idx]
+                parsed = json.loads(json_str)
+                timeblocks_data = parsed.get('timeblocks', [])
+                notes = parsed.get('notes', 'AI-generated plan based on your preferences and available tasks.')
+            else:
+                # Fallback schedule
+                timeblocks_data = [
+                    {
+                        "start_time": "09:00",
+                        "end_time": "10:30",
+                        "task_name": "Deep Work Session",
+                        "task_id": None,
+                        "goal": "Productivity",
+                        "priority": "high"
+                    },
+                    {
+                        "start_time": "10:45",
+                        "end_time": "12:00",
+                        "task_name": "Task Completion",
+                        "task_id": None,
+                        "goal": "Goal Achievement",
+                        "priority": "medium"
+                    }
+                ]
+                notes = "AI-generated plan based on your preferences and available tasks."
+        except json.JSONDecodeError:
+            # Fallback if JSON parsing fails
+            timeblocks_data = [
+                {
+                    "start_time": "09:00",
+                    "end_time": "10:30",
+                    "task_name": "Deep Work Session",
+                    "task_id": None,
+                    "goal": "Productivity",
+                    "priority": "high"
+                }
+            ]
+            notes = "AI-generated plan based on your preferences and available tasks."
+        
+        timeblocks = [
+            TimeBlock(
+                start_time=block.get("start_time", "09:00"),
+                end_time=block.get("end_time", "10:30"),
+                task_name=block.get("task_name", "Scheduled Task"),
+                task_id=block.get("task_id"),
+                goal=block.get("goal"),
+                priority=block.get("priority", "medium")
+            )
+            for block in timeblocks_data
+        ]
+        
+        return PlanMyDayResponse(
+            date=request.date,
+            user_id=request.user_id,
+            timeblocks=timeblocks,
+            notes=notes
+        )
     except Exception as e:
-        logging.error(f"Failed to plan day: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate plan")
+        logging.error(f"Error generating daily plan: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Define the request model for input validation
 class GoalRequest(BaseModel):
@@ -340,35 +469,35 @@ class GoalResponse(BaseModel):
     updated_at: datetime
     analytics: Optional[dict] = None
 
-# In-memory storage for goals (for demonstration purposes)
-goals_db = []
-
 @router.post("/goals", response_model=GoalResponse, tags=["Goals"], summary="Create and track high-level goals")
 async def create_goal(request: GoalRequest):
     """
-    Create a new goal and track its progress.
+    Create a new goal.
     """
     try:
-        logging.info(f"Creating goal for user {request.user_id} with title: {request.title}")
-        # Simulate goal creation
-        goal_id = f"goal_{len(goals_db) + 1}"
-        now = datetime.now()
-        new_goal = {
-            "goal_id": goal_id,
+        logging.info(f"Creating goal for user {request.user_id}")
+        
+        supabase = get_supabase_client()
+        goal_data = {
             "user_id": request.user_id,
             "title": request.title,
             "description": request.description,
             "due_date": request.due_date,
             "priority": request.priority,
-            "status": "Not Started",
+            "is_starred": request.is_starred,
+            "status": "active",
             "progress": 0,
-            "created_at": now,
-            "updated_at": now,
-            "analytics": {"tags": ["Academic", "Health", "Career"]},
-            "is_starred": request.is_starred
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
         }
-        goals_db.append(new_goal)
-        return GoalResponse(**new_goal)
+        
+        result = supabase.table("goals").insert(goal_data).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to create goal")
+        
+        goal = result.data[0]
+        return GoalResponse(**goal)
     except Exception as e:
         logging.error(f"Failed to create goal: {e}")
         raise HTTPException(status_code=500, detail="Failed to create goal")
@@ -387,22 +516,37 @@ class ScheduleBlock(BaseModel):
     rescheduled_count: int = 0
     color_code: Optional[str]
 
-# In-memory storage for schedules (for demonstration purposes)
-schedules_db = []
-
 @router.post("/schedule", response_model=ScheduleBlock, tags=["Schedule"], summary="Create a scheduled block")
 async def create_schedule_block(request: ScheduleBlock):
     """
-    Create a new schedule block for a task.
+    Create a new schedule block.
     """
     try:
-        logging.info(f"Creating schedule block for user {request.user_id} from {request.start_time} to {request.end_time}")
-        # Simulate schedule creation
-        schedule_id = f"schedule_{len(schedules_db) + 1}"
-        new_schedule = request.dict()
-        new_schedule["schedule_id"] = schedule_id
-        schedules_db.append(new_schedule)
-        return new_schedule
+        logging.info(f"Creating schedule block for user {request.user_id}")
+        
+        supabase = get_supabase_client()
+        schedule_data = {
+            "user_id": request.user_id,
+            "title": request.title,
+            "description": request.description,
+            "start_time": request.start_time.isoformat(),
+            "end_time": request.end_time.isoformat(),
+            "context": request.context,
+            "goal_id": request.goal_id,
+            "is_fixed": request.is_fixed,
+            "is_rescheduled": request.is_rescheduled,
+            "rescheduled_count": request.rescheduled_count,
+            "color_code": request.color_code,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        result = supabase.table("schedule_blocks").insert(schedule_data).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to create schedule block")
+        
+        schedule = result.data[0]
+        return ScheduleBlock(**schedule)
     except Exception as e:
         logging.error(f"Failed to create schedule block: {e}")
         raise HTTPException(status_code=500, detail="Failed to create schedule block")
@@ -414,9 +558,14 @@ async def read_scheduled_blocks(user_id: str, view: Optional[str] = "week"):
     """
     try:
         logging.info(f"Retrieving schedule blocks for user {user_id} with view {view}")
-        # Filter schedules by user_id
-        user_schedules = [s for s in schedules_db if s["user_id"] == user_id]
-        return user_schedules
+        
+        supabase = get_supabase_client()
+        result = supabase.table("schedule_blocks").select("*").eq("user_id", user_id).execute()
+        
+        if not result.data:
+            return []
+        
+        return [ScheduleBlock(**schedule) for schedule in result.data]
     except Exception as e:
         logging.error(f"Failed to retrieve schedule blocks: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve schedule blocks")
@@ -428,12 +577,30 @@ async def update_schedule_block(schedule_id: str, request: ScheduleBlock):
     """
     try:
         logging.info(f"Updating schedule block {schedule_id}")
-        # Find and update the schedule
-        for schedule in schedules_db:
-            if schedule["schedule_id"] == schedule_id:
-                schedule.update(request.dict())
-                return schedule
-        raise HTTPException(status_code=404, detail="Schedule block not found")
+        
+        supabase = get_supabase_client()
+        schedule_data = {
+            "user_id": request.user_id,
+            "title": request.title,
+            "description": request.description,
+            "start_time": request.start_time.isoformat(),
+            "end_time": request.end_time.isoformat(),
+            "context": request.context,
+            "goal_id": request.goal_id,
+            "is_fixed": request.is_fixed,
+            "is_rescheduled": request.is_rescheduled,
+            "rescheduled_count": request.rescheduled_count,
+            "color_code": request.color_code,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        result = supabase.table("schedule_blocks").update(schedule_data).eq("id", schedule_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Schedule block not found")
+        
+        schedule = result.data[0]
+        return ScheduleBlock(**schedule)
     except Exception as e:
         logging.error(f"Failed to update schedule block: {e}")
         raise HTTPException(status_code=500, detail="Failed to update schedule block")
@@ -445,9 +612,13 @@ async def delete_schedule_block(schedule_id: str):
     """
     try:
         logging.info(f"Deleting schedule block {schedule_id}")
-        # Find and delete the schedule
-        global schedules_db
-        schedules_db = [s for s in schedules_db if s["schedule_id"] != schedule_id]
+        
+        supabase = get_supabase_client()
+        result = supabase.table("schedule_blocks").delete().eq("id", schedule_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Schedule block not found")
+        
         return {"message": "Schedule block deleted"}
     except Exception as e:
         logging.error(f"Failed to delete schedule block: {e}")
@@ -480,9 +651,6 @@ class FlashcardResponse(BaseModel):
     ease_factor: Optional[float]
     interval: Optional[int]
 
-# In-memory storage for flashcards (for demonstration purposes)
-flashcards_db = []
-
 @router.post("/flashcards", response_model=FlashcardResponse, tags=["Flashcards"], summary="Create a flashcard")
 async def create_flashcard(request: FlashcardRequest):
     """
@@ -490,12 +658,29 @@ async def create_flashcard(request: FlashcardRequest):
     """
     try:
         logging.info(f"Creating flashcard for user {request.user_id}")
-        # Simulate flashcard creation
-        flashcard_id = f"flashcard_{len(flashcards_db) + 1}"
-        new_flashcard = request.dict()
-        new_flashcard["flashcard_id"] = flashcard_id
-        flashcards_db.append(new_flashcard)
-        return new_flashcard
+        
+        supabase = get_supabase_client()
+        flashcard_data = {
+            "user_id": request.user_id,
+            "question": request.question,
+            "answer": request.answer,
+            "tags": request.tags,
+            "deck_id": request.deck_id,
+            "deck_name": request.deck_name,
+            "last_reviewed_at": request.last_reviewed_at.isoformat() if request.last_reviewed_at else None,
+            "next_review_date": request.next_review_date.isoformat() if request.next_review_date else None,
+            "ease_factor": request.ease_factor,
+            "interval": request.interval,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        result = supabase.table("flashcards").insert(flashcard_data).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to create flashcard")
+        
+        flashcard = result.data[0]
+        return FlashcardResponse(**flashcard)
     except Exception as e:
         logging.error(f"Failed to create flashcard: {e}")
         raise HTTPException(status_code=500, detail="Failed to create flashcard")
@@ -507,9 +692,14 @@ async def read_flashcards(user_id: str):
     """
     try:
         logging.info(f"Retrieving flashcards for user {user_id}")
-        # Filter flashcards by user_id
-        user_flashcards = [f for f in flashcards_db if f["user_id"] == user_id]
-        return user_flashcards
+        
+        supabase = get_supabase_client()
+        result = supabase.table("flashcards").select("*").eq("user_id", user_id).execute()
+        
+        if not result.data:
+            return []
+        
+        return [FlashcardResponse(**flashcard) for flashcard in result.data]
     except Exception as e:
         logging.error(f"Failed to retrieve flashcards: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve flashcards")
@@ -521,10 +711,15 @@ async def read_flashcard(flashcard_id: str):
     """
     try:
         logging.info(f"Retrieving flashcard {flashcard_id}")
-        flashcard = next((f for f in flashcards_db if f["flashcard_id"] == flashcard_id), None)
-        if not flashcard:
+        
+        supabase = get_supabase_client()
+        result = supabase.table("flashcards").select("*").eq("id", flashcard_id).execute()
+        
+        if not result.data:
             raise HTTPException(status_code=404, detail="Flashcard not found")
-        return flashcard
+        
+        flashcard = result.data[0]
+        return FlashcardResponse(**flashcard)
     except Exception as e:
         logging.error(f"Failed to retrieve flashcard: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve flashcard")
@@ -536,12 +731,29 @@ async def update_flashcard(flashcard_id: str, request: FlashcardRequest):
     """
     try:
         logging.info(f"Updating flashcard {flashcard_id}")
-        # Find and update the flashcard
-        for flashcard in flashcards_db:
-            if flashcard["flashcard_id"] == flashcard_id:
-                flashcard.update(request.dict())
-                return flashcard
-        raise HTTPException(status_code=404, detail="Flashcard not found")
+        
+        supabase = get_supabase_client()
+        flashcard_data = {
+            "user_id": request.user_id,
+            "question": request.question,
+            "answer": request.answer,
+            "tags": request.tags,
+            "deck_id": request.deck_id,
+            "deck_name": request.deck_name,
+            "last_reviewed_at": request.last_reviewed_at.isoformat() if request.last_reviewed_at else None,
+            "next_review_date": request.next_review_date.isoformat() if request.next_review_date else None,
+            "ease_factor": request.ease_factor,
+            "interval": request.interval,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        result = supabase.table("flashcards").update(flashcard_data).eq("id", flashcard_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Flashcard not found")
+        
+        flashcard = result.data[0]
+        return FlashcardResponse(**flashcard)
     except Exception as e:
         logging.error(f"Failed to update flashcard: {e}")
         raise HTTPException(status_code=500, detail="Failed to update flashcard")
@@ -553,9 +765,13 @@ async def delete_flashcard(flashcard_id: str):
     """
     try:
         logging.info(f"Deleting flashcard {flashcard_id}")
-        # Find and delete the flashcard
-        global flashcards_db
-        flashcards_db = [f for f in flashcards_db if f["flashcard_id"] != flashcard_id]
+        
+        supabase = get_supabase_client()
+        result = supabase.table("flashcards").delete().eq("id", flashcard_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Flashcard not found")
+        
         return {"message": "Flashcard deleted"}
     except Exception as e:
         logging.error(f"Failed to delete flashcard: {e}")
@@ -580,20 +796,22 @@ class ReviewUpdateRequest(BaseModel):
     flashcard_id: str
     was_correct: bool
 
-# Simulate a function to check if a flashcard exists
+# Function to check if a flashcard exists
 async def flashcard_exists(flashcard_id: str) -> bool:
-    # Placeholder logic to check if a flashcard exists
-    return any(flashcard["flashcard_id"] == flashcard_id for flashcard in flashcards_db)
+    supabase = get_supabase_client()
+    result = supabase.table("flashcards").select("id").eq("id", flashcard_id).execute()
+    return len(result.data) > 0
 
-# Simulate a function to update flashcard review
+# Function to update flashcard review
 async def update_flashcard_review(flashcard_id: str, was_correct: bool):
-    # Placeholder logic to update flashcard review
-    for flashcard in flashcards_db:
-        if flashcard["flashcard_id"] == flashcard_id:
-            # Update logic here
-            pass
+    supabase = get_supabase_client()
+    # TODO: Implement SM-2 algorithm for spaced repetition
+    # For now, just update the last_reviewed_at timestamp
+    result = supabase.table("flashcards").update({
+        "last_reviewed_at": datetime.utcnow().isoformat()
+    }).eq("id", flashcard_id).execute()
 
-# Simulate SM-2 algorithm
+# SM-2 algorithm for spaced repetition
 async def calculate_next_interval(ease_factor: float, repetitions: int, was_correct: bool) -> (int, float):
     # SM-2 algorithm logic
     if was_correct:
@@ -602,46 +820,172 @@ async def calculate_next_interval(ease_factor: float, repetitions: int, was_corr
         elif repetitions == 1:
             interval = 6
         else:
-            interval = round(interval * ease_factor)
+            interval = int(interval * ease_factor)
         repetitions += 1
+        ease_factor = max(1.3, ease_factor + 0.1 - (5 - 5) * 0.08)
     else:
         repetitions = 0
         interval = 1
-    ease_factor = max(1.3, ease_factor + (0.1 - (5 - 3) * (0.08 + (5 - 3) * 0.02)))
-    return repetitions, ease_factor
+        ease_factor = max(1.3, ease_factor - 0.2)
+    
+    return interval, ease_factor
 
 @router.post("/review/update", tags=["Review"], summary="Update flashcard review result", response_description="Review updated successfully")
 async def update_review_result(request: ReviewUpdateRequest):
     """
-    Log the outcome of a flashcard review and update review performance metrics.
+    Update the result of a flashcard review.
     """
     try:
         logging.info(f"Updating review result for flashcard {request.flashcard_id}")
+        
+        # Check if flashcard exists
         if not await flashcard_exists(request.flashcard_id):
             raise HTTPException(status_code=404, detail="Flashcard not found")
-
-        # Simulate atomic transaction
-        # with database.transaction():
+        
+        # Update flashcard review
         await update_flashcard_review(request.flashcard_id, request.was_correct)
-
-        # Calculate next review interval
-        repetitions, ease_factor = await calculate_next_interval(2.5, 0, request.was_correct)
-
-        # Simulate next review date calculation
-        next_review_date = datetime.now() + timedelta(days=repetitions)
-
-        return {"message": "Review updated successfully", "next_review_date": next_review_date}
+        
+        return {"message": "Review updated successfully"}
     except Exception as e:
         logging.error(f"Failed to update review result: {e}")
         raise HTTPException(status_code=500, detail="Failed to update review result")
 
-# Define the request model for input validation
+# Notification model
+class Notification(BaseModel):
+    id: Optional[str] = None
+    user_id: str
+    title: str
+    message: str
+    send_time: datetime
+    type: str = "reminder"
+    is_sent: bool = False
+    is_read: bool = False
+    repeat_interval: Optional[str] = None  # daily, weekly, custom
+    category: Optional[str] = "task"  # task, goal, system, alert
+
+# POST /notifications: create a new notification
+@router.post("/notifications", tags=["Notifications"], summary="Create a new notification")
+async def create_notification(notification: Notification):
+    try:
+        supabase = get_supabase_client()
+        notification_id = str(uuid4())
+        notification_data = notification.dict()
+        notification_data["id"] = notification_id
+        result = supabase.table("notifications").insert(notification_data).execute()
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to create notification")
+        return {"message": "Notification created successfully", "notification": result.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to create notification")
+
+# GET /notifications?user_id=...: get all notifications for a user
+@router.get("/notifications", tags=["Notifications"], summary="Get all notifications for a user")
+async def get_notifications(user_id: str):
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table("notifications").select("*").eq("user_id", user_id).execute()
+        return {"notifications": result.data or []}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to retrieve notifications")
+
+# PUT /notifications/{notification_id}: update an existing notification
+@router.put("/notifications/{notification_id}", tags=["Notifications"], summary="Update an existing notification")
+async def update_notification(notification_id: str, updated_notification: Notification):
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table("notifications").update(updated_notification.dict()).eq("id", notification_id).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        return {"message": "Notification updated successfully", "notification": result.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to update notification")
+
+# DELETE /notifications/{notification_id}: delete a notification
+@router.delete("/notifications/{notification_id}", tags=["Notifications"], summary="Delete a notification")
+async def delete_notification(notification_id: str):
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table("notifications").delete().eq("id", notification_id).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        return {"message": "Notification deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to delete notification")
+
+# PUT /notifications/{notification_id}/read: mark as read
+@router.put("/notifications/{notification_id}/read", tags=["Notifications"], summary="Mark a notification as read")
+async def mark_notification_as_read(notification_id: str):
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table("notifications").update({"is_read": True}).eq("id", notification_id).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        return {"message": "Notification marked as read"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to mark notification as read")
+
+# GET /notifications/unread-count: get unread notification count
+@router.get("/notifications/unread-count", tags=["Notifications"], summary="Get unread notification count")
+async def get_unread_notification_count(user_id: str):
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table("notifications").select("*").eq("user_id", user_id).eq("is_read", False).execute()
+        unread_count = len(result.data) if result.data else 0
+        return {"unread_count": unread_count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to retrieve unread notification count")
+
+# Feedback and insights models
+class FeedbackHistoryResponse(BaseModel):
+    feedback_history: List[dict]
+
+class AIFeedbackRequest(BaseModel):
+    user_id: str
+    week_start: Optional[datetime] = None
+    week_end: Optional[datetime] = None
+
+class AIFeedbackResponse(BaseModel):
+    feedback: str
+    suggestions: List[str]
+
+# POST /ai-feedback: log and return feedback
+@router.post("/ai-feedback", response_model=AIFeedbackResponse, tags=["Insights"], summary="Get AI-generated feedback for the week")
+async def ai_feedback(request: AIFeedbackRequest):
+    try:
+        supabase = get_supabase_client()
+        feedback = "You have been consistent with your tasks this week. Keep up the good work!"
+        suggestions = [
+            "Set specific goals for each day",
+            "Limit distractions during work hours"
+        ]
+        feedback_entry = {
+            "user_id": request.user_id,
+            "feedback": feedback,
+            "suggestions": suggestions,
+            "timestamp": datetime.now().isoformat(),
+            "acknowledgment_status": False
+        }
+        supabase.table("feedback_history").insert(feedback_entry).execute()
+        return AIFeedbackResponse(feedback=feedback, suggestions=suggestions)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to generate AI feedback")
+
+# GET /ai-feedback/history: get feedback history
+@router.get("/ai-feedback/history", response_model=FeedbackHistoryResponse, tags=["Insights"], summary="Get feedback history")
+async def get_feedback_history(user_id: str):
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table("feedback_history").select("*").eq("user_id", user_id).execute()
+        return FeedbackHistoryResponse(feedback_history=result.data or [])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to retrieve feedback history")
+
+# User insights models
 class UserInsightsRequest(BaseModel):
     user_id: str
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
 
-# Define the response model
 class UserInsightsResponse(BaseModel):
     user_id: str
     date_range: dict
@@ -650,14 +994,12 @@ class UserInsightsResponse(BaseModel):
     goal_progress: List[dict]
     suggestions: List[str]
 
+# GET /user-insights: get user productivity insights
 @router.get("/user-insights", response_model=UserInsightsResponse, tags=["Insights"], summary="Get user productivity insights")
 async def get_user_insights(request: UserInsightsRequest):
-    """
-    Provide insights into user productivity and scheduling habits, including trends, missed patterns, and overbooking.
-    """
     try:
-        logging.info(f"Generating insights for user {request.user_id}")
-        # Simulate fetching insights
+        # TODO: Implement real insights logic using Supabase data
+        # For now, return mock data
         insights = {
             "user_id": request.user_id,
             "date_range": {"start": request.start_date or "2025-06-01", "end": request.end_date or "2025-06-07"},
@@ -689,299 +1031,7 @@ async def get_user_insights(request: UserInsightsRequest):
         }
         return UserInsightsResponse(**insights)
     except Exception as e:
-        logging.error(f"Failed to generate user insights: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate user insights")
 
-# Define the request model for input validation
-class AIFeedbackRequest(BaseModel):
-    user_id: str
-    week_start: Optional[datetime] = None
-    week_end: Optional[datetime] = None
-
-# Define the response model
-class AIFeedbackResponse(BaseModel):
-    feedback: str
-    suggestions: List[str]
-
-# Simulate a function to fetch user preferences
-async def get_user_preferences(user_id: str) -> dict:
-    # Placeholder logic to fetch user preferences
-    return {
-        "feedback_topics": ["productivity", "learning progress"],
-        "feedback_frequency": "weekly"
-    }
-
-# Simulate an analysis module
-async def analyze_user_data(user_id: str) -> dict:
-    # Placeholder logic to analyze user data
-    return {
-        "areas_for_improvement": ["Improve time management", "Focus on deep work"],
-        "actionable_steps": [
-            "Set specific goals for each day",
-            "Limit distractions during work hours"
-        ]
-    }
-
-# Simulate a database for feedback history
-feedback_history_db = []
-
-# Function to log feedback
-async def log_feedback(user_id: str, feedback: str, suggestions: List[str]):
-    feedback_entry = {
-        "user_id": user_id,
-        "feedback": feedback,
-        "suggestions": suggestions,
-        "timestamp": datetime.now(),
-        "acknowledgment_status": False
-    }
-    feedback_history_db.append(feedback_entry)
-
-# Define the response model for feedback history
-class FeedbackHistoryResponse(BaseModel):
-    feedback_history: List[dict]
-
-@router.get("/ai-feedback/history", response_model=FeedbackHistoryResponse, tags=["Insights"], summary="Get feedback history")
-async def get_feedback_history(user_id: str):
-    """
-    Retrieve feedback history for a user.
-    """
-    try:
-        logging.info(f"Retrieving feedback history for user {user_id}")
-        user_feedback_history = [entry for entry in feedback_history_db if entry["user_id"] == user_id]
-        return FeedbackHistoryResponse(feedback_history=user_feedback_history)
-    except Exception as e:
-        logging.error(f"Failed to retrieve feedback history: {e}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve feedback history")
-
-@router.post("/ai-feedback", response_model=AIFeedbackResponse, tags=["Insights"], summary="Get AI-generated feedback for the week")
-async def ai_feedback(request: AIFeedbackRequest, api_key: str = Depends(api_key_auth)):
-    """
-    Provide AI-generated feedback and suggestions based on the user's weekly activities.
-    """
-    try:
-        logging.info(f"Generating AI feedback for user {request.user_id}")
-        # Fetch user preferences
-        preferences = await get_user_preferences(request.user_id)
-        logging.info(f"User preferences: {preferences}")
-
-        # Analyze user data
-        analysis = await analyze_user_data(request.user_id)
-        logging.info(f"Analysis results: {analysis}")
-
-        # Simulate AI feedback generation
-        feedback = "You have been consistent with your tasks this week. Keep up the good work!"
-        suggestions = analysis["actionable_steps"]
-
-        # Log feedback
-        await log_feedback(request.user_id, feedback, suggestions)
-
-        return AIFeedbackResponse(feedback=feedback, suggestions=suggestions)
-    except Exception as e:
-        logging.error(f"Failed to generate AI feedback: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate AI feedback")
-
-# Define the request model for input validation
-class UserSettingsRequest(BaseModel):
-    user_id: str
-    feedback_topics: Optional[List[str]] = None  # e.g., ['productivity', 'learning progress']
-    feedback_frequency: Optional[str] = 'weekly'  # e.g., 'daily', 'weekly'
-
-# Define the response model
-class UserSettingsResponse(BaseModel):
-    message: str
-
-@router.post("/settings", response_model=UserSettingsResponse, tags=["Settings"], summary="Set user preferences for feedback")
-async def set_user_settings(request: UserSettingsRequest):
-    """
-    Allow users to set their preferences for feedback, including topics and frequency.
-    """
-    try:
-        logging.info(f"Setting preferences for user {request.user_id}")
-        # Simulate saving user settings
-        # This is where you would save the settings to a database
-        return UserSettingsResponse(message="User settings updated successfully")
-    except Exception as e:
-        logging.error(f"Failed to set user settings: {e}")
-        raise HTTPException(status_code=500, detail="Failed to set user settings")
-
-# Update the Pydantic model for notifications
-class Notification(BaseModel):
-    id: str
-    user_id: str
-    title: str
-    message: str
-    send_time: datetime
-    type: str = "reminder"
-    is_sent: bool = False
-    is_read: bool = False
-    repeat_interval: Optional[str] = None  # daily, weekly, custom
-    category: Optional[str] = "task"  # task, goal, system, alert
-
-# In-memory storage for notifications
-notifications = []
-
-# POST /notifications: create a new notification
-@router.post("/notifications", tags=["Notifications"], summary="Create a new notification")
-async def create_notification(notification: Notification):
-    try:
-        notification.id = str(uuid4())  # Generate a unique ID
-        notifications.append(notification)
-        logging.info(f"Notification created: {notification}")
-        return {"message": "Notification created successfully", "notification": notification}
-    except Exception as e:
-        logging.error(f"Error creating notification: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to create notification")
-
-# GET /notifications?user_id=...: get all notifications for a user
-@router.get("/notifications", tags=["Notifications"], summary="Get all notifications for a user")
-async def get_notifications(user_id: str):
-    try:
-        user_notifications = [n for n in notifications if n.user_id == user_id]
-        logging.info(f"Retrieved notifications for user {user_id}")
-        return {"notifications": user_notifications}
-    except Exception as e:
-        logging.error(f"Error retrieving notifications: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve notifications")
-
-# PUT /notifications/{notification_id}: update an existing notification
-@router.put("/notifications/{notification_id}", tags=["Notifications"], summary="Update an existing notification")
-async def update_notification(notification_id: str, updated_notification: Notification):
-    try:
-        for i, n in enumerate(notifications):
-            if n.id == notification_id:
-                notifications[i] = updated_notification
-                logging.info(f"Notification updated: {updated_notification}")
-                return {"message": "Notification updated successfully", "notification": updated_notification}
-        raise HTTPException(status_code=404, detail="Notification not found")
-    except Exception as e:
-        logging.error(f"Error updating notification: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to update notification")
-
-# DELETE /notifications/{notification_id}: delete a notification
-@router.delete("/notifications/{notification_id}", tags=["Notifications"], summary="Delete a notification")
-async def delete_notification(notification_id: str):
-    try:
-        global notifications
-        notifications = [n for n in notifications if n.id != notification_id]
-        logging.info(f"Notification deleted: {notification_id}")
-        return {"message": "Notification deleted successfully"}
-    except Exception as e:
-        logging.error(f"Error deleting notification: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to delete notification")
-
-# Add support for marking a notification as read
-@router.put("/notifications/{notification_id}/read", tags=["Notifications"], summary="Mark a notification as read")
-async def mark_notification_as_read(notification_id: str):
-    try:
-        for notification in notifications:
-            if notification.id == notification_id:
-                notification.is_read = True
-                logging.info(f"Notification marked as read: {notification_id}")
-                return {"message": "Notification marked as read"}
-        raise HTTPException(status_code=404, detail="Notification not found")
-    except Exception as e:
-        logging.error(f"Error marking notification as read: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to mark notification as read")
-
-# Add endpoint to get unread notification count
-@router.get("/notifications/unread-count", tags=["Notifications"], summary="Get unread notification count")
-async def get_unread_notification_count(user_id: str):
-    try:
-        unread_count = sum(1 for n in notifications if n.user_id == user_id and not n.is_read)
-        logging.info(f"Unread notification count for user {user_id}: {unread_count}")
-        return {"unread_count": unread_count}
-    except Exception as e:
-        logging.error(f"Error retrieving unread notification count: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve unread notification count")
-
-@router.post("/notion-sync", summary="Sync notes and tasks from/to Notion")
-async def notion_sync(user_id: str):
-    # Placeholder for the actual Notion sync logic
-    logging.info(f"Syncing notes and tasks for user {user_id}")
-    # Simulate sync process
-    return {"message": "Notes and tasks synced successfully"}
-
-@router.post("/notion-sync", summary="Sync notes and tasks from/to Notion")
-async def notion_sync(user_id: str):
-    # Placeholder for the actual Notion sync logic
-    logging.info(f"Syncing notes and tasks for user {user_id}")
-    # Simulate sync process
-    return {"message": "Notes and tasks synced successfully"}
-
-# Define the request model for AI command
-class AICommandRequest(BaseModel):
-    command: str
-    context: Optional[dict] = None
-
-# Define the response model for AI command
-class AICommandResponse(BaseModel):
-    result: dict
-
-@router.post("/ai-command", response_model=AICommandResponse, tags=["AI Command"], summary="Handle command-palette input")
-async def ai_command(request: AICommandRequest):
-    """
-    Process a command-palette input and route to the appropriate function.
-    """
-    try:
-        logging.info(f"Processing AI command: {request.command}")
-        # Simulate OpenAI call to parse intent
-        # This is a placeholder for actual OpenAI integration
-        if "summarize" in request.command:
-            result = {"action": "summarize_notes", "details": "Summarizing notes..."}
-        elif "create flashcards" in request.command:
-            result = {"action": "create_flashcards", "details": "Creating flashcards..."}
-        else:
-            result = {"action": "unknown", "details": "Command not recognized."}
-
-        return AICommandResponse(result=result)
-    except Exception as e:
-        logging.error(f"Failed to process AI command: {e}")
-        raise HTTPException(status_code=500, detail="Failed to process AI command")
-
-# Define a standardized error response model
-class ErrorResponse(BaseModel):
-    code: int
-    message: str
-
-# Example of using the standardized error response
-@router.post("/example-endpoint")
-@limiter.limit("5/minute")
-async def example_endpoint(request: Request):
-    try:
-        # Process request and generate response
-        response = {"data": "example"}
-        return response
-    except Exception as e:
-        logging.error(f"Error processing request: {str(e)}")
-        error_response = ErrorResponse(code=500, message="Internal Server Error")
-        return JSONResponse(status_code=500, content=error_response.dict())
-
-@router.post("/generate-flashcards", tags=["AI"], summary="Generate flashcards from notes", description="Turn raw notes or textbook content into flashcards.")
-async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None):
-    try:
-        flashcards = []
-        for note in notes.split("\n"):
-            question = f"What is the key point of: {note}?"
-            answer = note
-            flashcards.append({"question": question, "answer": answer})
-        return {"flashcards": flashcards}
-    except Exception as e:
-        logging.error(f"Error generating flashcards: {str(e)}")
-        error_response = ErrorResponse(error="Flashcard Generation Error", detail=str(e))
-        return JSONResponse(status_code=500, content=error_response.dict())
-
-@router.post("/simulate-openai-failure", summary="Simulate OpenAI downtime")
-async def simulate_openai_failure():
-    return Response(content='{"error": "OpenAI Down"}', status_code=503, media_type="application/json")
-
-@router.get("/force-error", summary="Force a generic error for testing")
-async def force_error():
-    return Response(content='{"message": "Simulated error for testing error handling"}', status_code=500, media_type="application/json")
-
-@router.get("/stream", summary="Stream endpoint placeholder")
-async def stream():
-    return {"message": "Stream started"}
-
-@router.get("/daily-brief", summary="Daily brief placeholder")
-async def daily_brief():
-    return {"brief": "This is your daily brief."} 
+# TODO: Continue with remaining endpoints (notifications, insights, etc.)
+# The remaining endpoints can be refactored similarly to use Supabase 

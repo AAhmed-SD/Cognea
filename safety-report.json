@@ -1,0 +1,2428 @@
+
+
++===========================================================================================================================================================================================+
+
+
+DEPRECATED: this command (`check`) has been DEPRECATED, and will be unsupported beyond 01 June 2024.
+
+
+We highly encourage switching to the new `scan` command which is easier to use, more powerful, and can be set up to mimic the deprecated command if required.
+
+
++===========================================================================================================================================================================================+
+
+
+{
+    "report_meta": {
+        "scan_target": "environment",
+        "scanned": [
+            "/Users/hadiqa/personal agent/venv/bin",
+            "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python313.zip",
+            "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13",
+            "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload",
+            "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages",
+            "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+        ],
+        "scanned_full_path": [
+            "/Users/hadiqa/personal agent/venv/bin",
+            "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python313.zip",
+            "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13",
+            "/opt/homebrew/Cellar/python@3.13/3.13.3_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload",
+            "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages",
+            "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+        ],
+        "target_languages": [
+            "python"
+        ],
+        "policy_file": null,
+        "policy_file_source": "local",
+        "audit_and_monitor": false,
+        "api_key": false,
+        "account": "",
+        "local_database_path": null,
+        "safety_version": "3.5.2",
+        "timestamp": "2025-06-26 19:33:38",
+        "packages_found": 136,
+        "vulnerabilities_found": 4,
+        "vulnerabilities_ignored": 0,
+        "remediations_recommended": 0,
+        "telemetry": {
+            "safety_options": {
+                "json": {
+                    "--json": 1
+                }
+            },
+            "safety_version": "3.5.2",
+            "safety_source": "cli",
+            "os_type": "Darwin",
+            "os_release": "24.5.0",
+            "os_description": "macOS-15.5-arm64-i386-64bit-Mach-O",
+            "python_version": "3.13.3",
+            "safety_command": "check"
+        },
+        "git": {
+            "branch": "main",
+            "tag": "",
+            "commit": "397dc3905985cc7908d33dcb595e30aa7e6ef0da",
+            "dirty": "True",
+            "origin": "git@github.com:AAhmed-SD/Cognie.git"
+        },
+        "project": null,
+        "json_version": "1.1",
+        "remediations_attempted": 0,
+        "remediations_completed": 0,
+        "remediation_mode": "NON_INTERACTIVE"
+    },
+    "scanned_packages": {
+        "deprecated": {
+            "name": "deprecated",
+            "version": "1.2.18",
+            "requirements": [
+                {
+                    "raw": "deprecated==1.2.18",
+                    "extras": [],
+                    "marker": null,
+                    "name": "deprecated",
+                    "specifier": "==1.2.18",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "markupsafe": {
+            "name": "markupsafe",
+            "version": "3.0.2",
+            "requirements": [
+                {
+                    "raw": "markupsafe==3.0.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "markupsafe",
+                    "specifier": "==3.0.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pyyaml": {
+            "name": "pyyaml",
+            "version": "6.0.2",
+            "requirements": [
+                {
+                    "raw": "pyyaml==6.0.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pyyaml",
+                    "specifier": "==6.0.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "aiohappyeyeballs": {
+            "name": "aiohappyeyeballs",
+            "version": "2.6.1",
+            "requirements": [
+                {
+                    "raw": "aiohappyeyeballs==2.6.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "aiohappyeyeballs",
+                    "specifier": "==2.6.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "aiohttp": {
+            "name": "aiohttp",
+            "version": "3.12.11",
+            "requirements": [
+                {
+                    "raw": "aiohttp==3.12.11",
+                    "extras": [],
+                    "marker": null,
+                    "name": "aiohttp",
+                    "specifier": "==3.12.11",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "aioredis": {
+            "name": "aioredis",
+            "version": "1.3.1",
+            "requirements": [
+                {
+                    "raw": "aioredis==1.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "aioredis",
+                    "specifier": "==1.3.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "aiosignal": {
+            "name": "aiosignal",
+            "version": "1.3.2",
+            "requirements": [
+                {
+                    "raw": "aiosignal==1.3.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "aiosignal",
+                    "specifier": "==1.3.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "aiosqlite": {
+            "name": "aiosqlite",
+            "version": "0.21.0",
+            "requirements": [
+                {
+                    "raw": "aiosqlite==0.21.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "aiosqlite",
+                    "specifier": "==0.21.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "amqp": {
+            "name": "amqp",
+            "version": "5.3.1",
+            "requirements": [
+                {
+                    "raw": "amqp==5.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "amqp",
+                    "specifier": "==5.3.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "annotated-types": {
+            "name": "annotated-types",
+            "version": "0.7.0",
+            "requirements": [
+                {
+                    "raw": "annotated-types==0.7.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "annotated-types",
+                    "specifier": "==0.7.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "anyio": {
+            "name": "anyio",
+            "version": "4.9.0",
+            "requirements": [
+                {
+                    "raw": "anyio==4.9.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "anyio",
+                    "specifier": "==4.9.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "async-timeout": {
+            "name": "async-timeout",
+            "version": "5.0.1",
+            "requirements": [
+                {
+                    "raw": "async-timeout==5.0.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "async-timeout",
+                    "specifier": "==5.0.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "attrs": {
+            "name": "attrs",
+            "version": "25.3.0",
+            "requirements": [
+                {
+                    "raw": "attrs==25.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "attrs",
+                    "specifier": "==25.3.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "authlib": {
+            "name": "authlib",
+            "version": "1.6.0",
+            "requirements": [
+                {
+                    "raw": "authlib==1.6.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "authlib",
+                    "specifier": "==1.6.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "bandit": {
+            "name": "bandit",
+            "version": "1.8.5",
+            "requirements": [
+                {
+                    "raw": "bandit==1.8.5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "bandit",
+                    "specifier": "==1.8.5",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "bcrypt": {
+            "name": "bcrypt",
+            "version": "4.3.0",
+            "requirements": [
+                {
+                    "raw": "bcrypt==4.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "bcrypt",
+                    "specifier": "==4.3.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "billiard": {
+            "name": "billiard",
+            "version": "4.2.1",
+            "requirements": [
+                {
+                    "raw": "billiard==4.2.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "billiard",
+                    "specifier": "==4.2.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "celery": {
+            "name": "celery",
+            "version": "5.5.3",
+            "requirements": [
+                {
+                    "raw": "celery==5.5.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "celery",
+                    "specifier": "==5.5.3",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "certifi": {
+            "name": "certifi",
+            "version": "2025.4.26",
+            "requirements": [
+                {
+                    "raw": "certifi==2025.4.26",
+                    "extras": [],
+                    "marker": null,
+                    "name": "certifi",
+                    "specifier": "==2025.4.26",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "cffi": {
+            "name": "cffi",
+            "version": "1.17.1",
+            "requirements": [
+                {
+                    "raw": "cffi==1.17.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "cffi",
+                    "specifier": "==1.17.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "charset-normalizer": {
+            "name": "charset-normalizer",
+            "version": "3.4.2",
+            "requirements": [
+                {
+                    "raw": "charset-normalizer==3.4.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "charset-normalizer",
+                    "specifier": "==3.4.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "click": {
+            "name": "click",
+            "version": "8.1.8",
+            "requirements": [
+                {
+                    "raw": "click==8.1.8",
+                    "extras": [],
+                    "marker": null,
+                    "name": "click",
+                    "specifier": "==8.1.8",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "click-didyoumean": {
+            "name": "click-didyoumean",
+            "version": "0.3.1",
+            "requirements": [
+                {
+                    "raw": "click-didyoumean==0.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "click-didyoumean",
+                    "specifier": "==0.3.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "click-plugins": {
+            "name": "click-plugins",
+            "version": "1.1.1",
+            "requirements": [
+                {
+                    "raw": "click-plugins==1.1.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "click-plugins",
+                    "specifier": "==1.1.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "click-repl": {
+            "name": "click-repl",
+            "version": "0.3.0",
+            "requirements": [
+                {
+                    "raw": "click-repl==0.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "click-repl",
+                    "specifier": "==0.3.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "contourpy": {
+            "name": "contourpy",
+            "version": "1.3.2",
+            "requirements": [
+                {
+                    "raw": "contourpy==1.3.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "contourpy",
+                    "specifier": "==1.3.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "cryptography": {
+            "name": "cryptography",
+            "version": "45.0.4",
+            "requirements": [
+                {
+                    "raw": "cryptography==45.0.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "cryptography",
+                    "specifier": "==45.0.4",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "cycler": {
+            "name": "cycler",
+            "version": "0.12.1",
+            "requirements": [
+                {
+                    "raw": "cycler==0.12.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "cycler",
+                    "specifier": "==0.12.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "cython": {
+            "name": "cython",
+            "version": "3.1.1",
+            "requirements": [
+                {
+                    "raw": "cython==3.1.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "cython",
+                    "specifier": "==3.1.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "distro": {
+            "name": "distro",
+            "version": "1.9.0",
+            "requirements": [
+                {
+                    "raw": "distro==1.9.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "distro",
+                    "specifier": "==1.9.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "dnspython": {
+            "name": "dnspython",
+            "version": "2.7.0",
+            "requirements": [
+                {
+                    "raw": "dnspython==2.7.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "dnspython",
+                    "specifier": "==2.7.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "dparse": {
+            "name": "dparse",
+            "version": "0.6.4",
+            "requirements": [
+                {
+                    "raw": "dparse==0.6.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "dparse",
+                    "specifier": "==0.6.4",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "ecdsa": {
+            "name": "ecdsa",
+            "version": "0.19.1",
+            "requirements": [
+                {
+                    "raw": "ecdsa==0.19.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "ecdsa",
+                    "specifier": "==0.19.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "email-validator": {
+            "name": "email-validator",
+            "version": "2.2.0",
+            "requirements": [
+                {
+                    "raw": "email-validator==2.2.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "email-validator",
+                    "specifier": "==2.2.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "fastapi": {
+            "name": "fastapi",
+            "version": "0.115.12",
+            "requirements": [
+                {
+                    "raw": "fastapi==0.115.12",
+                    "extras": [],
+                    "marker": null,
+                    "name": "fastapi",
+                    "specifier": "==0.115.12",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "filelock": {
+            "name": "filelock",
+            "version": "3.16.1",
+            "requirements": [
+                {
+                    "raw": "filelock==3.16.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "filelock",
+                    "specifier": "==3.16.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "flake8": {
+            "name": "flake8",
+            "version": "7.2.0",
+            "requirements": [
+                {
+                    "raw": "flake8==7.2.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "flake8",
+                    "specifier": "==7.2.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "fonttools": {
+            "name": "fonttools",
+            "version": "4.58.2",
+            "requirements": [
+                {
+                    "raw": "fonttools==4.58.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "fonttools",
+                    "specifier": "==4.58.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "frozenlist": {
+            "name": "frozenlist",
+            "version": "1.6.2",
+            "requirements": [
+                {
+                    "raw": "frozenlist==1.6.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "frozenlist",
+                    "specifier": "==1.6.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "gunicorn": {
+            "name": "gunicorn",
+            "version": "23.0.0",
+            "requirements": [
+                {
+                    "raw": "gunicorn==23.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "gunicorn",
+                    "specifier": "==23.0.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "h11": {
+            "name": "h11",
+            "version": "0.16.0",
+            "requirements": [
+                {
+                    "raw": "h11==0.16.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "h11",
+                    "specifier": "==0.16.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "hiredis": {
+            "name": "hiredis",
+            "version": "3.2.1",
+            "requirements": [
+                {
+                    "raw": "hiredis==3.2.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "hiredis",
+                    "specifier": "==3.2.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "httpcore": {
+            "name": "httpcore",
+            "version": "1.0.9",
+            "requirements": [
+                {
+                    "raw": "httpcore==1.0.9",
+                    "extras": [],
+                    "marker": null,
+                    "name": "httpcore",
+                    "specifier": "==1.0.9",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "httptools": {
+            "name": "httptools",
+            "version": "0.6.4",
+            "requirements": [
+                {
+                    "raw": "httptools==0.6.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "httptools",
+                    "specifier": "==0.6.4",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "httpx": {
+            "name": "httpx",
+            "version": "0.28.1",
+            "requirements": [
+                {
+                    "raw": "httpx==0.28.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "httpx",
+                    "specifier": "==0.28.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "idna": {
+            "name": "idna",
+            "version": "3.10",
+            "requirements": [
+                {
+                    "raw": "idna==3.10",
+                    "extras": [],
+                    "marker": null,
+                    "name": "idna",
+                    "specifier": "==3.10",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "iniconfig": {
+            "name": "iniconfig",
+            "version": "2.1.0",
+            "requirements": [
+                {
+                    "raw": "iniconfig==2.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "iniconfig",
+                    "specifier": "==2.1.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "jinja2": {
+            "name": "jinja2",
+            "version": "3.1.6",
+            "requirements": [
+                {
+                    "raw": "jinja2==3.1.6",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jinja2",
+                    "specifier": "==3.1.6",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "jiter": {
+            "name": "jiter",
+            "version": "0.10.0",
+            "requirements": [
+                {
+                    "raw": "jiter==0.10.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jiter",
+                    "specifier": "==0.10.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "joblib": {
+            "name": "joblib",
+            "version": "1.5.1",
+            "requirements": [
+                {
+                    "raw": "joblib==1.5.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "joblib",
+                    "specifier": "==1.5.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "kiwisolver": {
+            "name": "kiwisolver",
+            "version": "1.4.8",
+            "requirements": [
+                {
+                    "raw": "kiwisolver==1.4.8",
+                    "extras": [],
+                    "marker": null,
+                    "name": "kiwisolver",
+                    "specifier": "==1.4.8",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "kombu": {
+            "name": "kombu",
+            "version": "5.5.4",
+            "requirements": [
+                {
+                    "raw": "kombu==5.5.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "kombu",
+                    "specifier": "==5.5.4",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "limits": {
+            "name": "limits",
+            "version": "5.2.0",
+            "requirements": [
+                {
+                    "raw": "limits==5.2.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "limits",
+                    "specifier": "==5.2.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "markdown-it-py": {
+            "name": "markdown-it-py",
+            "version": "3.0.0",
+            "requirements": [
+                {
+                    "raw": "markdown-it-py==3.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "markdown-it-py",
+                    "specifier": "==3.0.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "marshmallow": {
+            "name": "marshmallow",
+            "version": "4.0.0",
+            "requirements": [
+                {
+                    "raw": "marshmallow==4.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "marshmallow",
+                    "specifier": "==4.0.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "matplotlib": {
+            "name": "matplotlib",
+            "version": "3.10.3",
+            "requirements": [
+                {
+                    "raw": "matplotlib==3.10.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "matplotlib",
+                    "specifier": "==3.10.3",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "mccabe": {
+            "name": "mccabe",
+            "version": "0.7.0",
+            "requirements": [
+                {
+                    "raw": "mccabe==0.7.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "mccabe",
+                    "specifier": "==0.7.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "mdurl": {
+            "name": "mdurl",
+            "version": "0.1.2",
+            "requirements": [
+                {
+                    "raw": "mdurl==0.1.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "mdurl",
+                    "specifier": "==0.1.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "middleware": {
+            "name": "middleware",
+            "version": "1.2.3",
+            "requirements": [
+                {
+                    "raw": "middleware==1.2.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "middleware",
+                    "specifier": "==1.2.3",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "multidict": {
+            "name": "multidict",
+            "version": "6.4.4",
+            "requirements": [
+                {
+                    "raw": "multidict==6.4.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "multidict",
+                    "specifier": "==6.4.4",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "narwhals": {
+            "name": "narwhals",
+            "version": "1.41.1",
+            "requirements": [
+                {
+                    "raw": "narwhals==1.41.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "narwhals",
+                    "specifier": "==1.41.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "nltk": {
+            "name": "nltk",
+            "version": "3.9.1",
+            "requirements": [
+                {
+                    "raw": "nltk==3.9.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "nltk",
+                    "specifier": "==3.9.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "numpy": {
+            "name": "numpy",
+            "version": "2.2.6",
+            "requirements": [
+                {
+                    "raw": "numpy==2.2.6",
+                    "extras": [],
+                    "marker": null,
+                    "name": "numpy",
+                    "specifier": "==2.2.6",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "openai": {
+            "name": "openai",
+            "version": "1.84.0",
+            "requirements": [
+                {
+                    "raw": "openai==1.84.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "openai",
+                    "specifier": "==1.84.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "packaging": {
+            "name": "packaging",
+            "version": "25.0",
+            "requirements": [
+                {
+                    "raw": "packaging==25.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "packaging",
+                    "specifier": "==25.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pbr": {
+            "name": "pbr",
+            "version": "6.1.1",
+            "requirements": [
+                {
+                    "raw": "pbr==6.1.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pbr",
+                    "specifier": "==6.1.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pillow": {
+            "name": "pillow",
+            "version": "11.2.1",
+            "requirements": [
+                {
+                    "raw": "pillow==11.2.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pillow",
+                    "specifier": "==11.2.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pip": {
+            "name": "pip",
+            "version": "25.1.1",
+            "requirements": [
+                {
+                    "raw": "pip==25.1.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pip",
+                    "specifier": "==25.1.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pipdeptree": {
+            "name": "pipdeptree",
+            "version": "2.26.1",
+            "requirements": [
+                {
+                    "raw": "pipdeptree==2.26.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pipdeptree",
+                    "specifier": "==2.26.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "plotly": {
+            "name": "plotly",
+            "version": "6.1.2",
+            "requirements": [
+                {
+                    "raw": "plotly==6.1.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "plotly",
+                    "specifier": "==6.1.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pluggy": {
+            "name": "pluggy",
+            "version": "1.6.0",
+            "requirements": [
+                {
+                    "raw": "pluggy==1.6.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pluggy",
+                    "specifier": "==1.6.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "prompt-toolkit": {
+            "name": "prompt-toolkit",
+            "version": "3.0.51",
+            "requirements": [
+                {
+                    "raw": "prompt-toolkit==3.0.51",
+                    "extras": [],
+                    "marker": null,
+                    "name": "prompt-toolkit",
+                    "specifier": "==3.0.51",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "propcache": {
+            "name": "propcache",
+            "version": "0.3.1",
+            "requirements": [
+                {
+                    "raw": "propcache==0.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "propcache",
+                    "specifier": "==0.3.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "psutil": {
+            "name": "psutil",
+            "version": "6.1.1",
+            "requirements": [
+                {
+                    "raw": "psutil==6.1.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "psutil",
+                    "specifier": "==6.1.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "psycopg2-binary": {
+            "name": "psycopg2-binary",
+            "version": "2.9.10",
+            "requirements": [
+                {
+                    "raw": "psycopg2-binary==2.9.10",
+                    "extras": [],
+                    "marker": null,
+                    "name": "psycopg2-binary",
+                    "specifier": "==2.9.10",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pyasn1": {
+            "name": "pyasn1",
+            "version": "0.6.1",
+            "requirements": [
+                {
+                    "raw": "pyasn1==0.6.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pyasn1",
+                    "specifier": "==0.6.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pycodestyle": {
+            "name": "pycodestyle",
+            "version": "2.13.0",
+            "requirements": [
+                {
+                    "raw": "pycodestyle==2.13.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pycodestyle",
+                    "specifier": "==2.13.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pycparser": {
+            "name": "pycparser",
+            "version": "2.22",
+            "requirements": [
+                {
+                    "raw": "pycparser==2.22",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pycparser",
+                    "specifier": "==2.22",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pydantic": {
+            "name": "pydantic",
+            "version": "2.9.2",
+            "requirements": [
+                {
+                    "raw": "pydantic==2.9.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pydantic",
+                    "specifier": "==2.9.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pydantic-core": {
+            "name": "pydantic-core",
+            "version": "2.23.4",
+            "requirements": [
+                {
+                    "raw": "pydantic-core==2.23.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pydantic-core",
+                    "specifier": "==2.23.4",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pyflakes": {
+            "name": "pyflakes",
+            "version": "3.3.2",
+            "requirements": [
+                {
+                    "raw": "pyflakes==3.3.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pyflakes",
+                    "specifier": "==3.3.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pygments": {
+            "name": "pygments",
+            "version": "2.19.1",
+            "requirements": [
+                {
+                    "raw": "pygments==2.19.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pygments",
+                    "specifier": "==2.19.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pyparsing": {
+            "name": "pyparsing",
+            "version": "3.2.3",
+            "requirements": [
+                {
+                    "raw": "pyparsing==3.2.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pyparsing",
+                    "specifier": "==3.2.3",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pytest": {
+            "name": "pytest",
+            "version": "8.4.0",
+            "requirements": [
+                {
+                    "raw": "pytest==8.4.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pytest",
+                    "specifier": "==8.4.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "pytest-asyncio": {
+            "name": "pytest-asyncio",
+            "version": "1.0.0",
+            "requirements": [
+                {
+                    "raw": "pytest-asyncio==1.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "pytest-asyncio",
+                    "specifier": "==1.0.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "python-dateutil": {
+            "name": "python-dateutil",
+            "version": "2.9.0.post0",
+            "requirements": [
+                {
+                    "raw": "python-dateutil==2.9.0.post0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "python-dateutil",
+                    "specifier": "==2.9.0.post0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "python-dotenv": {
+            "name": "python-dotenv",
+            "version": "1.1.0",
+            "requirements": [
+                {
+                    "raw": "python-dotenv==1.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "python-dotenv",
+                    "specifier": "==1.1.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "python-jose": {
+            "name": "python-jose",
+            "version": "3.5.0",
+            "requirements": [
+                {
+                    "raw": "python-jose==3.5.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "python-jose",
+                    "specifier": "==3.5.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "python-multipart": {
+            "name": "python-multipart",
+            "version": "0.0.20",
+            "requirements": [
+                {
+                    "raw": "python-multipart==0.0.20",
+                    "extras": [],
+                    "marker": null,
+                    "name": "python-multipart",
+                    "specifier": "==0.0.20",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "redis": {
+            "name": "redis",
+            "version": "6.2.0",
+            "requirements": [
+                {
+                    "raw": "redis==6.2.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "redis",
+                    "specifier": "==6.2.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "regex": {
+            "name": "regex",
+            "version": "2024.11.6",
+            "requirements": [
+                {
+                    "raw": "regex==2024.11.6",
+                    "extras": [],
+                    "marker": null,
+                    "name": "regex",
+                    "specifier": "==2024.11.6",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "requests": {
+            "name": "requests",
+            "version": "2.32.3",
+            "requirements": [
+                {
+                    "raw": "requests==2.32.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "requests",
+                    "specifier": "==2.32.3",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "rich": {
+            "name": "rich",
+            "version": "14.0.0",
+            "requirements": [
+                {
+                    "raw": "rich==14.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "rich",
+                    "specifier": "==14.0.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "rsa": {
+            "name": "rsa",
+            "version": "4.9.1",
+            "requirements": [
+                {
+                    "raw": "rsa==4.9.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "rsa",
+                    "specifier": "==4.9.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "ruamel.yaml": {
+            "name": "ruamel.yaml",
+            "version": "0.18.14",
+            "requirements": [
+                {
+                    "raw": "ruamel.yaml==0.18.14",
+                    "extras": [],
+                    "marker": null,
+                    "name": "ruamel.yaml",
+                    "specifier": "==0.18.14",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "ruamel.yaml.clib": {
+            "name": "ruamel.yaml.clib",
+            "version": "0.2.12",
+            "requirements": [
+                {
+                    "raw": "ruamel.yaml.clib==0.2.12",
+                    "extras": [],
+                    "marker": null,
+                    "name": "ruamel.yaml.clib",
+                    "specifier": "==0.2.12",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "safety": {
+            "name": "safety",
+            "version": "3.5.2",
+            "requirements": [
+                {
+                    "raw": "safety==3.5.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "safety",
+                    "specifier": "==3.5.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "safety-schemas": {
+            "name": "safety-schemas",
+            "version": "0.0.14",
+            "requirements": [
+                {
+                    "raw": "safety-schemas==0.0.14",
+                    "extras": [],
+                    "marker": null,
+                    "name": "safety-schemas",
+                    "specifier": "==0.0.14",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "setuptools": {
+            "name": "setuptools",
+            "version": "80.9.0",
+            "requirements": [
+                {
+                    "raw": "setuptools==80.9.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "setuptools",
+                    "specifier": "==80.9.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "shellingham": {
+            "name": "shellingham",
+            "version": "1.5.4",
+            "requirements": [
+                {
+                    "raw": "shellingham==1.5.4",
+                    "extras": [],
+                    "marker": null,
+                    "name": "shellingham",
+                    "specifier": "==1.5.4",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "six": {
+            "name": "six",
+            "version": "1.17.0",
+            "requirements": [
+                {
+                    "raw": "six==1.17.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "six",
+                    "specifier": "==1.17.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "slowapi": {
+            "name": "slowapi",
+            "version": "0.1.9",
+            "requirements": [
+                {
+                    "raw": "slowapi==0.1.9",
+                    "extras": [],
+                    "marker": null,
+                    "name": "slowapi",
+                    "specifier": "==0.1.9",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "sniffio": {
+            "name": "sniffio",
+            "version": "1.3.1",
+            "requirements": [
+                {
+                    "raw": "sniffio==1.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "sniffio",
+                    "specifier": "==1.3.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "sqlalchemy": {
+            "name": "sqlalchemy",
+            "version": "2.0.41",
+            "requirements": [
+                {
+                    "raw": "sqlalchemy==2.0.41",
+                    "extras": [],
+                    "marker": null,
+                    "name": "sqlalchemy",
+                    "specifier": "==2.0.41",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "starlette": {
+            "name": "starlette",
+            "version": "0.46.2",
+            "requirements": [
+                {
+                    "raw": "starlette==0.46.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "starlette",
+                    "specifier": "==0.46.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "stevedore": {
+            "name": "stevedore",
+            "version": "5.4.1",
+            "requirements": [
+                {
+                    "raw": "stevedore==5.4.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "stevedore",
+                    "specifier": "==5.4.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "tenacity": {
+            "name": "tenacity",
+            "version": "9.1.2",
+            "requirements": [
+                {
+                    "raw": "tenacity==9.1.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "tenacity",
+                    "specifier": "==9.1.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "tomlkit": {
+            "name": "tomlkit",
+            "version": "0.13.3",
+            "requirements": [
+                {
+                    "raw": "tomlkit==0.13.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "tomlkit",
+                    "specifier": "==0.13.3",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "tqdm": {
+            "name": "tqdm",
+            "version": "4.67.1",
+            "requirements": [
+                {
+                    "raw": "tqdm==4.67.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "tqdm",
+                    "specifier": "==4.67.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "typer": {
+            "name": "typer",
+            "version": "0.16.0",
+            "requirements": [
+                {
+                    "raw": "typer==0.16.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "typer",
+                    "specifier": "==0.16.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "typing-extensions": {
+            "name": "typing-extensions",
+            "version": "4.14.0",
+            "requirements": [
+                {
+                    "raw": "typing-extensions==4.14.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "typing-extensions",
+                    "specifier": "==4.14.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "typing-inspection": {
+            "name": "typing-inspection",
+            "version": "0.4.1",
+            "requirements": [
+                {
+                    "raw": "typing-inspection==0.4.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "typing-inspection",
+                    "specifier": "==0.4.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "tzdata": {
+            "name": "tzdata",
+            "version": "2025.2",
+            "requirements": [
+                {
+                    "raw": "tzdata==2025.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "tzdata",
+                    "specifier": "==2025.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "urllib3": {
+            "name": "urllib3",
+            "version": "2.4.0",
+            "requirements": [
+                {
+                    "raw": "urllib3==2.4.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "urllib3",
+                    "specifier": "==2.4.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "uvicorn": {
+            "name": "uvicorn",
+            "version": "0.34.3",
+            "requirements": [
+                {
+                    "raw": "uvicorn==0.34.3",
+                    "extras": [],
+                    "marker": null,
+                    "name": "uvicorn",
+                    "specifier": "==0.34.3",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "uvloop": {
+            "name": "uvloop",
+            "version": "0.21.0",
+            "requirements": [
+                {
+                    "raw": "uvloop==0.21.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "uvloop",
+                    "specifier": "==0.21.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "vine": {
+            "name": "vine",
+            "version": "5.1.0",
+            "requirements": [
+                {
+                    "raw": "vine==5.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "vine",
+                    "specifier": "==5.1.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "watchfiles": {
+            "name": "watchfiles",
+            "version": "1.0.5",
+            "requirements": [
+                {
+                    "raw": "watchfiles==1.0.5",
+                    "extras": [],
+                    "marker": null,
+                    "name": "watchfiles",
+                    "specifier": "==1.0.5",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "wcwidth": {
+            "name": "wcwidth",
+            "version": "0.2.13",
+            "requirements": [
+                {
+                    "raw": "wcwidth==0.2.13",
+                    "extras": [],
+                    "marker": null,
+                    "name": "wcwidth",
+                    "specifier": "==0.2.13",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "websockets": {
+            "name": "websockets",
+            "version": "15.0.1",
+            "requirements": [
+                {
+                    "raw": "websockets==15.0.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "websockets",
+                    "specifier": "==15.0.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "wheel": {
+            "name": "wheel",
+            "version": "0.45.1",
+            "requirements": [
+                {
+                    "raw": "wheel==0.45.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "wheel",
+                    "specifier": "==0.45.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "wrapt": {
+            "name": "wrapt",
+            "version": "1.17.2",
+            "requirements": [
+                {
+                    "raw": "wrapt==1.17.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "wrapt",
+                    "specifier": "==1.17.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "yarl": {
+            "name": "yarl",
+            "version": "1.20.0",
+            "requirements": [
+                {
+                    "raw": "yarl==1.20.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "yarl",
+                    "specifier": "==1.20.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ]
+        },
+        "autocommand": {
+            "name": "autocommand",
+            "version": "2.2.2",
+            "requirements": [
+                {
+                    "raw": "autocommand==2.2.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "autocommand",
+                    "specifier": "==2.2.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "backports.tarfile": {
+            "name": "backports.tarfile",
+            "version": "1.2.0",
+            "requirements": [
+                {
+                    "raw": "backports.tarfile==1.2.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "backports.tarfile",
+                    "specifier": "==1.2.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "importlib-metadata": {
+            "name": "importlib-metadata",
+            "version": "8.0.0",
+            "requirements": [
+                {
+                    "raw": "importlib-metadata==8.0.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "importlib-metadata",
+                    "specifier": "==8.0.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "inflect": {
+            "name": "inflect",
+            "version": "7.3.1",
+            "requirements": [
+                {
+                    "raw": "inflect==7.3.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "inflect",
+                    "specifier": "==7.3.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "jaraco.collections": {
+            "name": "jaraco.collections",
+            "version": "5.1.0",
+            "requirements": [
+                {
+                    "raw": "jaraco.collections==5.1.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jaraco.collections",
+                    "specifier": "==5.1.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "jaraco.context": {
+            "name": "jaraco.context",
+            "version": "5.3.0",
+            "requirements": [
+                {
+                    "raw": "jaraco.context==5.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jaraco.context",
+                    "specifier": "==5.3.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "jaraco.functools": {
+            "name": "jaraco.functools",
+            "version": "4.0.1",
+            "requirements": [
+                {
+                    "raw": "jaraco.functools==4.0.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jaraco.functools",
+                    "specifier": "==4.0.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "jaraco.text": {
+            "name": "jaraco.text",
+            "version": "3.12.1",
+            "requirements": [
+                {
+                    "raw": "jaraco.text==3.12.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "jaraco.text",
+                    "specifier": "==3.12.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "more-itertools": {
+            "name": "more-itertools",
+            "version": "10.3.0",
+            "requirements": [
+                {
+                    "raw": "more-itertools==10.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "more-itertools",
+                    "specifier": "==10.3.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "platformdirs": {
+            "name": "platformdirs",
+            "version": "4.2.2",
+            "requirements": [
+                {
+                    "raw": "platformdirs==4.2.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "platformdirs",
+                    "specifier": "==4.2.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "tomli": {
+            "name": "tomli",
+            "version": "2.0.1",
+            "requirements": [
+                {
+                    "raw": "tomli==2.0.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "tomli",
+                    "specifier": "==2.0.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "typeguard": {
+            "name": "typeguard",
+            "version": "4.3.0",
+            "requirements": [
+                {
+                    "raw": "typeguard==4.3.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "typeguard",
+                    "specifier": "==4.3.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        },
+        "zipp": {
+            "name": "zipp",
+            "version": "3.19.2",
+            "requirements": [
+                {
+                    "raw": "zipp==3.19.2",
+                    "extras": [],
+                    "marker": null,
+                    "name": "zipp",
+                    "specifier": "==3.19.2",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages/setuptools/_vendor"
+                }
+            ]
+        }
+    },
+    "affected_packages": {
+        "python-jose": {
+            "name": "python-jose",
+            "version": "3.5.0",
+            "requirements": [
+                {
+                    "raw": "python-jose==3.5.0",
+                    "extras": [],
+                    "marker": null,
+                    "name": "python-jose",
+                    "specifier": "==3.5.0",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ],
+            "found": null,
+            "insecure_versions": [
+                "0.1.0",
+                "0.1.1",
+                "0.1.2",
+                "0.1.3",
+                "0.1.4",
+                "0.1.5",
+                "0.1.6",
+                "0.1.7",
+                "0.1.8",
+                "0.2.0",
+                "0.3.0",
+                "0.4.0",
+                "0.5.0",
+                "0.5.1",
+                "0.5.2",
+                "0.5.3",
+                "0.5.4",
+                "0.5.5",
+                "0.5.6",
+                "0.6.1",
+                "0.6.2",
+                "0.7.0",
+                "1.0.0",
+                "1.1.0",
+                "1.2.0",
+                "1.3.0",
+                "1.3.1",
+                "1.3.2",
+                "1.4.0",
+                "2.0.0",
+                "2.0.1",
+                "2.0.2",
+                "3.0.0",
+                "3.0.1",
+                "3.1.0",
+                "3.2.0",
+                "3.3.0",
+                "3.4.0",
+                "3.5.0"
+            ],
+            "secure_versions": [],
+            "latest_version_without_known_vulnerabilities": "",
+            "latest_version": "3.5.0",
+            "more_info_url": "https://data.safetycli.com/p/pypi/python-jose/97c/"
+        },
+        "ecdsa": {
+            "name": "ecdsa",
+            "version": "0.19.1",
+            "requirements": [
+                {
+                    "raw": "ecdsa==0.19.1",
+                    "extras": [],
+                    "marker": null,
+                    "name": "ecdsa",
+                    "specifier": "==0.19.1",
+                    "url": null,
+                    "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                }
+            ],
+            "found": null,
+            "insecure_versions": [
+                "0.10",
+                "0.11",
+                "0.12",
+                "0.13",
+                "0.13.1",
+                "0.13.2",
+                "0.13.3",
+                "0.14",
+                "0.14.1",
+                "0.15",
+                "0.16.0",
+                "0.16.1",
+                "0.17.0",
+                "0.18.0",
+                "0.18.0b1",
+                "0.18.0b2",
+                "0.19.0",
+                "0.19.1",
+                "0.6",
+                "0.7",
+                "0.8",
+                "0.9"
+            ],
+            "secure_versions": [],
+            "latest_version_without_known_vulnerabilities": "",
+            "latest_version": "0.19.1",
+            "more_info_url": "https://data.safetycli.com/p/pypi/ecdsa/97c/"
+        }
+    },
+    "announcements": [],
+    "vulnerabilities": [
+        {
+            "vulnerability_id": "70716",
+            "package_name": "python-jose",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": [
+                ">=0"
+            ],
+            "all_vulnerable_specs": [
+                ">=0"
+            ],
+            "analyzed_version": "3.5.0",
+            "analyzed_requirement": {
+                "raw": "python-jose==3.5.0",
+                "extras": [],
+                "marker": null,
+                "name": "python-jose",
+                "specifier": "==3.5.0",
+                "url": null,
+                "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+            },
+            "advisory": "Affected versions of Python-jose allow attackers to cause a denial of service (resource consumption) during a decode via a crafted JSON Web Encryption (JWE) token with a high compression ratio, aka a \"JWT bomb.\" This is similar to CVE-2024-21319.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2024-33664",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://data.safetycli.com/v/70716/97c"
+        },
+        {
+            "vulnerability_id": "70715",
+            "package_name": "python-jose",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": [
+                ">=0"
+            ],
+            "all_vulnerable_specs": [
+                ">=0"
+            ],
+            "analyzed_version": "3.5.0",
+            "analyzed_requirement": {
+                "raw": "python-jose==3.5.0",
+                "extras": [],
+                "marker": null,
+                "name": "python-jose",
+                "specifier": "==3.5.0",
+                "url": null,
+                "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+            },
+            "advisory": "Affected versions of Python-jose have a algorithm confusion vulnerability with OpenSSH ECDSA keys and other key formats. This is similar to CVE-2022-29217.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2024-33663",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://data.safetycli.com/v/70715/97c"
+        },
+        {
+            "vulnerability_id": "64459",
+            "package_name": "ecdsa",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": [
+                ">=0"
+            ],
+            "all_vulnerable_specs": [
+                ">=0"
+            ],
+            "analyzed_version": "0.19.1",
+            "analyzed_requirement": {
+                "raw": "ecdsa==0.19.1",
+                "extras": [],
+                "marker": null,
+                "name": "ecdsa",
+                "specifier": "==0.19.1",
+                "url": null,
+                "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+            },
+            "advisory": "The python-ecdsa library, which implements ECDSA cryptography in Python, is vulnerable to the Minerva attack (CVE-2024-23342). This vulnerability arises because scalar multiplication is not performed in constant time, affecting ECDSA signatures, key generation, and ECDH operations. ECDSA signature verification remains unaffected. The project maintainers have stated that there is no plan to release a fix for this vulnerability, citing their security policy:\r\n\"As stated in the security policy, side-channel vulnerabilities are outside the scope of the project. This is not due to a lack of interest in side-channel secure implementations but rather because the main goal of the project is to be pure Python. Implementing side-channel-free code in pure Python is impossible. Therefore, we do not plan to release a fix for this vulnerability.\"\r\nNOTE: The specs we include in this advisory differ from the publicly available on other sources. That's because research by Safety CLI Cybersecurity Team confirms that there is no plan to address this vulnerability.",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": "CVE-2024-23342",
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://data.safetycli.com/v/64459/97c"
+        },
+        {
+            "vulnerability_id": "64396",
+            "package_name": "ecdsa",
+            "ignored": {},
+            "ignored_reason": null,
+            "ignored_expires": null,
+            "vulnerable_spec": [
+                ">=0"
+            ],
+            "all_vulnerable_specs": [
+                ">=0"
+            ],
+            "analyzed_version": "0.19.1",
+            "analyzed_requirement": {
+                "raw": "ecdsa==0.19.1",
+                "extras": [],
+                "marker": null,
+                "name": "ecdsa",
+                "specifier": "==0.19.1",
+                "url": null,
+                "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+            },
+            "advisory": "Ecdsa does not protects against side-channel attacks. This is because Python does not provide side-channel secure primitives (with the exception of hmac.compare_digest()), making side-channel secure programming impossible. For a sophisticated attacker observing just one operation with a private key will be sufficient to completely reconstruct the private key.\r\nhttps://pypi.org/project/ecdsa/#Security",
+            "is_transitive": false,
+            "published_date": null,
+            "fixed_versions": [],
+            "closest_versions_without_known_vulnerabilities": [],
+            "resources": [],
+            "CVE": null,
+            "severity": null,
+            "affected_versions": [],
+            "more_info_url": "https://data.safetycli.com/v/64396/97c"
+        }
+    ],
+    "ignored_vulnerabilities": [],
+    "remediations": {
+        "python-jose": {
+            "requirements": {
+                "==3.5.0": {
+                    "vulnerabilities_found": 2,
+                    "version": "3.5.0",
+                    "requirement": {
+                        "raw": "python-jose==3.5.0",
+                        "extras": [],
+                        "marker": null,
+                        "name": "python-jose",
+                        "specifier": "==3.5.0",
+                        "url": null,
+                        "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                    },
+                    "more_info_url": "https://data.safetycli.com/p/pypi/python-jose/97c/"
+                }
+            },
+            "current_version": null,
+            "vulnerabilities_found": null,
+            "recommended_version": null,
+            "other_recommended_versions": [],
+            "more_info_url": null
+        },
+        "ecdsa": {
+            "requirements": {
+                "==0.19.1": {
+                    "vulnerabilities_found": 2,
+                    "version": "0.19.1",
+                    "requirement": {
+                        "raw": "ecdsa==0.19.1",
+                        "extras": [],
+                        "marker": null,
+                        "name": "ecdsa",
+                        "specifier": "==0.19.1",
+                        "url": null,
+                        "found": "/Users/hadiqa/personal agent/venv/lib/python3.13/site-packages"
+                    },
+                    "more_info_url": "https://data.safetycli.com/p/pypi/ecdsa/97c/"
+                }
+            },
+            "current_version": null,
+            "vulnerabilities_found": null,
+            "recommended_version": null,
+            "other_recommended_versions": [],
+            "more_info_url": null
+        }
+    },
+    "remediations_results": {
+        "vulnerabilities_fixed": [],
+        "remediations_applied": {},
+        "remediations_skipped": {}
+    }
+}
+
+
++===========================================================================================================================================================================================+
+
+
+DEPRECATED: this command (`check`) has been DEPRECATED, and will be unsupported beyond 01 June 2024.
+
+
+We highly encourage switching to the new `scan` command which is easier to use, more powerful, and can be set up to mimic the deprecated command if required.
+
+
++===========================================================================================================================================================================================+
+
+

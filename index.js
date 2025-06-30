@@ -91,11 +91,67 @@ app.delete('/tasks/:id', async (req, res) => {
   }
 });
 
-// Smart Scheduler Algorithm Placeholder
+// Smart Scheduler Algorithm - Real Implementation
 const smartScheduler = (tasks) => {
-  // Placeholder logic for scheduling tasks
-  // This function will be enhanced with AI logic
-  return tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+  if (!tasks || tasks.length === 0) return [];
+  
+  // Calculate priority scores for each task
+  const priorityScores = {
+    'high': 3,
+    'medium': 2,
+    'low': 1
+  };
+  
+  // Calculate urgency scores based on due date
+  const calculateUrgencyScore = (task) => {
+    if (!task.dueDate) return 1; // No due date = low urgency
+    
+    const now = new Date();
+    const dueDate = new Date(task.dueDate);
+    const daysUntilDue = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilDue < 0) return 5; // Overdue = highest urgency
+    if (daysUntilDue === 0) return 4; // Due today
+    if (daysUntilDue <= 1) return 3; // Due tomorrow
+    if (daysUntilDue <= 3) return 2; // Due this week
+    return 1; // Due later
+  };
+  
+  // Calculate complexity scores based on estimated duration
+  const calculateComplexityScore = (task) => {
+    const duration = task.estimatedDuration || 30; // Default 30 minutes
+    if (duration <= 30) return 1; // Quick tasks
+    if (duration <= 60) return 2; // Medium tasks
+    if (duration <= 120) return 3; // Long tasks
+    return 4; // Very long tasks
+  };
+  
+  // Score each task
+  const scoredTasks = tasks.map(task => {
+    const priorityScore = priorityScores[task.priority] || 1;
+    const urgencyScore = calculateUrgencyScore(task);
+    const complexityScore = calculateComplexityScore(task);
+    
+    // Weighted scoring: priority (40%) + urgency (40%) + complexity (20%)
+    const totalScore = (priorityScore * 0.4) + (urgencyScore * 0.4) + (complexityScore * 0.2);
+    
+    return {
+      ...task,
+      score: totalScore
+    };
+  });
+  
+  // Sort by score (highest first), then by due date for tie-breaks
+  return scoredTasks.sort((a, b) => {
+    if (Math.abs(a.score - b.score) < 0.1) {
+      // If scores are very close, sort by due date
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    }
+    return b.score - a.score;
+  });
 };
 
 // Example usage of smartScheduler
