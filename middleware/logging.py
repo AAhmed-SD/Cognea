@@ -6,7 +6,7 @@ import logging
 import json
 from typing import Callable
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         # Log request details
         log_data = {
             "request_id": request_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "method": request.method,
             "path": request.url.path,
             "query_params": dict(request.query_params),
@@ -84,7 +84,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             # Log response details
             response_log = {
                 "request_id": request_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "status_code": response.status_code,
                 "process_time_ms": round(process_time * 1000, 2),
                 "response_body": response_body if self.log_response_body else None,

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime, timedelta
 import logging
@@ -37,9 +37,8 @@ class NotificationResponse(NotificationBase):
     user_id: str
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    
+    model_config = ConfigDict(from_attributes=True)
 
 # CRUD Operations
 @router.post("/", response_model=NotificationResponse, summary="Create a new notification")

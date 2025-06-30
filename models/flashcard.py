@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
+from pydantic import ConfigDict
 
 class FlashcardBase(BaseModel):
     question: str = Field(..., min_length=1)
@@ -37,5 +38,4 @@ class Flashcard(FlashcardBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True 
+    model_config = ConfigDict(from_attributes=True) 

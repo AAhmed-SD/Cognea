@@ -5,50 +5,56 @@ This module centralizes all security-related settings.
 import os
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, ConfigDict
 import secrets
 from datetime import timedelta
 
 class SecurityConfig(BaseSettings):
     """Security configuration settings"""
     
+    model_config = ConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        extra="ignore"  # Ignore extra fields to prevent validation errors
+    )
+    
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = False
     
     # Supabase Configuration
-    SUPABASE_URL: Optional[str] = None
-    SUPABASE_ANON_KEY: Optional[str] = None
-    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
-    SUPABASE_JWT_KEY: Optional[str] = None
+    SUPABASE_URL: Optional[str] = Field(default=None, alias="SUPABASE_URL")
+    SUPABASE_ANON_KEY: Optional[str] = Field(default=None, alias="SUPABASE_ANON_KEY")
+    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = Field(default=None, alias="SUPABASE_SERVICE_ROLE_KEY")
+    SUPABASE_JWT_KEY: Optional[str] = Field(default=None, alias="SUPABASE_JWT_KEY")
     
     # OpenAI Configuration
-    OPENAI_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = Field(default=None, alias="OPENAI_API_KEY")
     
     # Stripe Configuration
-    STRIPE_PUBLISHING_KEY: Optional[str] = None
-    STRIPE_API: Optional[str] = None
+    STRIPE_PUBLISHING_KEY: Optional[str] = Field(default=None, alias="STRIPE_PUBLISHING_KEY")
+    STRIPE_API: Optional[str] = Field(default=None, alias="STRIPE_API")
     
     # Secret Key
-    SECRET_KEY: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
+    SECRET_KEY: str = Field(default_factory=lambda: secrets.token_urlsafe(32), alias="SECRET_KEY")
     
     # CORS Settings
-    ALLOWED_ORIGINS: Optional[str] = None
+    ALLOWED_ORIGINS: Optional[str] = Field(default=None, alias="ALLOWED_ORIGINS")
     
     # Trusted Hosts
-    TRUSTED_HOSTS: Optional[str] = None
+    TRUSTED_HOSTS: Optional[str] = Field(default=None, alias="TRUSTED_HOSTS")
     
     # Rate Limiting
     RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60
     RATE_LIMIT_REQUESTS_PER_HOUR: int = 1000
-    DISABLE_RATE_LIMIT: Optional[bool] = None
+    DISABLE_RATE_LIMIT: Optional[bool] = Field(default=None, alias="DISABLE_RATE_LIMIT")
     
     # Budget Limits
     DAILY_BUDGET_LIMIT_USD: float = 10.0
     MONTHLY_BUDGET_LIMIT_USD: float = 100.0
     
     # Redis
-    REDIS_URL: Optional[str] = None
+    REDIS_URL: Optional[str] = Field(default=None, alias="REDIS_URL")
     
     # Monitoring
     ENABLE_MONITORING: bool = True
@@ -125,11 +131,6 @@ class SecurityConfig(BaseSettings):
     # Input Validation
     MAX_STRING_LENGTH: int = 1000
     MAX_ARRAY_LENGTH: int = 100
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
-        extra = "allow"  # Allow extra fields from environment
 
 # Global security settings instance
 security_config = SecurityConfig()

@@ -4,7 +4,7 @@ Monitoring and logging service for production deployment.
 import logging
 import time
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Dict, Any, Optional
 from fastapi import Request, Response
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
@@ -24,7 +24,7 @@ class MonitoringService:
     
     def __init__(self):
         self.redis_client = get_redis_client()
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(UTC)
     
     def log_request(self, request: Request, response: Response, duration: float):
         """Log HTTP request metrics."""
@@ -39,7 +39,7 @@ class MonitoringService:
         # Log to Redis for analytics
         if self.redis_client.is_connected():
             log_entry = {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "method": method,
                 "endpoint": endpoint,
                 "status": status,
@@ -49,7 +49,7 @@ class MonitoringService:
             }
             
             # Store in Redis with 24-hour expiration
-            key = f"request_log:{datetime.utcnow().strftime('%Y-%m-%d')}"
+            key = f"request_log:{datetime.now(UTC).strftime('%Y-%m-%d')}"
             self.redis_client.client.lpush(key, json.dumps(log_entry))
             self.redis_client.client.expire(key, 24 * 3600)  # 24 hours
     
@@ -58,7 +58,7 @@ class MonitoringService:
         API_ERRORS.labels(endpoint=endpoint, error_type=error_type).inc()
         
         error_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "endpoint": endpoint,
             "error_type": error_type,
             "error_message": error_message,
@@ -69,7 +69,7 @@ class MonitoringService:
         
         # Store in Redis
         if self.redis_client.is_connected():
-            key = f"error_log:{datetime.utcnow().strftime('%Y-%m-%d')}"
+            key = f"error_log:{datetime.now(UTC).strftime('%Y-%m-%d')}"
             self.redis_client.client.lpush(key, json.dumps(error_entry))
             self.redis_client.client.expire(key, 7 * 24 * 3600)  # 7 days
     
@@ -87,7 +87,7 @@ class MonitoringService:
     
     def get_health_status(self) -> Dict[str, Any]:
         """Get application health status."""
-        uptime = datetime.utcnow() - self.start_time
+        uptime = datetime.now(UTC) - self.start_time
         
         # Get Redis status
         redis_status = "connected" if self.redis_client.is_connected() else "disconnected"
@@ -95,7 +95,7 @@ class MonitoringService:
         # Get recent error count
         error_count = 0
         if self.redis_client.is_connected():
-            today = datetime.utcnow().strftime('%Y-%m-%d')
+            today = datetime.now(UTC).strftime('%Y-%m-%d')
             error_key = f"error_log:{today}"
             error_count = self.redis_client.client.llen(error_key)
         
@@ -126,7 +126,7 @@ class MonitoringService:
         
         # Collect data from last N days
         for i in range(days):
-            date = (datetime.utcnow() - timedelta(days=i)).strftime('%Y-%m-%d')
+            date = (datetime.now(UTC) - timedelta(days=i)).strftime('%Y-%m-%d')
             
             # Request logs
             request_key = f"request_log:{date}"
@@ -184,11 +184,11 @@ class MonitoringService:
         if not self.redis_client.is_connected():
             return
         
-        cutoff_date = datetime.utcnow() - timedelta(days=days_to_keep)
+        cutoff_date = datetime.now(UTC) - timedelta(days=days_to_keep)
         
         # Clean up request logs
         for i in range(days_to_keep + 1, days_to_keep + 31):  # Clean up extra days
-            date = (datetime.utcnow() - timedelta(days=i)).strftime('%Y-%m-%d')
+            date = (datetime.now(UTC) - timedelta(days=i)).strftime('%Y-%m-%d')
             request_key = f"request_log:{date}"
             error_key = f"error_log:{date}"
             

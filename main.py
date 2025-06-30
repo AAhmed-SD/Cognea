@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
-from datetime import datetime
+from datetime import datetime, UTC
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
@@ -43,7 +43,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
         
-    async def dispatch(self, request, call_next):
+    async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
@@ -59,7 +59,7 @@ class TokenTrackingMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
         
-    async def dispatch(self, request, call_next):
+    async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
         
         # Track token usage for AI endpoints
@@ -87,15 +87,11 @@ def create_app(redis_client=None):
             allowed_hosts=["yourdomain.com", "api.yourdomain.com", "localhost"]
         )
 
-    # Add security headers middleware
-    app.add_middleware(SecurityHeadersMiddleware)
-
-    # Add token tracking middleware
-    app.add_middleware(TokenTrackingMiddleware)
-
     # Add middleware in correct order
-    app.add_middleware(RequestContextMiddleware)  # First to add request context
-    app.add_middleware(LoggingMiddleware)  # Then logging
+    app.add_middleware(SecurityHeadersMiddleware)  # Security headers first
+    app.add_middleware(TokenTrackingMiddleware)  # Token tracking
+    app.add_middleware(RequestContextMiddleware)  # Request context
+    app.add_middleware(LoggingMiddleware)  # Logging
     
     # Configure CORS based on environment
     if os.getenv("ENVIRONMENT") == "production":
@@ -191,7 +187,7 @@ def create_app(redis_client=None):
         return {
             "status": "healthy",
             "version": "1.0.0",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "redis": redis_status
         }
 
@@ -201,6 +197,7 @@ def create_app(redis_client=None):
 
     return app
 
+# Create the FastAPI app instance
 app = create_app()
 
 # Example usage

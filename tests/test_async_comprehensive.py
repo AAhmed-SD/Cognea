@@ -7,7 +7,7 @@ import asyncio
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from uuid import uuid4
 from main import app
 
@@ -213,7 +213,7 @@ class TestNotificationsEndpoints:
             "user_id": "550e8400-e29b-41d4-a716-446655440000",  # Required UUID
             "title": "Test Notification",
             "message": "Test message",
-            "send_time": datetime.utcnow().isoformat(),
+            "send_time": datetime.now(UTC).isoformat(),
             "type": "reminder",
             "category": "task"
         }

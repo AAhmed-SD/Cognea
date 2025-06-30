@@ -1,149 +1,190 @@
 """
-Cost tracking service for monitoring OpenAI API usage and costs.
+Cost tracking service for OpenAI API usage
 """
+
 import logging
+from typing import Dict, Optional
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
-from services.redis_client import get_redis_client
-from services.supabase import get_supabase_client
+from services.supabase import supabase_client
 
 logger = logging.getLogger(__name__)
 
-class CostTrackingService:
+class CostTracker:
+    """Track OpenAI API usage and costs"""
+    
     def __init__(self):
-        self.redis_client = get_redis_client()
-        self.supabase = get_supabase_client()
-        
-    async def track_api_call(
-        self, 
-        user_id: str, 
-        endpoint: str, 
-        model: str, 
-        input_tokens: int, 
+        # OpenAI pricing per 1K tokens (as of 2024)
+        self.pricing = {
+            "gpt-4-turbo-preview": {"input": 0.01, "output": 0.03},  # $0.01/$0.03 per 1K tokens
+            "gpt-4": {"input": 0.03, "output": 0.06},  # $0.03/$0.06 per 1K tokens
+            "gpt-3.5-turbo": {"input": 0.001, "output": 0.002},  # $0.001/$0.002 per 1K tokens
+        }
+    
+    def track_openai_usage(
+        self,
+        user_id: str,
+        model: str,
+        input_tokens: int,
         output_tokens: int,
-        cost_usd: float
+        total_tokens: int
     ):
-        """Track an API call and its associated cost."""
+        """Track OpenAI API usage and calculate costs"""
+        
         try:
-            # Store in Redis for real-time tracking
-            today = datetime.utcnow().strftime("%Y-%m-%d")
-            month = datetime.utcnow().strftime("%Y-%m")
+            # Calculate costs
+            input_cost = (input_tokens / 1000) * self.pricing.get(model, {}).get("input", 0)
+            output_cost = (output_tokens / 1000) * self.pricing.get(model, {}).get("output", 0)
+            total_cost = input_cost + output_cost
             
-            # Daily tracking
-            daily_key = f"cost:daily:{user_id}:{today}"
-            daily_cost = self.redis_client.get(daily_key) or 0
-            self.redis_client.set(daily_key, float(daily_cost) + cost_usd, ex=86400)  # 24 hours
-            
-            # Monthly tracking
-            monthly_key = f"cost:monthly:{user_id}:{month}"
-            monthly_cost = self.redis_client.get(monthly_key) or 0
-            self.redis_client.set(monthly_key, float(monthly_cost) + cost_usd, ex=2592000)  # 30 days
-            
-            # Token tracking
-            token_key = f"tokens:{user_id}:{today}"
-            current_tokens = self.redis_client.get(token_key) or 0
-            self.redis_client.set(token_key, int(current_tokens) + input_tokens + output_tokens, ex=86400)
-            
-            # Store detailed record in Supabase
+            # Store usage record
             usage_record = {
                 "user_id": user_id,
-                "endpoint": endpoint,
                 "model": model,
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
-                "total_tokens": input_tokens + output_tokens,
-                "cost_usd": cost_usd,
-                "created_at": datetime.utcnow().isoformat()
+                "total_tokens": total_tokens,
+                "input_cost_usd": round(input_cost, 6),
+                "output_cost_usd": round(output_cost, 6),
+                "total_cost_usd": round(total_cost, 6),
+                "timestamp": datetime.utcnow().isoformat()
             }
             
-            result = self.supabase.table("api_usage").insert(usage_record).execute()
+            # Insert into database
+            supabase_client.table("openai_usage").insert(usage_record).execute()
             
-            if not result.data:
-                logger.error(f"Failed to store API usage record for user {user_id}")
+            # Update daily/monthly totals
+            self._update_usage_totals(user_id, total_cost)
+            
+            logger.info(f"Tracked OpenAI usage for user {user_id}: {total_tokens} tokens, ${total_cost:.6f}")
+            
+        except Exception as e:
+            logger.error(f"Error tracking OpenAI usage: {str(e)}")
+    
+    def _update_usage_totals(self, user_id: str, cost: float):
+        """Update daily and monthly usage totals"""
+        
+        try:
+            now = datetime.utcnow()
+            today = now.date()
+            month_start = now.replace(day=1).date()
+            
+            # Update daily total
+            daily_key = f"usage_daily:{user_id}:{today.isoformat()}"
+            self._increment_usage_total(daily_key, cost)
+            
+            # Update monthly total
+            monthly_key = f"usage_monthly:{user_id}:{month_start.isoformat()}"
+            self._increment_usage_total(monthly_key, cost)
+            
+        except Exception as e:
+            logger.error(f"Error updating usage totals: {str(e)}")
+    
+    def _increment_usage_total(self, key: str, cost: float):
+        """Increment usage total in database"""
+        
+        try:
+            # Get current total
+            response = supabase_client.table("usage_totals").select(
+                "total_cost_usd, total_requests"
+            ).eq("key", key).execute()
+            
+            if response.data:
+                # Update existing record
+                current = response.data[0]
+                new_total = current["total_cost_usd"] + cost
+                new_requests = current["total_requests"] + 1
+                
+                supabase_client.table("usage_totals").update({
+                    "total_cost_usd": new_total,
+                    "total_requests": new_requests,
+                    "updated_at": datetime.utcnow().isoformat()
+                }).eq("key", key).execute()
+            else:
+                # Create new record
+                supabase_client.table("usage_totals").insert({
+                    "key": key,
+                    "total_cost_usd": cost,
+                    "total_requests": 1,
+                    "created_at": datetime.utcnow().isoformat(),
+                    "updated_at": datetime.utcnow().isoformat()
+                }).execute()
                 
         except Exception as e:
-            logger.error(f"Error tracking API call: {e}")
+            logger.error(f"Error incrementing usage total: {str(e)}")
     
-    async def get_user_usage_summary(self, user_id: str, days: int = 30) -> Dict[str, Any]:
-        """Get usage summary for a user."""
+    def get_user_usage_summary(self, user_id: str) -> Dict:
+        """Get usage summary for a user"""
+        
         try:
-            # Get from Redis first (faster)
-            today = datetime.utcnow().strftime("%Y-%m-%d")
-            month = datetime.utcnow().strftime("%Y-%m")
+            now = datetime.utcnow()
+            today = now.date()
+            month_start = now.replace(day=1).date()
             
-            daily_cost = float(self.redis_client.get(f"cost:daily:{user_id}:{today}") or 0)
-            monthly_cost = float(self.redis_client.get(f"cost:monthly:{user_id}:{month}") or 0)
-            daily_tokens = int(self.redis_client.get(f"tokens:{user_id}:{today}") or 0)
+            # Get daily usage
+            daily_response = supabase_client.table("usage_totals").select(
+                "total_cost_usd, total_requests"
+            ).eq("key", f"usage_daily:{user_id}:{today.isoformat()}").execute()
             
-            # Get detailed data from Supabase
-            start_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
+            daily_usage = daily_response.data[0] if daily_response.data else {
+                "total_cost_usd": 0,
+                "total_requests": 0
+            }
             
-            result = self.supabase.table("api_usage").select("*").eq("user_id", user_id).gte("created_at", start_date).execute()
+            # Get monthly usage
+            monthly_response = supabase_client.table("usage_totals").select(
+                "total_cost_usd, total_requests"
+            ).eq("key", f"usage_monthly:{user_id}:{month_start.isoformat()}").execute()
             
-            total_cost = sum(record["cost_usd"] for record in result.data)
-            total_tokens = sum(record["total_tokens"] for record in result.data)
+            monthly_usage = monthly_response.data[0] if monthly_response.data else {
+                "total_cost_usd": 0,
+                "total_requests": 0
+            }
             
             return {
-                "daily_cost": daily_cost,
-                "monthly_cost": monthly_cost,
-                "total_cost": total_cost,
-                "daily_tokens": daily_tokens,
-                "total_tokens": total_tokens,
-                "usage_count": len(result.data),
-                "period_days": days
+                "daily": daily_usage,
+                "monthly": monthly_usage,
+                "limits": {
+                    "daily_limit_usd": 10.0,  # From config
+                    "monthly_limit_usd": 100.0  # From config
+                }
             }
             
         except Exception as e:
-            logger.error(f"Error getting usage summary: {e}")
+            logger.error(f"Error getting user usage summary: {str(e)}")
             return {
-                "daily_cost": 0,
-                "monthly_cost": 0,
-                "total_cost": 0,
-                "daily_tokens": 0,
-                "total_tokens": 0,
-                "usage_count": 0,
-                "period_days": days
+                "daily": {"total_cost_usd": 0, "total_requests": 0},
+                "monthly": {"total_cost_usd": 0, "total_requests": 0},
+                "limits": {"daily_limit_usd": 10.0, "monthly_limit_usd": 100.0}
             }
     
-    async def check_budget_limits(self, user_id: str) -> Dict[str, Any]:
-        """Check if user has exceeded budget limits."""
+    def check_usage_limits(self, user_id: str) -> Dict:
+        """Check if user has exceeded usage limits"""
+        
         try:
-            today = datetime.utcnow().strftime("%Y-%m-%d")
-            month = datetime.utcnow().strftime("%Y-%m")
+            usage_summary = self.get_user_usage_summary(user_id)
             
-            daily_cost = float(self.redis_client.get(f"cost:daily:{user_id}:{today}") or 0)
-            monthly_cost = float(self.redis_client.get(f"cost:monthly:{user_id}:{month}") or 0)
-            
-            # Get user's budget limits from settings
-            result = self.supabase.table("user_settings").select("daily_budget_limit_usd, monthly_budget_limit_usd").eq("user_id", user_id).execute()
-            
-            if result.data:
-                settings = result.data[0]
-                daily_limit = settings.get("daily_budget_limit_usd", 10.0)
-                monthly_limit = settings.get("monthly_budget_limit_usd", 100.0)
-            else:
-                daily_limit = 10.0
-                monthly_limit = 100.0
+            daily_exceeded = usage_summary["daily"]["total_cost_usd"] > usage_summary["limits"]["daily_limit_usd"]
+            monthly_exceeded = usage_summary["monthly"]["total_cost_usd"] > usage_summary["limits"]["monthly_limit_usd"]
             
             return {
-                "daily_cost": daily_cost,
-                "monthly_cost": monthly_cost,
-                "daily_limit": daily_limit,
-                "monthly_limit": monthly_limit,
-                "daily_exceeded": daily_cost >= daily_limit,
-                "monthly_exceeded": monthly_cost >= monthly_limit
+                "can_use": not (daily_exceeded or monthly_exceeded),
+                "daily_exceeded": daily_exceeded,
+                "monthly_exceeded": monthly_exceeded,
+                "usage": usage_summary
             }
             
         except Exception as e:
-            logger.error(f"Error checking budget limits: {e}")
+            logger.error(f"Error checking usage limits: {str(e)}")
             return {
-                "daily_cost": 0,
-                "monthly_cost": 0,
-                "daily_limit": 10.0,
-                "monthly_limit": 100.0,
+                "can_use": True,  # Default to allowing usage if check fails
                 "daily_exceeded": False,
-                "monthly_exceeded": False
+                "monthly_exceeded": False,
+                "usage": {
+                    "daily": {"total_cost_usd": 0, "total_requests": 0},
+                    "monthly": {"total_cost_usd": 0, "total_requests": 0},
+                    "limits": {"daily_limit_usd": 10.0, "monthly_limit_usd": 100.0}
+                }
             }
 
 # Global instance
-cost_tracking_service = CostTrackingService() 
+cost_tracking_service = CostTracker() 

@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
+from pydantic import ConfigDict
 
 class ScheduleBlockBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
@@ -39,5 +40,4 @@ class ScheduleBlock(ScheduleBlockBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True 
+    model_config = ConfigDict(from_attributes=True) 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from services.supabase import get_supabase_client
 from services.audit import log_audit_from_request, AuditAction
@@ -23,8 +23,8 @@ class DiaryEntryOut(DiaryEntryBase):
     user_id: int
     created_at: datetime
     updated_at: datetime
-    class Config:
-        orm_mode = True
+    
+    model_config = ConfigDict(from_attributes=True)
 
 @router.post("/entry", response_model=DiaryEntryOut, summary="Create a new diary/journal entry")
 def create_diary_entry(entry: DiaryEntryCreate, request: Request):

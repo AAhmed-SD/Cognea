@@ -6,6 +6,7 @@ from typing import Optional
 from datetime import datetime
 from uuid import UUID
 from enum import Enum
+from pydantic import ConfigDict
 
 class TaskStatus(str, Enum):
     PENDING = "pending"
@@ -41,5 +42,4 @@ class Task(TaskBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True 
+    model_config = ConfigDict(from_attributes=True) 
