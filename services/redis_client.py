@@ -7,6 +7,7 @@ import json
 import logging
 from typing import Optional, Dict, Any
 from datetime import datetime
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,42 @@ class RedisClient:
             return True
         except:
             return False
+
+    async def safe_call(self, key: str, func, *args, max_retries=5, rate=3, **kwargs):
+        """
+        Rate-limited async call queue with exponential back-off on 429 errors.
+        Args:
+            key: Unique key for the queue (e.g., 'openai', 'notion', 'stripe')
+            func: The async function to call
+            *args, **kwargs: Arguments to pass to func
+            max_retries: Maximum number of retries on 429
+            rate: Allowed requests per second
+        Returns:
+            Result of func(*args, **kwargs)
+        """
+        retry = 0
+        delay = 1.0 / rate
+        while retry <= max_retries:
+            # Global rate limit using Redis
+            allowed = self.check_rate_limit(f"safe_call:{key}", rate, 1)
+            if not allowed:
+                await asyncio.sleep(delay)
+                continue
+            try:
+                result = await func(*args, **kwargs)
+                return result
+            except Exception as e:
+                if hasattr(e, "status_code") and e.status_code == 429:
+                    # Exponential back-off
+                    backoff = min(2**retry, 30)
+                    logger.warning(
+                        f"429 received, backing off for {backoff}s (retry {retry+1})"
+                    )
+                    await asyncio.sleep(backoff)
+                    retry += 1
+                else:
+                    raise
+        raise Exception(f"safe_call: Max retries exceeded for {func.__name__}")
 
     # Rate Limiting Methods
     def check_rate_limit(

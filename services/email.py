@@ -1,7 +1,10 @@
 import os
 import smtplib
+import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+logger = logging.getLogger(__name__)
 
 
 def send_password_reset_email(to_email: str, reset_link: str):
@@ -34,8 +37,8 @@ def send_password_reset_email(to_email: str, reset_link: str):
                 server.login(smtp_user, smtp_pass)
             server.sendmail(from_email, to_email, msg.as_string())
 
-        print(f"Password reset email sent to {to_email}")
+        logger.info(f"Password reset email sent to {to_email}")
     except Exception as e:
-        print(f"Failed to send email to {to_email}: {str(e)}")
+        logger.error(f"Failed to send email to {to_email}: {str(e)}")
         # Don't raise the error - just log it so the API doesn't crash
         # In production, you'd want to use a proper email service

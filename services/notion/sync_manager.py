@@ -93,7 +93,10 @@ class NotionSyncManager:
                 if saved_flashcard:
                     # Update last_synced_ts
                     self.supabase.table("flashcards").update(
-                        {"last_synced_ts": page.last_edited_time.isoformat()}
+                        {
+                            "last_synced_ts": page.last_edited_time.isoformat(),
+                            "updated_by": "cognie-sync",
+                        }
                     ).eq("id", saved_flashcard["id"]).execute()
                     saved_flashcards.append(saved_flashcard)
 
@@ -318,6 +321,7 @@ class NotionSyncManager:
                 "status": sync_status.status,
                 "error_message": sync_status.error_message,
                 "items_synced": sync_status.items_synced,
+                "updated_by": "cognie-sync",
             }
 
             # Check if sync status already exists

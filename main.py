@@ -7,15 +7,10 @@ from fastapi.responses import JSONResponse
 from datetime import datetime, UTC
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
-
-# Load environment variables from .env file
-load_dotenv()
-
 from middleware.error_handler import error_handler, APIError
 from middleware.logging import LoggingMiddleware, RequestContextMiddleware
 from services.redis_client import get_redis_client
 from services.monitoring import monitoring_service
-
 from routes.diary import router as diary_router
 from routes.habits import router as habits_router
 from routes.mood import router as mood_router
@@ -35,6 +30,9 @@ from routes.goals import router as goals_router
 from routes.schedule_blocks import router as schedule_blocks_router
 from routes.flashcards import router as flashcards_router
 from routes.notifications import router as notifications_router
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 # Security middleware

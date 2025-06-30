@@ -8,7 +8,6 @@ from typing import Dict, List, Optional, Any, AsyncGenerator
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 import time
-from ..cost_tracking import track_openai_usage
 from ..rate_limited_queue import get_openai_queue
 
 from services.cost_tracking import cost_tracking_service

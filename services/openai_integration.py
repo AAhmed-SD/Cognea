@@ -10,26 +10,14 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Load OpenAI API key from environment
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("OpenAI_API_Key")
 
 if not OPENAI_API_KEY:
     logger.error("OpenAI API key not found in environment variables")
     raise ValueError("OpenAI API key is required")
 
-# Debug print to verify API key loading
-print("🔑 Loaded OpenAI key:", repr(OPENAI_API_KEY))
-
-# Check if the API key is loaded
-if OPENAI_API_KEY:
-    print("OpenAI API key loaded successfully.")
-else:
-    print("Error: OpenAI API key not found. Please check your .env file.")
-
 # Configure OpenAI client
 openai.api_key = OPENAI_API_KEY
-
-# Debug print to confirm API key is set
-print("🔑 OpenAI API key set:", repr(openai.api_key))
 
 logger.info("OpenAI integration initialized successfully")
 

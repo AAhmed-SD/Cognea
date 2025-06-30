@@ -13,7 +13,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not OPENAI_API_KEY:
     logger.error("OpenAI API key not found in environment variables")
-    print("Error: OpenAI API key not found. Please check your .env file.")
     raise ValueError("OpenAI API key is required")
 
 # Initialize OpenAI API client
