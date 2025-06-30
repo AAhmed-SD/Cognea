@@ -24,7 +24,7 @@ def create_access_token(data: Dict) -> str:
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(minutes=security_config.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, security_config.SECRET_KEY, algorithm=security_config.ALGORITHM)
+    return jwt.encode(to_encode, security_config.SECRET_KEY, algorithm=security_config.JWT_ALGORITHM)
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     """Get current user from JWT token using Supabase Auth"""
@@ -34,7 +34,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, security_config.SECRET_KEY, algorithms=[security_config.ALGORITHM])
+        payload = jwt.decode(token, security_config.SECRET_KEY, algorithms=[security_config.JWT_ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception

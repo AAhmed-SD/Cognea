@@ -1,15 +1,23 @@
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Request, Header, status
 from typing import Dict, List, Optional
-from datetime import datetime
-from pydantic import BaseModel, HttpUrl
+from datetime import datetime, UTC
+from pydantic import BaseModel, HttpUrl, ConfigDict
 from services.supabase import get_supabase_client
 from services.auth import get_current_user
 import httpx
 import json
 import os
 from urllib.parse import urlencode
+import logging
+import hmac
+import hashlib
 
-router = APIRouter(prefix="/api/notion", tags=["Notion Sync"])
+from services.notion import NotionClient, NotionFlashcardGenerator, NotionSyncManager
+from services.ai.openai_service import get_openai_service
+from services.notion.rate_limited_queue import get_notion_queue
+
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/notion", tags=["Notion Sync"])
 
 # Notion API configuration
 NOTION_API_BASE = "https://api.notion.com/v1"
@@ -37,6 +45,55 @@ class NotionWebhookRequest(BaseModel):
     workspace_id: str
     page_id: Optional[str] = None
     database_id: Optional[str] = None
+
+class FlashcardGenerationRequest(BaseModel):
+    """Flashcard generation request."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    page_id: Optional[str] = None
+    database_id: Optional[str] = None
+    count: int = 5
+    difficulty: str = "medium"
+
+class SyncRequest(BaseModel):
+    """Sync request."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    page_id: Optional[str] = None
+    database_id: Optional[str] = None
+    sync_direction: str = "notion_to_cognie"  # "notion_to_cognie", "cognie_to_notion", "bidirectional"
+
+class NotionPageInfo(BaseModel):
+    """Notion page information."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: str
+    title: str
+    url: str
+    last_edited_time: datetime
+    parent_type: Optional[str] = None
+
+class SyncStatusResponse(BaseModel):
+    """Sync status response."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    user_id: str
+    notion_page_id: str
+    last_sync_time: datetime
+    sync_direction: str
+    status: str
+    error_message: Optional[str] = None
+    items_synced: int
+
+class NotionWebhookEvent(BaseModel):
+    """Notion webhook event model."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    type: str  # page.updated, database.updated, etc.
+    page_id: Optional[str] = None
+    database_id: Optional[str] = None
+    last_edited_time: Optional[str] = None
+    user_id: Optional[str] = None
 
 @router.get("/auth/url", summary="Get Notion OAuth URL")
 async def get_notion_auth_url(current_user: dict = Depends(get_current_user)):
@@ -322,4 +379,507 @@ async def disconnect_notion(current_user: dict = Depends(get_current_user)):
     supabase = get_supabase_client()
     supabase.table("notion_connections").delete().eq("user_id", current_user["id"]).execute()
     supabase.table("notion_tasks").delete().eq("user_id", current_user["id"]).execute()
-    return {"success": True, "message": "Notion disconnected successfully"} 
+    return {"success": True, "message": "Notion disconnected successfully"}
+
+# Dependency to get Notion client
+async def get_notion_client(current_user: dict = Depends(get_current_user)) -> NotionClient:
+    """Get Notion client for the current user."""
+    try:
+        # Get user's Notion API key from database
+        supabase = get_supabase_client()
+        result = supabase.table("user_settings").select("notion_api_key").eq("user_id", current_user["id"]).execute()
+        
+        if not result.data or not result.data[0].get("notion_api_key"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Notion API key not configured. Please set up Notion integration first."
+            )
+        
+        api_key = result.data[0]["notion_api_key"]
+        return NotionClient(api_key=api_key)
+        
+    except Exception as e:
+        logger.error(f"Failed to get Notion client: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to initialize Notion client"
+        )
+
+# Dependency to get AI service
+async def get_ai_service():
+    """Get OpenAI service."""
+    return get_openai_service()
+
+def verify_notion_webhook_signature(body: bytes, signature: str, secret: str) -> bool:
+    """Verify Notion webhook signature."""
+    try:
+        expected_signature = hmac.new(
+            secret.encode('utf-8'),
+            body,
+            hashlib.sha256
+        ).hexdigest()
+        
+        return hmac.compare_digest(f"sha256={expected_signature}", signature)
+    except Exception as e:
+        logger.error(f"Error verifying webhook signature: {e}")
+        return False
+
+@router.post("/auth", summary="Authenticate with Notion")
+async def authenticate_notion(
+    auth_request: NotionAuthRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Authenticate with Notion and save API key."""
+    try:
+        # Test the API key by making a simple request
+        notion_client = NotionClient(api_key=auth_request.api_key)
+        
+        # Try to get user info (this will fail if API key is invalid)
+        await notion_client.search(query="", filter_params={"property": "object", "value": "page"})
+        
+        # Save API key to user settings
+        supabase = get_supabase_client()
+        supabase.table("user_settings").upsert({
+            "user_id": current_user["id"],
+            "notion_api_key": auth_request.api_key,
+            "updated_at": datetime.now(UTC).isoformat()
+        }).execute()
+        
+        return {"message": "Notion authentication successful", "status": "connected"}
+        
+    except Exception as e:
+        logger.error(f"Notion authentication failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid Notion API key or authentication failed"
+        )
+
+@router.get("/pages", summary="Get user's Notion pages")
+async def get_notion_pages(
+    notion_client: NotionClient = Depends(get_notion_client)
+):
+    """Get user's Notion pages and databases."""
+    try:
+        # Search for pages and databases
+        pages = await notion_client.search(
+            query="",
+            filter_params={"property": "object", "value": "page"}
+        )
+        
+        databases = await notion_client.search(
+            query="",
+            filter_params={"property": "object", "value": "database"}
+        )
+        
+        # Format response
+        page_list = []
+        for page in pages:
+            title = "Untitled"
+            if "properties" in page:
+                for prop_name, prop_data in page["properties"].items():
+                    if prop_data.get("type") == "title" and prop_data.get("title"):
+                        title = "".join([text.get("plain_text", "") for text in prop_data["title"]])
+                        break
+            
+            page_list.append(NotionPageInfo(
+                id=page["id"],
+                title=title,
+                url=page.get("url", ""),
+                last_edited_time=datetime.fromisoformat(page["last_edited_time"].replace("Z", "+00:00")),
+                parent_type=page.get("parent", {}).get("type")
+            ))
+        
+        return {
+            "pages": page_list,
+            "total_pages": len(page_list),
+            "total_databases": len(databases)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get Notion pages: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve Notion pages"
+        )
+
+@router.post("/generate-flashcards", summary="Generate flashcards from Notion content")
+async def generate_flashcards(
+    request: FlashcardGenerationRequest,
+    current_user: dict = Depends(get_current_user),
+    notion_client: NotionClient = Depends(get_notion_client),
+    ai_service = Depends(get_ai_service)
+):
+    """Generate flashcards from Notion page or database."""
+    try:
+        flashcard_generator = NotionFlashcardGenerator(notion_client, ai_service)
+        
+        if request.page_id:
+            # Generate from page
+            flashcards = await flashcard_generator.generate_flashcards_from_page(
+                page_id=request.page_id,
+                count=request.count,
+                difficulty=request.difficulty
+            )
+        elif request.database_id:
+            # Generate from database
+            flashcards = await flashcard_generator.generate_flashcards_from_database(
+                database_id=request.database_id,
+                count=request.count,
+                difficulty=request.difficulty
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Either page_id or database_id must be provided"
+            )
+        
+        # Convert to response format
+        flashcard_list = []
+        for flashcard in flashcards:
+            flashcard_list.append({
+                "question": flashcard.question,
+                "answer": flashcard.answer,
+                "tags": flashcard.tags,
+                "difficulty": flashcard.difficulty,
+                "source_page_id": flashcard.source_page_id,
+                "source_page_title": flashcard.source_page_title
+            })
+        
+        return {
+            "flashcards": flashcard_list,
+            "count": len(flashcard_list),
+            "source_type": "page" if request.page_id else "database",
+            "source_id": request.page_id or request.database_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to generate flashcards: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate flashcards: {str(e)}"
+        )
+
+@router.post("/sync", summary="Sync Notion content with Cognie")
+async def sync_notion_content(
+    request: SyncRequest,
+    current_user: dict = Depends(get_current_user),
+    notion_client: NotionClient = Depends(get_notion_client),
+    ai_service = Depends(get_ai_service)
+):
+    """Sync Notion content with Cognie flashcards."""
+    try:
+        flashcard_generator = NotionFlashcardGenerator(notion_client, ai_service)
+        sync_manager = NotionSyncManager(notion_client, flashcard_generator)
+        
+        if request.page_id:
+            # Sync page
+            sync_status = await sync_manager.sync_page_to_flashcards(
+                user_id=current_user["id"],
+                notion_page_id=request.page_id,
+                sync_direction=request.sync_direction
+            )
+        elif request.database_id:
+            # Sync database
+            sync_status = await sync_manager.sync_database_to_flashcards(
+                user_id=current_user["id"],
+                notion_database_id=request.database_id,
+                sync_direction=request.sync_direction
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Either page_id or database_id must be provided"
+            )
+        
+        return SyncStatusResponse(
+            user_id=sync_status.user_id,
+            notion_page_id=sync_status.notion_page_id,
+            last_sync_time=sync_status.last_sync_time,
+            sync_direction=sync_status.sync_direction,
+            status=sync_status.status,
+            error_message=sync_status.error_message,
+            items_synced=sync_status.items_synced
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to sync Notion content: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to sync content: {str(e)}"
+        )
+
+@router.get("/sync-status/{page_id}", summary="Get sync status for a page")
+async def get_sync_status(
+    page_id: str,
+    current_user: dict = Depends(get_current_user),
+    notion_client: NotionClient = Depends(get_notion_client),
+    ai_service = Depends(get_ai_service)
+):
+    """Get sync status for a specific Notion page."""
+    try:
+        flashcard_generator = NotionFlashcardGenerator(notion_client, ai_service)
+        sync_manager = NotionSyncManager(notion_client, flashcard_generator)
+        
+        sync_status = await sync_manager.get_sync_status(current_user["id"], page_id)
+        
+        if not sync_status:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No sync status found for this page"
+            )
+        
+        return SyncStatusResponse(
+            user_id=sync_status.user_id,
+            notion_page_id=sync_status.notion_page_id,
+            last_sync_time=sync_status.last_sync_time,
+            sync_direction=sync_status.sync_direction,
+            status=sync_status.status,
+            error_message=sync_status.error_message,
+            items_synced=sync_status.items_synced
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get sync status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get sync status"
+        )
+
+@router.get("/sync-history", summary="Get user's sync history")
+async def get_sync_history(
+    current_user: dict = Depends(get_current_user),
+    notion_client: NotionClient = Depends(get_notion_client),
+    ai_service = Depends(get_ai_service)
+):
+    """Get user's Notion sync history."""
+    try:
+        flashcard_generator = NotionFlashcardGenerator(notion_client, ai_service)
+        sync_manager = NotionSyncManager(notion_client, flashcard_generator)
+        
+        sync_history = await sync_manager.get_user_sync_history(current_user["id"])
+        
+        return {
+            "sync_history": [
+                SyncStatusResponse(
+                    user_id=status.user_id,
+                    notion_page_id=status.notion_page_id,
+                    last_sync_time=status.last_sync_time,
+                    sync_direction=status.sync_direction,
+                    status=status.status,
+                    error_message=status.error_message,
+                    items_synced=status.items_synced
+                )
+                for status in sync_history
+            ],
+            "total_syncs": len(sync_history)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get sync history: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get sync history"
+        )
+
+@router.post("/generate-from-text", summary="Generate flashcards from text input")
+async def generate_flashcards_from_text(
+    text: str,
+    title: str = "Manual Input",
+    count: int = 5,
+    difficulty: str = "medium",
+    current_user: dict = Depends(get_current_user),
+    notion_client: NotionClient = Depends(get_notion_client),
+    ai_service = Depends(get_ai_service)
+):
+    """Generate flashcards from plain text input."""
+    try:
+        flashcard_generator = NotionFlashcardGenerator(notion_client, ai_service)
+        
+        flashcards = await flashcard_generator.generate_flashcards_from_text(
+            text=text,
+            title=title,
+            count=count,
+            difficulty=difficulty
+        )
+        
+        # Convert to response format
+        flashcard_list = []
+        for flashcard in flashcards:
+            flashcard_list.append({
+                "question": flashcard.question,
+                "answer": flashcard.answer,
+                "tags": flashcard.tags,
+                "difficulty": flashcard.difficulty,
+                "source_page_id": flashcard.source_page_id,
+                "source_page_title": flashcard.source_page_title
+            })
+        
+        return {
+            "flashcards": flashcard_list,
+            "count": len(flashcard_list),
+            "source_type": "text",
+            "title": title
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to generate flashcards from text: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate flashcards: {str(e)}"
+        )
+
+# Webhook endpoints
+@router.post("/webhook/notion", summary="Receive Notion webhooks")
+async def receive_notion_webhook(
+    request: Request,
+    x_notion_signature: str = Header(None),
+    x_notion_timestamp: str = Header(None)
+):
+    """Receive webhooks from Notion when pages/databases change."""
+    try:
+        # Get webhook body
+        body = await request.body()
+        body_str = body.decode('utf-8')
+        
+        # Verify webhook signature (if signature is provided)
+        if x_notion_signature:
+            # Get webhook secret from environment
+            webhook_secret = os.getenv("NOTION_WEBHOOK_SECRET")
+            if webhook_secret and not verify_notion_webhook_signature(body, x_notion_signature, webhook_secret):
+                logger.warning("Invalid webhook signature")
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid signature")
+        
+        # Parse webhook event
+        try:
+            event_data = json.loads(body_str)
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON in webhook body")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON")
+        
+        # Extract event information
+        event_type = event_data.get("type")
+        page_id = event_data.get("page", {}).get("id")
+        database_id = event_data.get("database", {}).get("id")
+        last_edited_time = event_data.get("page", {}).get("last_edited_time") or event_data.get("database", {}).get("last_edited_time")
+        
+        logger.info(f"Received Notion webhook: {event_type} for {'page' if page_id else 'database'} {page_id or database_id}")
+        
+        # Process webhook based on event type
+        if event_type in ["page.updated", "database.updated"]:
+            # Queue sync operation using rate-limited queue
+            await queue_notion_sync(page_id, database_id, last_edited_time)
+        
+        return {"status": "success", "message": "Webhook processed"}
+        
+    except Exception as e:
+        logger.error(f"Error processing Notion webhook: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Webhook processing failed")
+
+@router.get("/webhook/notion/verify", summary="Verify Notion webhook")
+async def verify_notion_webhook(challenge: str):
+    """Verify Notion webhook subscription."""
+    return {"challenge": challenge}
+
+async def queue_notion_sync(page_id: Optional[str], database_id: Optional[str], last_edited_time: Optional[str]):
+    """Queue a Notion sync operation using the rate-limited queue."""
+    try:
+        # Get all users who have this page/database synced
+        supabase = get_supabase_client()
+        
+        if page_id:
+            # Find users who have synced this page
+            result = supabase.table("flashcards").select("user_id").eq("source_page_id", page_id).execute()
+        elif database_id:
+            # Find users who have synced this database
+            result = supabase.table("flashcards").select("user_id").eq("source_database_id", database_id).execute()
+        else:
+            return
+        
+        user_ids = list(set([item["user_id"] for item in result.data]))
+        
+        # Queue sync for each user
+        for user_id in user_ids:
+            # Get user's Notion client
+            user_settings = supabase.table("user_settings").select("notion_api_key").eq("user_id", user_id).execute()
+            
+            if user_settings.data and user_settings.data[0].get("notion_api_key"):
+                notion_client = NotionClient(api_key=user_settings.data[0]["notion_api_key"])
+                notion_queue = get_notion_queue(notion_client)
+                
+                # Queue the sync operation
+                await notion_queue.enqueue_request(
+                    method="POST",
+                    endpoint="/internal/sync",
+                    data={
+                        "user_id": user_id,
+                        "page_id": page_id,
+                        "database_id": database_id,
+                        "last_edited_time": last_edited_time
+                    }
+                )
+        
+        logger.info(f"Queued sync for {len(user_ids)} users")
+        
+    except Exception as e:
+        logger.error(f"Error queuing Notion sync: {e}")
+
+@router.post("/internal/sync", summary="Internal sync endpoint for webhook processing")
+async def internal_sync(
+    user_id: str,
+    page_id: Optional[str] = None,
+    database_id: Optional[str] = None,
+    last_edited_time: Optional[str] = None
+):
+    """Internal endpoint for processing queued sync operations from webhooks."""
+    try:
+        # Get user's Notion client
+        supabase = get_supabase_client()
+        user_settings = supabase.table("user_settings").select("notion_api_key").eq("user_id", user_id).execute()
+        
+        if not user_settings.data or not user_settings.data[0].get("notion_api_key"):
+            logger.error(f"No Notion API key found for user {user_id}")
+            return {"status": "error", "message": "No Notion API key configured"}
+        
+        notion_client = NotionClient(api_key=user_settings.data[0]["notion_api_key"])
+        ai_service = get_openai_service()
+        flashcard_generator = NotionFlashcardGenerator(notion_client, ai_service)
+        sync_manager = NotionSyncManager(notion_client, flashcard_generator)
+        
+        # Check if we've already synced this recently (debounce)
+        if last_edited_time:
+            last_sync = supabase.table("notion_sync_status").select("last_sync_time").eq("user_id", user_id).eq("notion_page_id", page_id or database_id).execute()
+            
+            if last_sync.data:
+                last_sync_time = datetime.fromisoformat(last_sync.data[0]["last_sync_time"].replace("Z", "+00:00"))
+                webhook_time = datetime.fromisoformat(last_edited_time.replace("Z", "+00:00"))
+                
+                # If last sync was within 30 seconds of webhook time, skip (debounce)
+                if abs((last_sync_time - webhook_time).total_seconds()) < 30:
+                    logger.info(f"Skipping sync for user {user_id}, page {page_id or database_id} - too recent")
+                    return {"status": "skipped", "message": "Sync too recent"}
+        
+        # Perform sync
+        if page_id:
+            sync_status = await sync_manager.sync_page_to_flashcards(
+                user_id=user_id,
+                notion_page_id=page_id,
+                sync_direction="notion_to_cognie"
+            )
+        elif database_id:
+            sync_status = await sync_manager.sync_database_to_flashcards(
+                user_id=user_id,
+                notion_database_id=database_id,
+                sync_direction="notion_to_cognie"
+            )
+        else:
+            return {"status": "error", "message": "No page_id or database_id provided"}
+        
+        logger.info(f"Internal sync completed for user {user_id}, page {page_id or database_id}")
+        return {"status": "success", "items_synced": sync_status.items_synced}
+        
+    except Exception as e:
+        logger.error(f"Internal sync failed for user {user_id}: {e}")
+        return {"status": "error", "message": str(e)}
+
+# Import os for environment variables
+import os 

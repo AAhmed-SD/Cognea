@@ -36,7 +36,7 @@ class EnhancedOpenAIService:
     """Enhanced OpenAI service with advanced features"""
     
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=security_config.openai_api_key)
+        self.client = AsyncOpenAI(api_key=security_config.OPENAI_API_KEY)
         self.cost_tracker = cost_tracking_service
         self.model = "gpt-4-turbo-preview"
         self.max_tokens = 4000
@@ -366,5 +366,12 @@ class EnhancedOpenAIService:
         
         return task_data
 
-# Global instance
-openai_service = EnhancedOpenAIService() 
+# Lazy singleton pattern
+_openai_service_instance = None
+
+def get_openai_service() -> EnhancedOpenAIService:
+    """Get the global OpenAI service instance."""
+    global _openai_service_instance
+    if _openai_service_instance is None:
+        _openai_service_instance = EnhancedOpenAIService()
+    return _openai_service_instance 

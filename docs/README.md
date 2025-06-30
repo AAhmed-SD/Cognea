@@ -1,306 +1,304 @@
-# Cognie - AI-Powered Productivity Platform
+# Cognie - AI-Powered Productivity & Learning Platform
 
-## Overview
-Cognie is a comprehensive AI-powered productivity and scheduling web application designed to help users optimize their time, track goals, and enhance productivity through intelligent insights and automation.
+## 🚀 **Status: Production Ready**
 
-## Features
+Cognie is a comprehensive AI-powered productivity and learning platform that combines intelligent task management, habit tracking, and automated flashcard generation from your Notion content.
 
-### Core Features
-- **Task Management**: Create, organize, and track tasks with AI-powered prioritization
-- **Goal Tracking**: Set and monitor progress towards personal and professional goals
-- **Smart Scheduling**: AI-optimized schedule blocks for maximum productivity
-- **Habit Tracking**: Build and maintain positive habits with streak tracking
-- **Flashcard Learning**: Spaced repetition learning system for knowledge retention
-- **Analytics Dashboard**: Comprehensive productivity insights and trends
-- **AI Integration**: OpenAI-powered task generation and schedule optimization
+## ✨ **Key Features**
 
-### Advanced Features
-- **Real-time Notifications**: Instant updates on tasks, goals, and schedule changes
-- **Calendar Integration**: Sync with external calendar systems
-- **Notion Integration**: Seamless data synchronization with Notion
-- **Privacy Controls**: Granular privacy settings and data export options
-- **Performance Monitoring**: Real-time application performance tracking
-- **Cost Tracking**: Monitor AI usage costs and token consumption
+### 🤖 **AI-Powered Intelligence**
+- **Smart Task Generation** - AI creates personalized tasks based on your goals and schedule
+- **Intelligent Scheduling** - Optimizes your day using AI-driven time management
+- **Automated Insights** - Real-time productivity analytics and recommendations
+- **Conversational AI** - Natural language interaction for task management
 
-## Tech Stack
+### 📚 **Notion Integration (FULLY IMPLEMENTED)**
+- **Real-time Webhooks** - Automatic sync when Notion pages/databases change
+- **AI Flashcard Generation** - Converts Notion content into study materials
+- **Bidirectional Sync** - Keep Cognie and Notion in perfect harmony
+- **Multi-user Support** - Each user's content stays private and organized
+- **Rate-limited Processing** - Handles high-volume updates efficiently
+- **Security Verification** - HMAC-SHA256 webhook signatures for security
 
-### Backend
-- **FastAPI**: Modern, fast web framework for building APIs
-- **Python 3.13**: Latest Python version for optimal performance
-- **Supabase**: PostgreSQL database with real-time subscriptions
-- **Redis**: Caching and session management
-- **OpenAI GPT-4**: AI-powered task generation and optimization
-- **Celery**: Background task processing
-- **Prometheus**: Application monitoring and metrics
+### 📊 **Productivity Analytics**
+- **Real-time Dashboard** - Visual insights into your productivity patterns
+- **Goal Tracking** - Monitor progress toward your objectives
+- **Habit Formation** - Build and maintain positive routines
+- **Performance Metrics** - Detailed analytics on focus time and task completion
 
-### Frontend
-- **Next.js**: React framework for production
-- **Tailwind CSS**: Utility-first CSS framework
-- **Chart.js**: Data visualization and analytics
-- **SWR**: Data fetching and caching
+### 🔐 **Enterprise Security**
+- **JWT Authentication** - Secure user sessions with refresh tokens
+- **Rate Limiting** - Protection against abuse and overload
+- **CORS Protection** - Secure cross-origin resource sharing
+- **Input Validation** - Comprehensive data sanitization
+- **Audit Logging** - Complete activity tracking for compliance
 
-### Infrastructure
-- **Docker**: Containerization
-- **Nginx**: Reverse proxy and load balancing
-- **SSL/TLS**: Secure communication
-- **Rate Limiting**: API protection
-- **CORS**: Cross-origin resource sharing
+## 🏗️ **Architecture**
 
-## Quick Start
+### **Backend Stack**
+- **FastAPI** - High-performance async web framework
+- **Supabase** - PostgreSQL database with real-time subscriptions
+- **OpenAI GPT-4** - Advanced AI for task generation and insights
+- **Redis** - Caching and rate limiting
+- **Celery** - Background task processing
 
-### Prerequisites
-- Python 3.13+
+### **Frontend Stack**
+- **Next.js** - React framework with SSR
+- **Tailwind CSS** - Utility-first styling
+- **Chart.js** - Interactive data visualizations
+- **Supabase Auth** - Secure authentication
+
+### **Infrastructure**
+- **Docker** - Containerized deployment
+- **Nginx** - Reverse proxy and load balancing
+- **Prometheus** - Metrics collection and monitoring
+- **Grafana** - Visualization and alerting
+
+## 🚀 **Getting Started**
+
+### **Prerequisites**
+- Python 3.11+
 - Node.js 18+
-- Redis
+- Redis server
 - Supabase account
+- OpenAI API key
 
-### Installation
+### **Quick Start**
 
 1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd personal-agent
+   ```
+
+2. **Set up environment variables**
+   ```bash
+   cp env.production.template .env
+   # Edit .env with your actual values
+   ```
+
+3. **Install dependencies**
+   ```bash
+   # Backend
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+
+   # Frontend
+   npm install
+   ```
+
+4. **Set up database**
+   ```bash
+   python setup_supabase_tables.py
+   ```
+
+5. **Run the application**
+   ```bash
+   # Backend (in one terminal)
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+   # Frontend (in another terminal)
+   npm run dev
+   ```
+
+6. **Access the application**
+   - Frontend: http://localhost:3000
+   - API Docs: http://localhost:8000/api/docs
+   - Health Check: http://localhost:8000/health
+
+## 🔗 **Notion Integration Setup**
+
+### **Complete Webhook Implementation**
+
+The Notion integration is fully implemented with production-ready webhooks:
+
+1. **Create Notion Integration**
+   - Go to [Notion Integrations](https://www.notion.so/my-integrations)
+   - Create new integration with read/write permissions
+
+2. **Configure Webhooks**
+   - Set up webhook endpoints in Notion dashboard
+   - Configure signature verification
+   - Test webhook delivery
+
+3. **Connect Your Account**
+   - Use the "Connect Notion" button in Cognie
+   - Authorize access to your workspace
+   - Start syncing content automatically
+
+4. **Automatic Processing**
+   - Content changes trigger webhooks instantly
+   - AI generates flashcards automatically
+   - Sync status tracked in real-time
+
+See [Notion Webhook Setup Guide](docs/NOTION_WEBHOOK_SETUP.md) for detailed instructions.
+
+## 📊 **API Endpoints**
+
+### **Core Endpoints**
+- `GET /api/` - API information
+- `GET /api/health` - Health check
+- `GET /api/metrics` - Prometheus metrics
+
+### **Authentication**
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/auth/refresh` - Token refresh
+- `POST /api/auth/logout` - User logout
+
+### **Tasks & Goals**
+- `GET /api/tasks` - List user tasks
+- `POST /api/tasks` - Create new task
+- `PUT /api/tasks/{id}` - Update task
+- `DELETE /api/tasks/{id}` - Delete task
+
+### **Notion Integration**
+- `POST /api/notion/auth` - Authenticate with Notion
+- `GET /api/notion/pages` - List Notion pages
+- `POST /api/notion/generate-flashcards` - Generate flashcards
+- `POST /api/notion/sync` - Sync content
+- `POST /api/notion/webhook/notion` - Webhook receiver
+- `GET /api/notion/webhook/notion/verify` - Webhook verification
+
+### **Analytics**
+- `GET /api/analytics/productivity` - Productivity metrics
+- `GET /api/analytics/goals` - Goal progress
+- `GET /api/analytics/habits` - Habit tracking
+
+See [API Documentation](docs/API_ENDPOINTS.md) for complete endpoint details.
+
+## 🧪 **Testing**
+
+### **Run All Tests**
 ```bash
-git clone https://github.com/your-username/cognie.git
-cd cognie
+python -m pytest tests/ -v
 ```
 
-2. **Set up Python environment**
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
+### **Test Categories**
+- **Unit Tests** - Individual component testing
+- **Integration Tests** - API endpoint testing
+- **Notion Webhook Tests** - Webhook processing validation
+- **Authentication Tests** - Security verification
 
-3. **Set up Node.js environment**
-```bash
-npm install
-```
+### **Test Coverage**
+- ✅ Backend API endpoints
+- ✅ Database operations
+- ✅ Authentication flows
+- ✅ Notion webhook processing
+- ✅ AI service integration
+- ✅ Rate limiting
+- ✅ Error handling
 
-4. **Configure environment variables**
-```bash
-cp env.production.template .env
-# Edit .env with your configuration
-```
+## 🚀 **Deployment**
 
-5. **Set up database**
-```bash
-python setup_supabase_tables.py
-```
-
-6. **Start the development server**
-```bash
-# Backend
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
-
-# Frontend (in another terminal)
-npm run dev
-```
-
-## Environment Variables
-
-### Required Variables
-```bash
-# Supabase Configuration
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-SUPABASE_JWT_KEY=your_jwt_key
-
-# OpenAI Configuration
-OPENAI_API_KEY=your_openai_api_key
-
-# Security
-SECRET_KEY=your_secret_key
-
-# Redis Configuration
-REDIS_URL=redis://localhost:6379
-
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-```
-
-### Optional Variables
-```bash
-# Stripe Configuration (for payments)
-STRIPE_PUBLISHING_KEY=your_stripe_publishing_key
-STRIPE_API_KEY=your_stripe_api_key
-
-# Monitoring
-SENTRY_DSN=your_sentry_dsn
-PROMETHEUS_PORT=9090
-
-# Feature Flags
-DISABLE_RATE_LIMIT=false
-ENABLE_ANALYTICS=true
-```
-
-## API Documentation
-
-Comprehensive API documentation is available at:
-- **Interactive Docs**: `http://localhost:8000/docs` (Swagger UI)
-- **ReDoc**: `http://localhost:8000/redoc`
-- **API Reference**: See [API_ENDPOINTS.md](API_ENDPOINTS.md)
-
-## Project Structure
-
-```
-cognie/
-├── app/                    # Next.js frontend application
-│   ├── components/         # React components
-│   ├── models/            # Frontend data models
-│   └── services/          # Frontend services
-├── components/            # Shared React components
-├── config/               # Configuration files
-├── docs/                 # Documentation
-├── middleware/           # FastAPI middleware
-├── models/               # Database models
-├── pages/                # Next.js pages
-├── routes/               # API route handlers
-├── services/             # Backend services
-├── styles/               # CSS styles
-├── tests/                # Test files
-├── main.py              # FastAPI application entry point
-├── requirements.txt     # Python dependencies
-└── package.json         # Node.js dependencies
-```
-
-## Database Schema
-
-### Core Tables
-- **users**: User accounts and profiles
-- **tasks**: Task management
-- **goals**: Goal tracking
-- **schedule_blocks**: Time scheduling
-- **habits**: Habit tracking
-- **flashcards**: Learning system
-- **notifications**: User notifications
-- **user_settings**: User preferences
-
-### Analytics Tables
-- **productivity_scores**: Productivity metrics
-- **focus_sessions**: Focus time tracking
-- **task_completions**: Task completion data
-- **habit_logs**: Habit completion logs
-
-## Testing
-
-### Backend Tests
-```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest tests/test_async_comprehensive.py
-
-# Run with coverage
-pytest --cov=.
-
-# Run integration tests
-pytest tests/ -m integration
-```
-
-### Frontend Tests
-```bash
-# Run tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-```
-
-## Deployment
-
-### Production Deployment
+### **Production Deployment**
 ```bash
 # Run deployment script
 ./deploy_production.sh
 ```
 
-### Docker Deployment
-```bash
-# Build and run with Docker
-docker-compose up -d
-```
+### **Environment Configuration**
+- Copy `env.production.template` to `.env.production`
+- Configure all required environment variables
+- Set up SSL certificates
+- Configure domain and DNS
 
-## Security Features
+### **Monitoring**
+- Prometheus metrics at `/metrics`
+- Health checks at `/health`
+- Application logs in `/var/log/personal-agent/`
+- Error tracking and alerting
 
-- **JWT Authentication**: Secure token-based authentication
-- **Password Hashing**: bcrypt password encryption
-- **Rate Limiting**: API protection against abuse
-- **CORS Protection**: Cross-origin request security
-- **Input Validation**: Comprehensive request validation
-- **SQL Injection Protection**: Parameterized queries
-- **XSS Protection**: Content Security Policy headers
-- **HTTPS Enforcement**: Secure communication
+See [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
 
-## Performance Features
+## 📈 **Performance**
 
-- **Redis Caching**: Fast data access
-- **Database Indexing**: Optimized queries
-- **Connection Pooling**: Efficient database connections
-- **Background Tasks**: Asynchronous processing
-- **CDN Integration**: Static asset delivery
-- **Compression**: Response compression
-- **Monitoring**: Real-time performance tracking
+### **Optimizations**
+- **Redis Caching** - Fast response times for frequently accessed data
+- **Database Indexing** - Optimized queries for large datasets
+- **Rate Limiting** - Protection against abuse
+- **Background Processing** - Non-blocking operations
+- **CDN Integration** - Fast static asset delivery
 
-## Contributing
+### **Scalability**
+- **Horizontal Scaling** - Multiple application instances
+- **Load Balancing** - Distributed traffic across servers
+- **Database Sharding** - Partitioned data storage
+- **Microservices Ready** - Modular architecture
 
+## 🔒 **Security**
+
+### **Authentication & Authorization**
+- JWT tokens with refresh mechanism
+- Role-based access control
+- Session management
+- Password hashing with bcrypt
+
+### **Data Protection**
+- Input validation and sanitization
+- SQL injection prevention
+- XSS protection
+- CSRF protection
+
+### **Infrastructure Security**
+- HTTPS enforcement
+- Security headers
+- Rate limiting
+- Audit logging
+
+## 🤝 **Contributing**
+
+### **Development Setup**
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
 
-### Development Guidelines
+### **Code Standards**
 - Follow PEP 8 for Python code
-- Use TypeScript for frontend components
+- Use TypeScript for frontend
 - Write comprehensive tests
-- Update documentation for new features
-- Follow conventional commit messages
+- Document new features
 
-## License
+## 📄 **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## 🆘 **Support**
 
-- **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/your-username/cognie/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/cognie/discussions)
-- **Email**: support@cognie.com
+### **Documentation**
+- [API Documentation](docs/API_ENDPOINTS.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [Notion Integration Guide](docs/NOTION_WEBHOOK_SETUP.md)
+- [Security Guide](docs/SECURITY_PERFORMANCE.md)
 
-## Roadmap
+### **Issues**
+- Report bugs via GitHub Issues
+- Request features through feature requests
+- Ask questions in discussions
 
-### Phase 1 (Current)
-- ✅ Core task management
-- ✅ Goal tracking
-- ✅ Basic AI integration
+## 🎯 **Roadmap**
+
+### **Completed Features**
+- ✅ Core API infrastructure
 - ✅ User authentication
+- ✅ Task management
+- ✅ Goal tracking
+- ✅ Notion integration with webhooks
+- ✅ AI-powered insights
 - ✅ Analytics dashboard
+- ✅ Production deployment
 
-### Phase 2 (Next)
+### **Upcoming Features**
+- 🔄 Calendar integration (Google, Outlook)
 - 🔄 Advanced AI features
-- 🔄 Mobile app development
+- 🔄 Mobile application
 - 🔄 Team collaboration
 - 🔄 Advanced analytics
 - 🔄 Third-party integrations
 
-### Phase 3 (Future)
-- 📋 Enterprise features
-- 📋 Advanced reporting
-- 📋 AI-powered insights
-- 📋 Custom workflows
-- 📋 API marketplace
-
-## Acknowledgments
-
-- OpenAI for AI capabilities
-- Supabase for database infrastructure
-- FastAPI community for the excellent framework
-- Next.js team for the React framework
-- All contributors and supporters
-
 ---
 
-**Built with ❤️ for productivity enthusiasts**
+**Built with ❤️ for productivity and learning**
