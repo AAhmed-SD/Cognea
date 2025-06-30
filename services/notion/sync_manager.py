@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict
 from .notion_client import NotionClient
 from .flashcard_generator import NotionFlashcardGenerator, FlashcardData
 from services.supabase import get_supabase_client
+from services.rate_limited_queue import get_notion_queue
 
 logger = logging.getLogger(__name__)
 
@@ -62,8 +63,14 @@ class NotionSyncManager:
             if local_flashcard.data:
                 local_last_synced_ts = local_flashcard.data[0].get("last_synced_ts")
 
-            # Get Notion page
-            page = await self.notion_client.get_page(notion_page_id)
+            # Get Notion page using the rate-limited queue
+            notion_queue = get_notion_queue()
+            result_future = await notion_queue.enqueue_request(
+                method="GET",
+                endpoint=f"pages/{notion_page_id}",
+                api_key=self.notion_client.api_key,
+            )
+            page = await result_future
             notion_last_edited = page.last_edited_time.isoformat()
 
             # Debounce: Only sync if Notion's last_edited_time > local last_synced_ts

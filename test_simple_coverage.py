@@ -3,7 +3,6 @@ Simple test to check coverage without full app dependencies.
 """
 
 import pytest
-from datetime import datetime, timedelta, UTC
 from services.redis_client import RedisClient
 
 
@@ -27,7 +26,7 @@ def test_token_tracking():
     client = RedisClient()
     # Should not fail when Redis is not connected
     client.track_token_usage("user1", 100, 0.01, "gpt-4")
-    
+
     # Should return default values when Redis is not connected
     usage = client.get_token_usage("user1", "daily")
     assert usage["tokens"] == 0

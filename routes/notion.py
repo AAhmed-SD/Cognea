@@ -16,6 +16,7 @@ import base64
 from services.notion import NotionClient, NotionFlashcardGenerator, NotionSyncManager
 from services.ai.openai_service import get_openai_service
 from services.notion.rate_limited_queue import get_notion_queue
+from services.rate_limited_queue import get_notion_queue
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/notion", tags=["Notion Sync"])
@@ -628,14 +629,25 @@ async def get_ai_service():
 async def get_notion_pages(notion_client: NotionClient = Depends(get_notion_client)):
     """Get user's Notion pages and databases."""
     try:
-        # Search for pages and databases
-        pages = await notion_client.search(
-            query="", filter_params={"property": "object", "value": "page"}
+        notion_queue = get_notion_queue()
+        # Search for pages and databases using the rate-limited queue
+        pages_future = await notion_queue.enqueue_request(
+            method="POST",
+            endpoint="search",
+            api_key=notion_client.api_key,
+            query="",
+            filter_params={"property": "object", "value": "page"}
         )
+        pages = await pages_future
 
-        databases = await notion_client.search(
-            query="", filter_params={"property": "object", "value": "database"}
+        databases_future = await notion_queue.enqueue_request(
+            method="POST",
+            endpoint="search",
+            api_key=notion_client.api_key,
+            query="",
+            filter_params={"property": "object", "value": "database"}
         )
+        databases = await databases_future
 
         # Format response
         page_list = []

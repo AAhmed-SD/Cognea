@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict
 from .notion_client import NotionClient
 from services.ai.openai_service import get_openai_service
 from services.cost_tracking import cost_tracking_service
+from services.rate_limited_queue import get_notion_queue
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +45,14 @@ class NotionFlashcardGenerator:
     ) -> List[FlashcardData]:
         """Generate flashcards from a Notion page."""
         try:
-            # Get the page content
-            page = await self.notion_client.get_page(page_id)
+            notion_queue = get_notion_queue()
+            # Get the page content using the rate-limited queue
+            result_future = await notion_queue.enqueue_request(
+                method="GET",
+                endpoint=f"pages/{page_id}",
+                api_key=self.notion_client.api_key,
+            )
+            page = await result_future
 
             # Generate flashcards using AI
             flashcards = await self._generate_flashcards_with_ai(
@@ -71,9 +78,20 @@ class NotionFlashcardGenerator:
     ) -> List[FlashcardData]:
         """Generate flashcards from a Notion database."""
         try:
-            # Get database and its pages
-            database = await self.notion_client.get_database(database_id)
-            pages = await self.notion_client.query_database(database_id)
+            notion_queue = get_notion_queue()
+            # Get database and its pages using the rate-limited queue
+            db_future = await notion_queue.enqueue_request(
+                method="GET",
+                endpoint=f"databases/{database_id}",
+                api_key=self.notion_client.api_key,
+            )
+            database = await db_future
+            pages_future = await notion_queue.enqueue_request(
+                method="POST",
+                endpoint=f"databases/{database_id}/query",
+                api_key=self.notion_client.api_key,
+            )
+            pages = await pages_future
 
             all_content = []
             for page in pages:
