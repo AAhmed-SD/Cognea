@@ -42,6 +42,7 @@ from routes.notifications import router as notifications_router
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
+        
     async def dispatch(self, request, call_next):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -55,6 +56,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 # Token tracking middleware
 class TokenTrackingMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app):
+        super().__init__(app)
+        
     async def dispatch(self, request, call_next):
         response = await call_next(request)
         

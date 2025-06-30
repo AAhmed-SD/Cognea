@@ -129,7 +129,7 @@ class SecurityConfig(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
-        extra = "allow"
+        extra = "allow"  # Allow extra fields from environment
 
 # Global security settings instance
 security_config = SecurityConfig()
@@ -203,7 +203,7 @@ def is_safe_filename(filename: str) -> bool:
 def get_rate_limit_config() -> dict:
     """Get rate limiting configuration"""
     return {
-        "enabled": security_config.RATE_LIMIT_ENABLED,
         "requests_per_minute": security_config.RATE_LIMIT_REQUESTS_PER_MINUTE,
-        "requests_per_hour": security_config.RATE_LIMIT_REQUESTS_PER_HOUR
+        "requests_per_hour": security_config.RATE_LIMIT_REQUESTS_PER_HOUR,
+        "disabled": security_config.DISABLE_RATE_LIMIT
     } 
