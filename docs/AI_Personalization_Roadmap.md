@@ -73,7 +73,7 @@
 - **User Profile:**  
   - Store goals, preferences, energy curve, persona, etc.
 - **Event/Task/Diary DB:**  
-  - Structured (PostgreSQL) for tasks, events, habits.
+  - Structured (Supabase) for tasks, events, habits.
   - Unstructured (vector DB) for notes, reflections, semantic search.
 - **Analytics:**  
   - Track completion, streaks, mood, time spent, etc.

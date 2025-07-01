@@ -7,7 +7,7 @@
 - **Scheduling Logic**: Python (custom logic or constraint solver like pulp, optapy, or Google OR-Tools)
 - **Time Parsing**: dateutil, pendulum, or Arrow (for timezone-aware time handling)
 - **Backend**: FastAPI (REST API endpoints for scheduling input/output)
-- **Task Storage**: PostgreSQL or SQLite with sqlmodel or SQLAlchemy
+- **Task Storage**: Supabase with sqlmodel or SQLAlchemy
 - **Async Tasks**: Celery + Redis (generate schedules in background)
 - **Calendar Sync**: Google Calendar API + optional iCal for Apple Calendar
 - **Frontend**: React + Tailwind + drag-and-drop UI (e.g. react-beautiful-dnd)
@@ -20,7 +20,7 @@
 **Goal**: Link tasks to broader goals and visualize them.
 
 **✅ Tech**:
-- **Goal/Task Models**: PostgreSQL models with ForeignKey relationships
+- **Goal/Task Models**: Supabase models with ForeignKey relationships
 - **Visualization**: Frontend: D3.js or Recharts for goal trees or progress charts
 - **UI Tagging**: React + custom dropdown tags, goal progress bars
 
@@ -106,7 +106,7 @@
 **Goal**: Enable controlled feature rollouts and A/B testing.
 
 **✅ Tech**:
-- **Database**: PostgreSQL with JSON support for feature conditions
+- **Database**: Supabase with JSON support for feature conditions
 - **Caching**: Redis for feature flag lookups
 - **Models**: SQLAlchemy models for feature flags and user preferences
 - **Service Layer**: FeatureFlagService for managing flags

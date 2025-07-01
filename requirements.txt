@@ -113,7 +113,6 @@ prometheus-client==0.22.1
 prompt_toolkit==3.0.51
 proto-plus==1.26.1
 protobuf==6.30.2
-psycopg2-binary==2.9.9
 ptyprocess==0.7.0
 py-serializable==2.0.0
 pyasn1_modules==0.4.2

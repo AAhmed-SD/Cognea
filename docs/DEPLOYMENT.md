@@ -60,7 +60,7 @@ REDIS_URL=redis://localhost:6379
 REDIS_PASSWORD=your_redis_password
 
 # Database
-DATABASE_URL=postgresql://user:password@localhost:5432/cognie
+# DATABASE_URL=postgresql://user:password@localhost:5432/cognie  # Removed - using Supabase
 
 # Email Configuration
 SMTP_HOST=smtp.gmail.com
@@ -92,34 +92,6 @@ STRIPE_API_KEY=sk_live_your_key
 python setup_supabase_tables.py
 ```
 
-#### Local PostgreSQL (Alternative)
-```bash
-# Install PostgreSQL
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-
-# Create database
-sudo -u postgres createdb cognie
-sudo -u postgres createuser cognie_user
-sudo -u postgres psql -c "ALTER USER cognie_user WITH PASSWORD 'your_password';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE cognie TO cognie_user;"
-```
-
-### 3. Redis Setup
-
-```bash
-# Install Redis
-sudo apt update
-sudo apt install redis-server
-
-# Configure Redis
-sudo nano /etc/redis/redis.conf
-
-# Set password
-requirepass your_redis_password
-
-# Restart Redis
-sudo systemctl restart redis
 sudo systemctl enable redis
 ```
 
@@ -137,7 +109,7 @@ sudo apt install python3.13 python3.13-venv python3.13-dev
 sudo apt install nodejs npm
 sudo apt install nginx
 sudo apt install redis-server
-sudo apt install postgresql postgresql-contrib
+# sudo apt install postgresql postgresql-contrib  # Removed - using Supabase
 
 # Install PM2 for process management
 npm install -g pm2
@@ -326,7 +298,6 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/cognie
       - REDIS_URL=redis://redis:6379
     depends_on:
       - db
@@ -346,13 +317,6 @@ services:
       - backend
 
   db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: cognie
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -377,7 +341,6 @@ services:
       - frontend
 
 volumes:
-  postgres_data:
   redis_data:
 ```
 
@@ -534,8 +497,8 @@ DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="/backups/database"
 mkdir -p $BACKUP_DIR
 
-# Backup PostgreSQL
-pg_dump cognie > $BACKUP_DIR/cognie_$DATE.sql
+# Backup Supabase
+# pg_dump cognie > $BACKUP_DIR/cognie_$DATE.sql  # Use Supabase dashboard for backups
 
 # Compress backup
 gzip $BACKUP_DIR/cognie_$DATE.sql
@@ -611,7 +574,7 @@ tail -f logs/backend-error.log
 
 # Check environment
 echo $NODE_ENV
-python -c "import os; print(os.getenv('DATABASE_URL'))"
+# python -c "import os; print(os.getenv('DATABASE_URL'))"  # Not needed with Supabase
 ```
 
 #### 2. Database Connection Issues
@@ -619,8 +582,8 @@ python -c "import os; print(os.getenv('DATABASE_URL'))"
 # Test database connection
 psql -h localhost -U user -d cognie -c "SELECT 1;"
 
-# Check PostgreSQL status
-sudo systemctl status postgresql
+# Check Supabase status
+# sudo systemctl status postgresql  # Not needed with Supabase
 ```
 
 #### 3. Redis Connection Issues
@@ -686,7 +649,7 @@ pm2 monit
 pm2 restart all
 sudo systemctl restart nginx
 sudo systemctl restart redis
-sudo systemctl restart postgresql
+# sudo systemctl restart postgresql  # Not needed with Supabase
 
 # View real-time logs
 pm2 logs --lines 100

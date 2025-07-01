@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-1. Ensure you have the required PostgreSQL extensions:
+1. Ensure you have the required Supabase extensions:
    ```sql
    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
    CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -10,7 +10,7 @@
 
 2. Backup your existing database:
    ```bash
-   pg_dump -U your_user -d your_database > backup_before_migration.sql
+   # pg_dump -U your_user -d your_database > backup_before_migration.sql  # Use Supabase dashboard for backups
    ```
 
 ## Migration Steps
