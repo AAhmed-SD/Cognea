@@ -306,21 +306,82 @@ async def extract_tasks(
 ):
     try:
         logging.info(f"User {current_user['id']} extracting tasks from text")
-        # Placeholder for actual AI processing
-        extracted_tasks = [
-            ExtractedTask(
-                task="Sample task 1",
-                priority="high",
-                time_estimate_minutes=30,
-                goal=request.goal_context,
-            ),
-            ExtractedTask(
-                task="Sample task 2",
-                priority="medium",
-                time_estimate_minutes=60,
-                goal=request.goal_context,
-            ),
-        ]
+
+        # Generate AI prompt for task extraction
+        prompt = f"""Extract structured tasks from the following text and return them as a JSON array:
+
+Text: {request.text}
+
+{f"Goal Context: {request.goal_context}" if request.goal_context else ""}
+
+For each task, provide:
+- task: A clear, actionable task description
+- priority: "high", "medium", or "low" based on urgency and importance
+- time_estimate_minutes: Estimated time to complete in minutes
+- goal: The goal this task relates to (if any)
+
+Return the response as a valid JSON array like this:
+[
+    {{
+        "task": "Complete project proposal",
+        "priority": "high",
+        "time_estimate_minutes": 120,
+        "goal": "Finish Q1 deliverables"
+    }}
+]
+
+Focus on extracting actionable, specific tasks rather than general statements."""
+
+        # Call OpenAI API
+        response = await generate_openai_text(
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1000, temperature=0.3
+        )
+
+        if "error" in response:
+            raise HTTPException(status_code=500, detail=response["error"])
+
+        # Parse the response
+        import json
+
+        try:
+            response_text = response.get("generated_text", "")
+            # Extract JSON from the response
+            start_idx = response_text.find("[")
+            end_idx = response_text.rfind("]") + 1
+            if start_idx != -1 and end_idx != 0:
+                json_str = response_text[start_idx:end_idx]
+                tasks_data = json.loads(json_str)
+
+                extracted_tasks = [
+                    ExtractedTask(
+                        task=task.get("task", "Unknown task"),
+                        priority=task.get("priority", "medium"),
+                        time_estimate_minutes=task.get("time_estimate_minutes", 30),
+                        goal=task.get("goal", request.goal_context),
+                    )
+                    for task in tasks_data
+                ]
+            else:
+                # Fallback if JSON parsing fails
+                extracted_tasks = [
+                    ExtractedTask(
+                        task="Failed to parse tasks from text",
+                        priority="medium",
+                        time_estimate_minutes=30,
+                        goal=request.goal_context,
+                    )
+                ]
+        except json.JSONDecodeError:
+            # Fallback if JSON parsing fails
+            extracted_tasks = [
+                ExtractedTask(
+                    task="Failed to parse tasks from text",
+                    priority="medium",
+                    time_estimate_minutes=30,
+                    goal=request.goal_context,
+                )
+            ]
+
         return ExtractTasksResponse(extracted_tasks=extracted_tasks)
     except Exception as e:
         logging.error(f"Error extracting tasks for user {current_user['id']}: {str(e)}")
@@ -376,7 +437,7 @@ async def plan_my_day(
 ):
     try:
         logging.info(f"User {current_user['id']} requesting daily plan")
-        # Placeholder for actual planning logic
+        # TODO: Replace placeholder AI logic with real AI/database-backed logic
         timeblocks = [
             TimeBlock(
                 start_time="09:00",
@@ -568,20 +629,107 @@ async def get_review_plan(
         logging.info(
             f"Generating review plan for user {current_user['id']} with {time_available} minutes available"
         )
-        # Placeholder for actual review plan generation
-        plan = [
-            {
-                "flashcard_id": "card1",
-                "question": "Sample question 1",
-                "estimated_time": 2,
-            },
-            {
-                "flashcard_id": "card2",
-                "question": "Sample question 2",
-                "estimated_time": 3,
-            },
-        ]
-        return plan
+
+        # Get user's flashcards from database
+        supabase = get_supabase_client()
+        flashcards_result = (
+            supabase.table("flashcards")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .execute()
+        )
+
+        if not flashcards_result.data:
+            return []
+
+        flashcards = flashcards_result.data
+
+        # Generate AI prompt for review planning
+        prompt = f"""Create a personalized review plan for a user with {time_available} minutes available.
+
+Available flashcards: {len(flashcards)} cards
+- Cards due for review: {len([f for f in flashcards if f.get('next_review_date') and f.get('next_review_date') <= datetime.now().isoformat()])}
+- Cards with high difficulty: {len([f for f in flashcards if f.get('ease_factor', 2.5) < 2.0])}
+- Cards with low difficulty: {len([f for f in flashcards if f.get('ease_factor', 2.5) > 3.0])}
+
+Create a review plan that:
+1. Prioritizes cards due for review
+2. Includes some challenging cards (low ease factor)
+3. Balances with easier cards for confidence building
+4. Fits within {time_available} minutes (estimate 2-3 minutes per card)
+
+Return the response as a JSON array like this:
+[
+    {{
+        "flashcard_id": "card_id",
+        "question": "The actual question from the flashcard",
+        "estimated_time": 2,
+        "reason": "Due for review" or "High difficulty" or "Confidence building"
+    }}
+]
+
+Focus on creating an effective learning experience within the time constraint."""
+
+        # Call OpenAI API
+        response = await generate_openai_text(
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=800, temperature=0.3
+        )
+
+        if "error" in response:
+            raise HTTPException(status_code=500, detail=response["error"])
+
+        # Parse the response
+        import json
+
+        try:
+            response_text = response.get("generated_text", "")
+            start_idx = response_text.find("[")
+            end_idx = response_text.rfind("]") + 1
+            if start_idx != -1 and end_idx != 0:
+                json_str = response_text[start_idx:end_idx]
+                plan_data = json.loads(json_str)
+
+                # Map to actual flashcards and validate
+                plan = []
+                for item in plan_data:
+                    flashcard_id = item.get("flashcard_id")
+                    # Find the actual flashcard
+                    flashcard = next(
+                        (f for f in flashcards if f.get("id") == flashcard_id), None
+                    )
+                    if flashcard:
+                        plan.append(
+                            {
+                                "flashcard_id": flashcard_id,
+                                "question": flashcard.get(
+                                    "question", item.get("question", "Unknown question")
+                                ),
+                                "estimated_time": item.get("estimated_time", 2),
+                                "reason": item.get("reason", "Review"),
+                            }
+                        )
+
+                return plan
+            else:
+                # Fallback plan
+                return [
+                    {
+                        "flashcard_id": "fallback",
+                        "question": "Review plan generation failed",
+                        "estimated_time": 2,
+                        "reason": "System error",
+                    }
+                ]
+        except json.JSONDecodeError:
+            # Fallback plan
+            return [
+                {
+                    "flashcard_id": "fallback",
+                    "question": "Review plan generation failed",
+                    "estimated_time": 2,
+                    "reason": "Parsing error",
+                }
+            ]
     except Exception as e:
         logging.error(f"Failed to generate review plan: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate review plan")
@@ -616,7 +764,7 @@ async def update_flashcard_review(flashcard_id: str, was_correct: bool):
 # SM-2 algorithm for spaced repetition
 async def calculate_next_interval(
     ease_factor: float, repetitions: int, was_correct: bool
-) -> (int, float):
+) -> tuple[int, float]:
     # SM-2 algorithm logic
     if was_correct:
         if repetitions == 0:
@@ -709,12 +857,127 @@ async def ai_feedback(
 ):
     try:
         logging.info(f"User {current_user['id']} requesting AI feedback")
-        # Placeholder for actual AI feedback generation
-        feedback = "You've been consistent with your morning routine this week."
-        suggestions = [
-            "Try to schedule more breaks between deep work sessions",
-            "Consider reviewing your goals weekly to maintain focus",
-        ]
+
+        # Get user's recent data from database
+        supabase = get_supabase_client()
+
+        # Fetch recent tasks, goals, and schedule blocks
+        tasks_result = (
+            supabase.table("tasks")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .limit(50)
+            .execute()
+        )
+        goals_result = (
+            supabase.table("goals")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .limit(20)
+            .execute()
+        )
+        schedule_result = (
+            supabase.table("schedule_blocks")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .limit(30)
+            .execute()
+        )
+
+        tasks = tasks_result.data if tasks_result.data else []
+        goals = goals_result.data if goals_result.data else []
+        schedule_blocks = schedule_result.data if schedule_result.data else []
+
+        # Calculate key metrics
+        completed_tasks = len([t for t in tasks if t.get("status") == "completed"])
+        total_tasks = len(tasks)
+        completion_rate = (
+            (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+        )
+
+        active_goals = len([g for g in goals if g.get("status") == "active"])
+        avg_goal_progress = (
+            sum([g.get("progress", 0) for g in goals]) / len(goals) if goals else 0
+        )
+
+        fixed_schedules = len([s for s in schedule_blocks if s.get("is_fixed")])
+        rescheduled_count = len([s for s in schedule_blocks if s.get("is_rescheduled")])
+
+        # Generate AI prompt for feedback
+        prompt = f"""Analyze this user's productivity data and provide personalized feedback and suggestions:
+
+TASK PERFORMANCE:
+- Total tasks: {total_tasks}
+- Completed tasks: {completed_tasks}
+- Completion rate: {completion_rate:.1f}%
+
+GOAL PROGRESS:
+- Active goals: {active_goals}
+- Average goal progress: {avg_goal_progress:.1f}%
+
+SCHEDULING:
+- Fixed schedule blocks: {fixed_schedules}
+- Rescheduled blocks: {rescheduled_count}
+
+Provide constructive feedback and actionable suggestions in JSON format:
+{{
+    "feedback": "A personalized feedback message based on their patterns",
+    "suggestions": [
+        "Specific actionable suggestion 1",
+        "Specific actionable suggestion 2",
+        "Specific actionable suggestion 3"
+    ]
+}}
+
+Focus on:
+1. Positive reinforcement for good habits
+2. Constructive suggestions for improvement
+3. Specific, actionable advice
+4. Encouraging tone while being honest about areas for growth"""
+
+        # Call OpenAI API
+        response = await generate_openai_text(
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=600, temperature=0.4
+        )
+
+        if "error" in response:
+            raise HTTPException(status_code=500, detail=response["error"])
+
+        # Parse the response
+        import json
+
+        try:
+            response_text = response.get("generated_text", "")
+            start_idx = response_text.find("{")
+            end_idx = response_text.rfind("}") + 1
+            if start_idx != -1 and end_idx != 0:
+                json_str = response_text[start_idx:end_idx]
+                feedback_data = json.loads(json_str)
+
+                feedback = feedback_data.get(
+                    "feedback", "You're making good progress on your goals."
+                )
+                suggestions = feedback_data.get(
+                    "suggestions",
+                    [
+                        "Continue with your current productivity patterns",
+                        "Consider reviewing your goals weekly to maintain focus",
+                    ],
+                )
+            else:
+                # Fallback feedback
+                feedback = "You're making steady progress on your goals."
+                suggestions = [
+                    "Continue with your current productivity patterns",
+                    "Consider reviewing your goals weekly to maintain focus",
+                ]
+        except json.JSONDecodeError:
+            # Fallback feedback
+            feedback = "You're making steady progress on your goals."
+            suggestions = [
+                "Continue with your current productivity patterns",
+                "Consider reviewing your goals weekly to maintain focus",
+            ]
 
         return AIFeedbackResponse(feedback=feedback, suggestions=suggestions)
     except Exception as e:
@@ -736,14 +999,91 @@ async def get_feedback_history(
 ):
     try:
         logging.info(f"User {current_user['id']} requesting feedback history")
-        # Placeholder for actual feedback history
-        feedback_history = [
-            {
-                "date": "2024-01-01",
-                "feedback": "Great progress on learning goals",
-                "suggestions": ["Keep up the momentum"],
-            }
-        ]
+
+        # Get feedback history from database
+        supabase = get_supabase_client()
+        feedback_result = (
+            supabase.table("ai_feedback_history")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .order("created_at", desc=True)
+            .limit(10)
+            .execute()
+        )
+
+        if feedback_result.data:
+            feedback_history = [
+                {
+                    "date": item.get("created_at", ""),
+                    "feedback": item.get("feedback", ""),
+                    "suggestions": item.get("suggestions", []),
+                }
+                for item in feedback_result.data
+            ]
+        else:
+            # Generate initial feedback if no history exists
+            prompt = """Generate a welcome feedback message for a new user. Provide encouraging feedback and suggestions in JSON format:
+{
+    "feedback": "Welcome! You're starting your productivity journey.",
+    "suggestions": [
+        "Start by creating your first goal",
+        "Try scheduling your most important task for tomorrow",
+        "Set up a daily review routine"
+    ]
+}"""
+
+            response = await generate_openai_text(
+                prompt=prompt,
+                model="gpt-4-turbo-preview",
+                max_tokens=300,
+                temperature=0.4,
+            )
+
+            if "error" not in response:
+                import json
+
+                try:
+                    response_text = response.get("generated_text", "")
+                    start_idx = response_text.find("{")
+                    end_idx = response_text.rfind("}") + 1
+                    if start_idx != -1 and end_idx != 0:
+                        json_str = response_text[start_idx:end_idx]
+                        feedback_data = json.loads(json_str)
+                        feedback_history = [
+                            {
+                                "date": datetime.now().isoformat(),
+                                "feedback": feedback_data.get(
+                                    "feedback", "Welcome to your productivity journey!"
+                                ),
+                                "suggestions": feedback_data.get(
+                                    "suggestions", ["Start by creating your first goal"]
+                                ),
+                            }
+                        ]
+                    else:
+                        feedback_history = [
+                            {
+                                "date": datetime.now().isoformat(),
+                                "feedback": "Welcome to your productivity journey!",
+                                "suggestions": ["Start by creating your first goal"],
+                            }
+                        ]
+                except json.JSONDecodeError:
+                    feedback_history = [
+                        {
+                            "date": datetime.now().isoformat(),
+                            "feedback": "Welcome to your productivity journey!",
+                            "suggestions": ["Start by creating your first goal"],
+                        }
+                    ]
+            else:
+                feedback_history = [
+                    {
+                        "date": datetime.now().isoformat(),
+                        "feedback": "Welcome to your productivity journey!",
+                        "suggestions": ["Start by creating your first goal"],
+                    }
+                ]
 
         return FeedbackHistoryResponse(feedback_history=feedback_history)
     except Exception as e:
@@ -781,39 +1121,222 @@ async def get_user_insights(
 ):
     try:
         logging.info(f"User {current_user['id']} requesting insights")
-        # Placeholder for actual insights generation
-        insights = {
-            "user_id": current_user["id"],
-            "date_range": {
-                "start": request.start_date or "2025-06-01",
-                "end": request.end_date or "2025-06-07",
-            },
-            "task_summary": {
-                "completed": 12,
-                "missed": 3,
-                "rescheduled": 2,
-                "overbooked_days": ["2025-06-03", "2025-06-04"],
-            },
-            "flashcard_summary": {
-                "reviewed": 45,
-                "forgotten": 9,
-                "avg_accuracy": 80,
-                "most_forgotten_deck": "Neuroscience",
-            },
-            "goal_progress": [
-                {
-                    "goal_id": "goal123",
-                    "title": "Finish ML Course",
-                    "progress": "60%",
-                    "status": "on_track",
+
+        # Get user's data from database
+        supabase = get_supabase_client()
+
+        # Fetch tasks, goals, flashcards, and schedule blocks
+        tasks_result = (
+            supabase.table("tasks")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .execute()
+        )
+        goals_result = (
+            supabase.table("goals")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .execute()
+        )
+        flashcards_result = (
+            supabase.table("flashcards")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .execute()
+        )
+        schedule_result = (
+            supabase.table("schedule_blocks")
+            .select("*")
+            .eq("user_id", current_user["id"])
+            .execute()
+        )
+
+        tasks = tasks_result.data if tasks_result.data else []
+        goals = goals_result.data if goals_result.data else []
+        flashcards = flashcards_result.data if flashcards_result.data else []
+        schedule_blocks = schedule_result.data if schedule_result.data else []
+
+        # Calculate real metrics
+        completed_tasks = len([t for t in tasks if t.get("status") == "completed"])
+        missed_tasks = len([t for t in tasks if t.get("status") == "missed"])
+        rescheduled_tasks = len([t for t in tasks if t.get("rescheduled_count", 0) > 0])
+
+        reviewed_flashcards = len([f for f in flashcards if f.get("last_reviewed_at")])
+        forgotten_flashcards = len(
+            [f for f in flashcards if f.get("ease_factor", 2.5) < 2.0]
+        )
+        avg_accuracy = (
+            sum([f.get("accuracy", 80) for f in flashcards]) / len(flashcards)
+            if flashcards
+            else 80
+        )
+
+        # Generate AI prompt for insights
+        prompt = f"""Analyze this user's productivity data and generate personalized insights:
+
+TASK DATA:
+- Total tasks: {len(tasks)}
+- Completed: {completed_tasks}
+- Missed: {missed_tasks}
+- Rescheduled: {rescheduled_tasks}
+
+GOAL DATA:
+- Total goals: {len(goals)}
+- Active goals: {len([g for g in goals if g.get('status') == 'active'])}
+- Average progress: {sum([g.get('progress', 0) for g in goals]) / len(goals) if goals else 0:.1f}%
+
+FLASHCARD DATA:
+- Total cards: {len(flashcards)}
+- Reviewed: {reviewed_flashcards}
+- Difficult cards: {forgotten_flashcards}
+- Average accuracy: {avg_accuracy:.1f}%
+
+SCHEDULE DATA:
+- Total blocks: {len(schedule_blocks)}
+- Fixed blocks: {len([s for s in schedule_blocks if s.get('is_fixed')])}
+- Rescheduled blocks: {len([s for s in schedule_blocks if s.get('is_rescheduled')])}
+
+Generate insights in JSON format:
+{{
+    "task_summary": {{
+        "completed": {completed_tasks},
+        "missed": {missed_tasks},
+        "rescheduled": {rescheduled_tasks},
+        "overbooked_days": ["list of dates with too many tasks"]
+    }},
+    "flashcard_summary": {{
+        "reviewed": {reviewed_flashcards},
+        "forgotten": {forgotten_flashcards},
+        "avg_accuracy": {avg_accuracy:.1f},
+        "most_forgotten_deck": "deck name"
+    }},
+    "goal_progress": [
+        {{
+            "goal_id": "goal_id",
+            "title": "goal title",
+            "progress": "progress percentage",
+            "status": "on_track/behind/ahead"
+        }}
+    ],
+    "suggestions": [
+        "Specific actionable suggestion 1",
+        "Specific actionable suggestion 2",
+        "Specific actionable suggestion 3"
+    ]
+}}
+
+Focus on actionable insights that can help improve productivity and learning."""
+
+        # Call OpenAI API
+        response = await generate_openai_text(
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1000, temperature=0.3
+        )
+
+        if "error" in response:
+            raise HTTPException(status_code=500, detail=response["error"])
+
+        # Parse the response
+        import json
+
+        try:
+            response_text = response.get("generated_text", "")
+            start_idx = response_text.find("{")
+            end_idx = response_text.rfind("}") + 1
+            if start_idx != -1 and end_idx != 0:
+                json_str = response_text[start_idx:end_idx]
+                insights_data = json.loads(json_str)
+
+                insights = {
+                    "user_id": current_user["id"],
+                    "date_range": {
+                        "start": request.start_date
+                        or datetime.now().strftime("%Y-%m-%d"),
+                        "end": request.end_date or datetime.now().strftime("%Y-%m-%d"),
+                    },
+                    "task_summary": insights_data.get(
+                        "task_summary",
+                        {
+                            "completed": completed_tasks,
+                            "missed": missed_tasks,
+                            "rescheduled": rescheduled_tasks,
+                            "overbooked_days": [],
+                        },
+                    ),
+                    "flashcard_summary": insights_data.get(
+                        "flashcard_summary",
+                        {
+                            "reviewed": reviewed_flashcards,
+                            "forgotten": forgotten_flashcards,
+                            "avg_accuracy": avg_accuracy,
+                            "most_forgotten_deck": "General",
+                        },
+                    ),
+                    "goal_progress": insights_data.get("goal_progress", []),
+                    "suggestions": insights_data.get(
+                        "suggestions",
+                        [
+                            "Continue with your current productivity patterns",
+                            "Review difficult flashcards more frequently",
+                            "Set realistic daily task limits",
+                        ],
+                    ),
                 }
-            ],
-            "suggestions": [
-                "Review 'Neuroscience' deck earlier in the day",
-                "Avoid scheduling >5 tasks on weekdays",
-                "You're most consistent at 9–11 AM. Leverage that.",
-            ],
-        }
+            else:
+                # Fallback insights
+                insights = {
+                    "user_id": current_user["id"],
+                    "date_range": {
+                        "start": request.start_date
+                        or datetime.now().strftime("%Y-%m-%d"),
+                        "end": request.end_date or datetime.now().strftime("%Y-%m-%d"),
+                    },
+                    "task_summary": {
+                        "completed": completed_tasks,
+                        "missed": missed_tasks,
+                        "rescheduled": rescheduled_tasks,
+                        "overbooked_days": [],
+                    },
+                    "flashcard_summary": {
+                        "reviewed": reviewed_flashcards,
+                        "forgotten": forgotten_flashcards,
+                        "avg_accuracy": avg_accuracy,
+                        "most_forgotten_deck": "General",
+                    },
+                    "goal_progress": [],
+                    "suggestions": [
+                        "Continue with your current productivity patterns",
+                        "Review difficult flashcards more frequently",
+                        "Set realistic daily task limits",
+                    ],
+                }
+        except json.JSONDecodeError:
+            # Fallback insights
+            insights = {
+                "user_id": current_user["id"],
+                "date_range": {
+                    "start": request.start_date or datetime.now().strftime("%Y-%m-%d"),
+                    "end": request.end_date or datetime.now().strftime("%Y-%m-%d"),
+                },
+                "task_summary": {
+                    "completed": completed_tasks,
+                    "missed": missed_tasks,
+                    "rescheduled": rescheduled_tasks,
+                    "overbooked_days": [],
+                },
+                "flashcard_summary": {
+                    "reviewed": reviewed_flashcards,
+                    "forgotten": forgotten_flashcards,
+                    "avg_accuracy": avg_accuracy,
+                    "most_forgotten_deck": "General",
+                },
+                "goal_progress": [],
+                "suggestions": [
+                    "Continue with your current productivity patterns",
+                    "Review difficult flashcards more frequently",
+                    "Set realistic daily task limits",
+                ],
+            }
+
         return UserInsightsResponse(**insights)
     except Exception as e:
         logging.error(
