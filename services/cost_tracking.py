@@ -85,7 +85,7 @@ class CostTracker:
         """Track API call with detailed information"""
         try:
             total_tokens = input_tokens + output_tokens
-            
+
             # Store usage record
             usage_record = {
                 "user_id": user_id,
@@ -93,8 +93,16 @@ class CostTracker:
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
                 "total_tokens": total_tokens,
-                "input_cost_usd": round(cost_usd * (input_tokens / total_tokens), 6) if total_tokens > 0 else 0,
-                "output_cost_usd": round(cost_usd * (output_tokens / total_tokens), 6) if total_tokens > 0 else cost_usd,
+                "input_cost_usd": (
+                    round(cost_usd * (input_tokens / total_tokens), 6)
+                    if total_tokens > 0
+                    else 0
+                ),
+                "output_cost_usd": (
+                    round(cost_usd * (output_tokens / total_tokens), 6)
+                    if total_tokens > 0
+                    else cost_usd
+                ),
                 "total_cost_usd": round(cost_usd, 6),
                 "endpoint": endpoint,
                 "timestamp": datetime.utcnow().isoformat(),
@@ -117,7 +125,7 @@ class CostTracker:
         """Check if user has exceeded budget limits"""
         try:
             usage_summary = self.get_user_usage_summary(user_id)
-            
+
             daily_exceeded = (
                 usage_summary["daily"]["total_cost_usd"]
                 > usage_summary["limits"]["daily_limit_usd"]

@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, HTTPException, Depends, Request
 from services.stripe_service import stripe_service
-from services.supabase import get_supabase_client
 from services.auth import get_current_user
 import logging
 
@@ -19,18 +18,18 @@ async def stripe_webhook(request: Request):
     try:
         payload = await request.body()
         sig_header = request.headers.get("stripe-signature")
-        
+
         if not sig_header:
             raise HTTPException(status_code=400, detail="Missing signature")
-            
+
         # Verify webhook signature
         event = stripe_service.verify_webhook(payload, sig_header)
-        
+
         # Process the event
         await stripe_service.process_webhook_event(event)
-        
+
         return {"status": "success"}
-        
+
     except Exception as e:
         logger.error(f"Webhook error: {str(e)}")
         raise HTTPException(status_code=400, detail="Webhook error")
@@ -63,9 +62,7 @@ async def create_portal_session(
 
 
 @router.get("/subscription-status")
-async def get_subscription_status(
-    current_user: dict = Depends(get_current_user)
-):
+async def get_subscription_status(current_user: dict = Depends(get_current_user)):
     """Get current user's subscription status."""
     try:
         status = await stripe_service.get_subscription_status(current_user["id"])

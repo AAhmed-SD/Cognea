@@ -5,7 +5,6 @@ Tests for Stripe payment and subscription integration.
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from datetime import datetime, UTC
-import json
 
 from fastapi.testclient import TestClient
 from main import app
