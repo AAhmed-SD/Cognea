@@ -317,3 +317,4 @@ zeroconf==0.37.0
 zipp==3.21.0
 stripe==7.8.0
 sqlalchemy==2.0.23
+stripe==12.2.0

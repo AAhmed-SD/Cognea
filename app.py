@@ -20,7 +20,6 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from datetime import datetime
 from slowapi.middleware import SlowAPIMiddleware
 from routes import generate
-from starlette.requests import Request
 from handlers import custom_rate_limit_exceeded_handler
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware

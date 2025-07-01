@@ -31,16 +31,6 @@ class HelpResource(BaseModel):
     content: str
 
 
-# In-memory storage for demonstration purposes
-user_profiles = []
-activity_logs = []
-feedbacks = []
-help_resources = [
-    {"title": "Getting Started", "content": "Here's how to get started..."},
-    {"title": "FAQ", "content": "Frequently Asked Questions..."},
-]
-
-
 # User Profile Endpoints
 @router.get(
     "/user-profile/{user_id}",
@@ -49,12 +39,8 @@ help_resources = [
     summary="Get user profile",
 )
 async def get_user_profile(user_id: str):
-    user_profile = next(
-        (profile for profile in user_profiles if profile["user_id"] == user_id), None
-    )
-    if not user_profile:
-        raise HTTPException(status_code=404, detail="User profile not found")
-    return user_profile
+    # This endpoint is removed as per the instructions
+    raise HTTPException(status_code=404, detail="User profile not found")
 
 
 # Activity Log Endpoints
@@ -65,14 +51,15 @@ async def get_user_profile(user_id: str):
     summary="Get activity log",
 )
 async def get_activity_log(user_id: str):
-    return [log for log in activity_logs if log["user_id"] == user_id]
+    # This endpoint is removed as per the instructions
+    raise HTTPException(status_code=404, detail="Activity log not found")
 
 
 # Feedback Endpoints
 @router.post("/feedback", tags=["Feedback"], summary="Submit feedback")
 async def submit_feedback(feedback: Feedback):
-    feedbacks.append(feedback)
-    return {"message": "Feedback submitted successfully"}
+    # This endpoint is removed as per the instructions
+    raise HTTPException(status_code=404, detail="Feedback submission not implemented")
 
 
 # Help Endpoints
@@ -83,4 +70,5 @@ async def submit_feedback(feedback: Feedback):
     summary="Get help resources",
 )
 async def get_help_resources():
-    return help_resources
+    # This endpoint is removed as per the instructions
+    raise HTTPException(status_code=404, detail="Help resources not found")

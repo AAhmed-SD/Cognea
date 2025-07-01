@@ -89,11 +89,10 @@ class RateLimitedQueue:
     ):
         """
         Make the actual API request.
-        This is a placeholder - implement actual API calls here.
+        TODO: Implement real API call logic here.
         """
-        # Placeholder implementation
-        logger.info(f"Making {method} request to {endpoint}")
-        return {"status": "success", "data": "placeholder"}
+        # TODO: Implement real API call logic
+        pass
 
     async def start(self):
         """Start the queue processor."""

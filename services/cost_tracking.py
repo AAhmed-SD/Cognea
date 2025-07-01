@@ -73,6 +73,80 @@ class CostTracker:
         except Exception as e:
             logger.error(f"Error tracking OpenAI usage: {str(e)}")
 
+    async def track_api_call(
+        self,
+        user_id: str,
+        endpoint: str,
+        model: str,
+        input_tokens: int,
+        output_tokens: int,
+        cost_usd: float,
+    ):
+        """Track API call with detailed information"""
+        try:
+            total_tokens = input_tokens + output_tokens
+            
+            # Store usage record
+            usage_record = {
+                "user_id": user_id,
+                "model": model,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": total_tokens,
+                "input_cost_usd": round(cost_usd * (input_tokens / total_tokens), 6) if total_tokens > 0 else 0,
+                "output_cost_usd": round(cost_usd * (output_tokens / total_tokens), 6) if total_tokens > 0 else cost_usd,
+                "total_cost_usd": round(cost_usd, 6),
+                "endpoint": endpoint,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+            # Insert into database
+            supabase_client.table("openai_usage").insert(usage_record).execute()
+
+            # Update daily/monthly totals
+            self._update_usage_totals(user_id, cost_usd)
+
+            logger.info(
+                f"Tracked API call for user {user_id}: {endpoint}, {total_tokens} tokens, ${cost_usd:.6f}"
+            )
+
+        except Exception as e:
+            logger.error(f"Error tracking API call: {str(e)}")
+
+    async def check_budget_limits(self, user_id: str) -> Dict:
+        """Check if user has exceeded budget limits"""
+        try:
+            usage_summary = self.get_user_usage_summary(user_id)
+            
+            daily_exceeded = (
+                usage_summary["daily"]["total_cost_usd"]
+                > usage_summary["limits"]["daily_limit_usd"]
+            )
+            monthly_exceeded = (
+                usage_summary["monthly"]["total_cost_usd"]
+                > usage_summary["limits"]["monthly_limit_usd"]
+            )
+
+            return {
+                "can_use": not (daily_exceeded or monthly_exceeded),
+                "daily_exceeded": daily_exceeded,
+                "monthly_exceeded": monthly_exceeded,
+                "usage": usage_summary,
+            }
+
+        except Exception as e:
+            logger.error(f"Error checking budget limits: {str(e)}")
+            return {
+                "can_use": True,  # Default to allowing usage if check fails
+                "daily_exceeded": False,
+                "monthly_exceeded": False,
+                "usage": {
+                    "daily": {"total_cost_usd": 0, "total_requests": 0},
+                    "monthly": {"total_cost_usd": 0, "total_requests": 0},
+                    "limits": {"daily_limit_usd": 10.0, "monthly_limit_usd": 100.0},
+                },
+            }
+
     def _update_usage_totals(self, user_id: str, cost: float):
         """Update daily and monthly usage totals"""
 
