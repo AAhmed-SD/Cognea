@@ -158,8 +158,8 @@ def create_webhook():
                 description="Cognie payment webhook"
             )
             print(f"✅ Created webhook (ID: {webhook.id})")
-            print(f"   Webhook secret: {webhook.secret}")
-            print("   ⚠️  Add this secret to your .env file as STRIPE_WEBHOOK_SECRET")
+            print("   ⚠️  Webhook secret generated. Please retrieve it securely from the Stripe dashboard.")
+            print("   Add the secret to your .env file as STRIPE_WEBHOOK_SECRET.")
             return webhook
             
     except Exception as e:
