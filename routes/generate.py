@@ -44,18 +44,36 @@ async def _get_user_context(user_id: str) -> Dict[str, Any]:
     """Get user context data for AI operations"""
     try:
         supabase = get_supabase_client()
-        
+
         # Fetch user's recent data in parallel
-        tasks_result = supabase.table("tasks").select("*").eq("user_id", user_id).limit(20).execute()
-        goals_result = supabase.table("goals").select("*").eq("user_id", user_id).limit(10).execute()
-        schedule_result = supabase.table("schedule_blocks").select("*").eq("user_id", user_id).limit(15).execute()
-        
+        tasks_result = (
+            supabase.table("tasks")
+            .select("*")
+            .eq("user_id", user_id)
+            .limit(20)
+            .execute()
+        )
+        goals_result = (
+            supabase.table("goals")
+            .select("*")
+            .eq("user_id", user_id)
+            .limit(10)
+            .execute()
+        )
+        schedule_result = (
+            supabase.table("schedule_blocks")
+            .select("*")
+            .eq("user_id", user_id)
+            .limit(15)
+            .execute()
+        )
+
         return {
             "tasks": tasks_result.data or [],
             "goals": goals_result.data or [],
             "schedule_blocks": schedule_result.data or [],
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:
         logger.error(f"Error getting user context: {e}")
@@ -78,12 +96,14 @@ async def generate_text_endpoint(
     """Generate text with caching and optimization"""
     try:
         # Check budget limits
-        budget_check = await cost_tracking_service.check_budget_limits(request_data.user_id)
+        budget_check = await cost_tracking_service.check_budget_limits(
+            request_data.user_id
+        )
         if budget_check["daily_exceeded"] or budget_check["monthly_exceeded"]:
             raise HTTPException(status_code=429, detail="Budget limit exceeded")
 
         logging.debug(f"Received request: {request_data}")
-        
+
         # Call OpenAI API
         response = await generate_openai_text(
             prompt=request_data.prompt,
@@ -92,13 +112,13 @@ async def generate_text_endpoint(
             temperature=request_data.temperature,
             stop=request_data.stop,
         )
-        
+
         if "error" in response:
             logging.warning(f"Error in text generation: {response['error']}")
             raise HTTPException(status_code=500, detail=response["error"])
-        
+
         logging.info(f"Generated text: {response['generated_text']}")
-        
+
         # Track API usage
         await cost_tracking_service.track_api_call(
             user_id=request_data.user_id,
@@ -108,7 +128,7 @@ async def generate_text_endpoint(
             output_tokens=response.get("usage", {}).get("completion_tokens", 200),
             cost_usd=response.get("usage", {}).get("total_cost", 0.01),
         )
-        
+
         response_obj = TextGenerationResponse(
             original_prompt=request_data.prompt,
             model=request_data.model,
@@ -117,7 +137,7 @@ async def generate_text_endpoint(
         )
 
         return response_obj
-        
+
     except Exception as e:
         logging.error(f"Unhandled exception: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -134,10 +154,10 @@ async def process_daily_brief(date: str, user_id: int):
     """Process daily brief in background"""
     try:
         logging.info(f"Processing daily brief for user {user_id} on {date}")
-        
+
         # Get user context
         user_context = await _get_user_context(str(user_id))
-        
+
         # Generate AI prompt for daily brief
         prompt = f"""Generate a daily brief for {date} based on user data:
 
@@ -157,10 +177,7 @@ Generate a concise daily summary in JSON format:
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=400,
-            temperature=0.3
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=400, temperature=0.3
         )
 
         if "error" not in response:
@@ -173,7 +190,7 @@ Generate a concise daily summary in JSON format:
                 "created_at": datetime.utcnow().isoformat(),
             }
             supabase.table("daily_briefs").insert(brief_data).execute()
-            
+
             # Track API usage
             await cost_tracking_service.track_api_call(
                 user_id=str(user_id),
@@ -183,7 +200,7 @@ Generate a concise daily summary in JSON format:
                 output_tokens=response.get("usage", {}).get("completion_tokens", 200),
                 cost_usd=response.get("usage", {}).get("total_cost", 0.01),
             )
-            
+
     except Exception as e:
         logger.error(f"Error processing daily brief: {e}")
 
@@ -204,14 +221,14 @@ async def generate_daily_brief(
     """Generate AI-powered daily brief with caching"""
     try:
         logging.info("Generating daily brief")
-        
+
         # Add the task to be processed in the background
         background_tasks.add_task(
             process_daily_brief, request_data.date, current_user["id"]
         )
-        
+
         return {"message": "Daily brief is being generated."}
-        
+
     except Exception as e:
         logging.error(f"Error generating daily brief: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -227,20 +244,27 @@ async def generate_quiz_questions(deck_id: int, user_id: str):
     """Generate AI-powered quiz questions"""
     try:
         logging.info(f"Generating quiz for deck {deck_id}")
-        
+
         # Get flashcards for the deck
         supabase = get_supabase_client()
-        flashcards_result = supabase.table("flashcards").select("*").eq("deck_id", deck_id).eq("user_id", user_id).limit(10).execute()
-        
+        flashcards_result = (
+            supabase.table("flashcards")
+            .select("*")
+            .eq("deck_id", deck_id)
+            .eq("user_id", user_id)
+            .limit(10)
+            .execute()
+        )
+
         flashcards = flashcards_result.data or []
-        
+
         if not flashcards:
             return [
                 {"question": "What is the capital of France?", "answer": "Paris"},
                 {"question": "What is 2 + 2?", "answer": "4"},
                 {"question": "What is the boiling point of water?", "answer": "100°C"},
             ]
-        
+
         # Generate AI prompt for quiz questions
         prompt = f"""Generate 3-5 quiz questions based on these flashcards:
 
@@ -259,10 +283,7 @@ Make questions engaging and test understanding of the concepts."""
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=600,
-            temperature=0.4
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=600, temperature=0.4
         )
 
         if "error" in response:
@@ -270,7 +291,10 @@ Make questions engaging and test understanding of the concepts."""
             return [
                 {"question": "What is the capital of France?", "answer": "Paris"},
                 {"question": "What is 2 + 2?", "answer": "4"},
-                {"question": "What is the boiling point of water?", "answer": "100°C"},
+                {
+                    "question": "What is the boiling point of water?",
+                    "answer": "100°C",
+                },
             ]
 
         # Parse AI response
@@ -284,7 +308,10 @@ Make questions engaging and test understanding of the concepts."""
                 questions = [
                     {"question": "What is the capital of France?", "answer": "Paris"},
                     {"question": "What is 2 + 2?", "answer": "4"},
-                    {"question": "What is the boiling point of water?", "answer": "100°C"},
+                    {
+                        "question": "What is the boiling point of water?",
+                        "answer": "100°C",
+                    },
                 ]
         except json.JSONDecodeError:
             questions = [
@@ -304,7 +331,7 @@ Make questions engaging and test understanding of the concepts."""
         )
 
         return questions
-        
+
     except Exception as e:
         logger.error(f"Error generating quiz questions: {e}")
         return [
@@ -328,7 +355,9 @@ async def quiz_me(
     """Generate AI-powered quiz questions with caching"""
     try:
         logging.info("Generating quiz questions")
-        questions = await generate_quiz_questions(request_data.deck_id, current_user["id"])
+        questions = await generate_quiz_questions(
+            request_data.deck_id, current_user["id"]
+        )
         return {"questions": questions}
     except Exception as e:
         logging.error(f"Error generating quiz questions: {str(e)}")
@@ -347,10 +376,10 @@ async def split_into_chunks(text: str, max_tokens: int = 1000) -> List[str]:
     """Split text into manageable chunks for processing"""
     logging.info("Splitting text into chunks")
     # Simple splitting by sentences or paragraphs
-    sentences = text.split('. ')
+    sentences = text.split(". ")
     chunks = []
     current_chunk = ""
-    
+
     for sentence in sentences:
         if len(current_chunk + sentence) > max_tokens:
             if current_chunk:
@@ -360,10 +389,10 @@ async def split_into_chunks(text: str, max_tokens: int = 1000) -> List[str]:
                 chunks.append(sentence)
         else:
             current_chunk += sentence + ". "
-    
+
     if current_chunk:
         chunks.append(current_chunk.strip())
-    
+
     return chunks if chunks else [text]
 
 
@@ -372,7 +401,7 @@ async def summarize_notes(notes: str, summary_type: str, user_id: str) -> str:
     """Generate AI-powered note summarization"""
     try:
         logging.info(f"Summarizing notes with summary type: {summary_type}")
-        
+
         # Generate AI prompt for summarization
         prompt = f"""Summarize the following notes in {summary_type} format:
 
@@ -383,10 +412,7 @@ Focus on clarity and actionable insights."""
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=500,
-            temperature=0.3
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=500, temperature=0.3
         )
 
         if "error" in response:
@@ -402,8 +428,10 @@ Focus on clarity and actionable insights."""
             cost_usd=response.get("usage", {}).get("total_cost", 0.02),
         )
 
-        return response.get("generated_text", f"Summary ({summary_type}): {notes[:100]}...")
-        
+        return response.get(
+            "generated_text", f"Summary ({summary_type}): {notes[:100]}..."
+        )
+
     except Exception as e:
         logger.error(f"Error summarizing notes: {e}")
         return f"Summary ({summary_type}): {notes[:100]}..."
@@ -434,15 +462,15 @@ async def summarize_notes_endpoint(
         logging.info(
             f"User {current_user['id']} is summarizing notes of length {len(request.notes)}"
         )
-        
+
         chunks = await split_into_chunks(request.notes)
         summaries = [
-            await summarize_notes(chunk, request.summary_type, current_user["id"]) 
+            await summarize_notes(chunk, request.summary_type, current_user["id"])
             for chunk in chunks
         ]
-        
+
         return {"summaries": summaries}
-        
+
     except Exception as e:
         logging.error(
             f"Error summarizing notes for user {current_user['id']}: {str(e)}"
@@ -469,16 +497,15 @@ class RescheduleSuggestion(BaseModel):
 
 # Function to suggest a reschedule time
 async def suggest_reschedule_logic(
-    request: SuggestRescheduleRequest,
-    user_id: str
+    request: SuggestRescheduleRequest, user_id: str
 ) -> RescheduleSuggestion:
     """Generate AI-powered reschedule suggestions"""
     try:
         logging.info(f"Suggesting reschedule for task: {request.task_title}")
-        
+
         # Get user context
         user_context = await _get_user_context(user_id)
-        
+
         # Generate AI prompt for rescheduling
         prompt = f"""Suggest an optimal reschedule time for this task:
 
@@ -502,17 +529,14 @@ Consider energy levels, deadlines, and existing commitments."""
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=400,
-            temperature=0.3
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=400, temperature=0.3
         )
 
         if "error" in response:
             # Fallback suggestion
             return RescheduleSuggestion(
                 suggested_time="Friday, 9:00 AM - 10:30 AM",
-                reason="Closer to the deadline. User has higher focus in the morning and Friday is still open."
+                reason="Closer to the deadline. User has higher focus in the morning and Friday is still open.",
             )
 
         # Parse AI response
@@ -523,19 +547,23 @@ Consider energy levels, deadlines, and existing commitments."""
             if start_idx != -1 and end_idx != 0:
                 suggestion_data = json.loads(response_text[start_idx:end_idx])
                 return RescheduleSuggestion(
-                    suggested_time=suggestion_data.get("suggested_time", "Friday, 9:00 AM - 10:30 AM"),
-                    reason=suggestion_data.get("reason", "Optimal time based on your schedule"),
-                    alternative_times=suggestion_data.get("alternative_times", [])
+                    suggested_time=suggestion_data.get(
+                        "suggested_time", "Friday, 9:00 AM - 10:30 AM"
+                    ),
+                    reason=suggestion_data.get(
+                        "reason", "Optimal time based on your schedule"
+                    ),
+                    alternative_times=suggestion_data.get("alternative_times", []),
                 )
             else:
                 return RescheduleSuggestion(
                     suggested_time="Friday, 9:00 AM - 10:30 AM",
-                    reason="Closer to the deadline. User has higher focus in the morning and Friday is still open."
+                    reason="Closer to the deadline. User has higher focus in the morning and Friday is still open.",
                 )
         except json.JSONDecodeError:
             return RescheduleSuggestion(
                 suggested_time="Friday, 9:00 AM - 10:30 AM",
-                reason="Closer to the deadline. User has higher focus in the morning and Friday is still open."
+                reason="Closer to the deadline. User has higher focus in the morning and Friday is still open.",
             )
 
         # Track API usage
@@ -547,12 +575,12 @@ Consider energy levels, deadlines, and existing commitments."""
             output_tokens=response.get("usage", {}).get("completion_tokens", 200),
             cost_usd=response.get("usage", {}).get("total_cost", 0.01),
         )
-        
+
     except Exception as e:
         logger.error(f"Error suggesting reschedule: {e}")
         return RescheduleSuggestion(
             suggested_time="Friday, 9:00 AM - 10:30 AM",
-            reason="Closer to the deadline. User has higher focus in the morning and Friday is still open."
+            reason="Closer to the deadline. User has higher focus in the morning and Friday is still open.",
         )
 
 
@@ -743,10 +771,10 @@ async def plan_my_day(
     """Generate AI-powered daily plan with caching"""
     try:
         logging.info(f"User {current_user['id']} requesting daily plan")
-        
+
         # Get user context
         user_context = await _get_user_context(current_user["id"])
-        
+
         # Generate AI prompt for daily planning
         prompt = f"""Create a personalized daily schedule for {request.date} based on:
 
@@ -777,10 +805,7 @@ Generate a structured daily plan in JSON format:
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=800,
-            temperature=0.3
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=800, temperature=0.3
         )
 
         if "error" in response:
@@ -814,7 +839,10 @@ Generate a structured daily plan in JSON format:
                     timeblocks = [
                         TimeBlock(**block) for block in plan_data.get("timeblocks", [])
                     ]
-                    notes = plan_data.get("notes", "AI-generated plan based on your preferences and current tasks.")
+                    notes = plan_data.get(
+                        "notes",
+                        "AI-generated plan based on your preferences and current tasks.",
+                    )
                 else:
                     timeblocks = [
                         TimeBlock(
@@ -826,7 +854,9 @@ Generate a structured daily plan in JSON format:
                             priority="high",
                         )
                     ]
-                    notes = "AI-generated plan based on your preferences and current tasks."
+                    notes = (
+                        "AI-generated plan based on your preferences and current tasks."
+                    )
             except json.JSONDecodeError:
                 timeblocks = [
                     TimeBlock(
@@ -1011,7 +1041,7 @@ async def update_flashcard_review(flashcard_id: str, was_correct: bool):
     supabase = get_supabase_client()
     # TODO: Implement SM-2 algorithm for spaced repetition
     # For now, just update the last_reviewed_at timestamp
-    result = (
+    result = (  # noqa: F841
         supabase.table("flashcards")
         .update({"last_reviewed_at": datetime.utcnow().isoformat()})
         .eq("id", flashcard_id)
@@ -1084,7 +1114,7 @@ async def invalidate_cache(
         return {
             "success": True,
             "deleted_entries": deleted_count,
-            "operations": operations or "all"
+            "operations": operations or "all",
         }
     except Exception as e:
         logger.error(f"Error invalidating cache: {str(e)}")
@@ -1096,10 +1126,7 @@ async def get_cache_stats(current_user: dict = Depends(get_current_user)):
     """Get AI cache statistics"""
     try:
         stats = ai_cache_service.get_cache_stats()
-        return {
-            "success": True,
-            "stats": stats
-        }
+        return {"success": True, "stats": stats}
     except Exception as e:
         logger.error(f"Error getting cache stats: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

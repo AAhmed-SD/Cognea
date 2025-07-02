@@ -274,7 +274,7 @@ async def delete_schedule_block(
         if not existing.data:
             raise HTTPException(status_code=404, detail="Schedule block not found")
 
-        result = (
+        result = (  # noqa: F841
             supabase.table("schedule_blocks")
             .delete()
             .eq("id", str(block_id))

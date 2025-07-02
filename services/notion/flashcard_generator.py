@@ -8,6 +8,7 @@ import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, UTC
 from pydantic import BaseModel, ConfigDict
+import httpx
 
 from .notion_client import NotionClient
 from services.ai.openai_service import get_openai_service
@@ -15,6 +16,15 @@ from services.cost_tracking import cost_tracking_service
 from services.rate_limited_queue import get_notion_queue
 
 logger = logging.getLogger(__name__)
+
+
+class FlashcardGenerationError(Exception):
+    """Custom exception for flashcard generation errors."""
+
+    def __init__(self, message: str, source: Optional[str] = None):
+        self.message = message
+        self.source = source
+        super().__init__(self.message)
 
 
 class FlashcardData(BaseModel):
@@ -95,16 +105,29 @@ class NotionFlashcardGenerator:
 
             all_content = []
             for page in pages:
-                page_content = await self._extract_page_content_from_database_item(page)
-                all_content.append(
-                    {
-                        "title": page.get("properties", {})
-                        .get("Name", {})
-                        .get("title", [{}])[0]
-                        .get("plain_text", "Untitled"),
-                        "content": page_content,
-                    }
-                )
+                try:
+                    page_content = await self._extract_page_content_from_database_item(
+                        page
+                    )
+                    all_content.append(
+                        {
+                            "title": page.get("properties", {})
+                            .get("Name", {})
+                            .get("title", [{}])[0]
+                            .get("plain_text", "Untitled"),
+                            "content": page_content,
+                        }
+                    )
+                except Exception as page_error:
+                    logger.warning(
+                        f"Failed to extract content from page {page.get('id', 'unknown')} "
+                        f"in database {database_id}: {page_error}"
+                    )
+                    continue
+
+            if not all_content:
+                logger.warning(f"No content extracted from database {database_id}")
+                return []
 
             # Generate flashcards from all content
             flashcards = await self._generate_flashcards_from_multiple_sources(
@@ -115,13 +138,34 @@ class NotionFlashcardGenerator:
                 source_database_title=database.title,
             )
 
+            logger.info(
+                f"Successfully generated {len(flashcards)} flashcards from database {database_id}"
+            )
             return flashcards
 
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                f"HTTP error generating flashcards from database {database_id}: "
+                f"{e.response.status_code} - {e.response.text}"
+            )
+            raise FlashcardGenerationError(
+                f"Failed to access Notion database {database_id}: {e.response.status_code}"
+            ) from e
+        except httpx.RequestError as e:
+            logger.error(
+                f"Network error generating flashcards from database {database_id}: {e}"
+            )
+            raise FlashcardGenerationError(
+                f"Network error accessing Notion database {database_id}"
+            ) from e
         except Exception as e:
             logger.error(
-                f"Failed to generate flashcards from database {database_id}: {e}"
+                f"Unexpected error generating flashcards from database {database_id}: {e}",
+                exc_info=True,
             )
-            raise
+            raise FlashcardGenerationError(
+                f"Failed to generate flashcards from database {database_id}: {str(e)}"
+            ) from e
 
     async def _extract_page_content_from_database_item(
         self, page_data: Dict[str, Any]
@@ -280,28 +324,51 @@ Generate the flashcards now:
     def _parse_flashcard_line(
         self, line: str, source_page_id: str, source_page_title: str
     ) -> Optional[FlashcardData]:
-        """Parse a single flashcard line."""
+        """Parse a single flashcard line with improved error handling and validation."""
         try:
-            # Extract question
-            question_match = re.search(r"Q:\s*(.*?)\s*\|\s*A:", line)
+            # Validate input
+            if not line or not isinstance(line, str):
+                logger.debug(f"Invalid line format: {type(line)} - {line}")
+                return None
+
+            line = line.strip()
+            if not line.startswith("Q:"):
+                logger.debug(f"Line does not start with 'Q:': {line[:50]}...")
+                return None
+
+            # Extract question with improved regex
+            question_match = re.search(r"Q:\s*(.*?)\s*\|\s*A:", line, re.DOTALL)
             if not question_match:
+                logger.debug(f"Could not extract question from line: {line[:100]}...")
                 return None
             question = question_match.group(1).strip()
 
-            # Extract answer
-            answer_match = re.search(r"A:\s*(.*?)\s*\|\s*TAGS:", line)
+            if not question or len(question) < 3:
+                logger.debug(f"Question too short or empty: '{question}'")
+                return None
+
+            # Extract answer with improved regex
+            answer_match = re.search(r"A:\s*(.*?)\s*\|\s*TAGS:", line, re.DOTALL)
             if not answer_match:
+                logger.debug(f"Could not extract answer from line: {line[:100]}...")
                 return None
             answer = answer_match.group(1).strip()
 
-            # Extract tags
-            tags_match = re.search(r"TAGS:\s*(.*?)\s*\|\s*DIFFICULTY:", line)
+            if not answer or len(answer) < 3:
+                logger.debug(f"Answer too short or empty: '{answer}'")
+                return None
+
+            # Extract tags with improved regex
+            tags_match = re.search(r"TAGS:\s*(.*?)\s*\|\s*DIFFICULTY:", line, re.DOTALL)
             tags = []
             if tags_match:
                 tags_str = tags_match.group(1).strip()
-                tags = [tag.strip() for tag in tags_str.split(",") if tag.strip()]
+                if tags_str:
+                    tags = [tag.strip() for tag in tags_str.split(",") if tag.strip()]
+                    # Validate tags
+                    tags = [tag for tag in tags if len(tag) <= 50]  # Limit tag length
 
-            # Extract difficulty
+            # Extract difficulty with improved regex
             difficulty_match = re.search(
                 r"DIFFICULTY:\s*(easy|medium|hard)", line, re.IGNORECASE
             )
@@ -309,7 +376,12 @@ Generate the flashcards now:
                 difficulty_match.group(1).lower() if difficulty_match else "medium"
             )
 
-            return FlashcardData(
+            # Validate difficulty
+            if difficulty not in ["easy", "medium", "hard"]:
+                difficulty = "medium"
+
+            # Create flashcard data with validation
+            flashcard = FlashcardData(
                 question=question,
                 answer=answer,
                 tags=tags,
@@ -318,8 +390,23 @@ Generate the flashcards now:
                 source_page_title=source_page_title,
             )
 
+            logger.debug(
+                f"Successfully parsed flashcard: Q='{question[:30]}...' "
+                f"A='{answer[:30]}...' tags={tags} difficulty={difficulty}"
+            )
+
+            return flashcard
+
+        except re.error as e:
+            logger.warning(
+                f"Regex error parsing flashcard line: {line[:100]}... Error: {e}"
+            )
+            return None
         except Exception as e:
-            logger.warning(f"Failed to parse flashcard line: {line}, error: {e}")
+            logger.warning(
+                f"Unexpected error parsing flashcard line: {line[:100]}... "
+                f"Error: {e} (type: {type(e).__name__})"
+            )
             return None
 
     async def generate_flashcards_from_text(

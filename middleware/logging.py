@@ -1,4 +1,4 @@
-from fastapi import Request, Response
+from fastapi import Request, Response, FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 import time
@@ -153,3 +153,14 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         finally:
             # Remove filter
             logger.removeFilter(ContextFilter())
+
+
+def setup_logging(app: FastAPI):
+    """Setup logging middleware for the FastAPI application."""
+    # Add logging middleware
+    app.add_middleware(LoggingMiddleware, app)
+
+    # Add request context middleware
+    app.add_middleware(RequestContextMiddleware, app)
+
+    logger.info("Logging middleware configured")

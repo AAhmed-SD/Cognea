@@ -305,7 +305,7 @@ class ContextManager:
                 if isinstance(conv_data, str):
                     try:
                         conv_data = json.loads(conv_data)
-                    except:
+                    except Exception:
                         conv_data = {}
 
                 conversations.extend(conv_data.get("messages", []))
@@ -348,7 +348,7 @@ class ContextManager:
                 if isinstance(conv_data, str):
                     try:
                         conv_data = json.loads(conv_data)
-                    except:
+                    except Exception:
                         conv_data = {"messages": []}
 
                 conv_data["messages"] = conv_data.get("messages", [])

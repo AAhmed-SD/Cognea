@@ -6,7 +6,8 @@ Handles 3 requests/second limit with batching and exponential backoff.
 import asyncio
 import logging
 import time
-from typing import Any, Dict, Optional
+import heapq
+from typing import Any, Dict, Optional, List, Tuple
 from dataclasses import dataclass
 from datetime import datetime, UTC
 
@@ -35,7 +36,10 @@ class NotionRateLimitedQueue:
     def __init__(self, notion_client, max_requests_per_second: int = 3):
         self.notion_client = notion_client
         self.max_requests_per_second = max_requests_per_second
-        self.queue = asyncio.Queue()
+        self.priority_queue: List[
+            Tuple[int, float, NotionAPIRequest, asyncio.Future]
+        ] = []
+        self.queue_lock = asyncio.Lock()
         self.worker_task = None
         self.is_running = False
         self.last_request_time = 0
@@ -69,7 +73,7 @@ class NotionRateLimitedQueue:
         headers: Optional[Dict] = None,
         priority: int = 1,
     ) -> asyncio.Future:
-        """Enqueue a Notion API request."""
+        """Enqueue a Notion API request with priority."""
         request = NotionAPIRequest(
             method=method,
             endpoint=endpoint,
@@ -80,7 +84,12 @@ class NotionRateLimitedQueue:
 
         # Create a future to return the result
         future = asyncio.Future()
-        await self.queue.put((request, future))
+
+        async with self.queue_lock:
+            # Use timestamp as tiebreaker for requests with same priority
+            timestamp = time.time()
+            # heapq uses min-heap, so we negate priority to get highest priority first
+            heapq.heappush(self.priority_queue, (-priority, timestamp, request, future))
 
         return future
 
@@ -90,11 +99,13 @@ class NotionRateLimitedQueue:
             try:
                 # Process up to max_requests_per_second
                 for _ in range(self.max_requests_per_second):
-                    if self.queue.empty():
+                    if not self.priority_queue:
                         break
 
                     # Get the highest priority request
                     request, future = await self._get_highest_priority_request()
+                    if request is None:
+                        break
 
                     # Rate limiting
                     await self._rate_limit()
@@ -123,11 +134,18 @@ class NotionRateLimitedQueue:
 
     async def _get_highest_priority_request(
         self,
-    ) -> tuple[NotionAPIRequest, asyncio.Future]:
+    ) -> Tuple[Optional[NotionAPIRequest], Optional[asyncio.Future]]:
         """Get the highest priority request from the queue."""
-        # For simplicity, we'll just get the next request
-        # In a production system, you might want to implement a priority queue
-        return await self.queue.get()
+        async with self.queue_lock:
+            if not self.priority_queue:
+                return None, None
+
+            # Get the highest priority request (lowest negative priority = highest actual priority)
+            _, timestamp, request, future = heapq.heappop(self.priority_queue)
+            logger.debug(
+                f"Processing request: {request.method} {request.endpoint} (priority: {request.priority})"
+            )
+            return request, future
 
     async def _rate_limit(self):
         """Implement rate limiting."""
@@ -201,6 +219,24 @@ class NotionRateLimitedQueue:
         # Wait for all requests to complete
         results = await asyncio.gather(*futures, return_exceptions=True)
         return results
+
+    async def get_queue_size(self) -> int:
+        """Get the current size of the priority queue."""
+        async with self.queue_lock:
+            return len(self.priority_queue)
+
+    async def get_queue_stats(self) -> Dict[str, Any]:
+        """Get statistics about the queue."""
+        async with self.queue_lock:
+            priorities = [item[0] for item in self.priority_queue]
+            return {
+                "queue_size": len(self.priority_queue),
+                "high_priority_count": sum(1 for p in priorities if p == -1),
+                "medium_priority_count": sum(1 for p in priorities if p == -2),
+                "low_priority_count": sum(1 for p in priorities if p == -3),
+                "consecutive_errors": self.consecutive_errors,
+                "is_running": self.is_running,
+            }
 
 
 # Global instance

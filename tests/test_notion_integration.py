@@ -223,7 +223,9 @@ async def test_notion_integration_end_to_end(
         flashcard_generator = NotionFlashcardGenerator(
             mock_notion_client, mock_openai_service
         )
-        sync_manager = NotionSyncManager(mock_notion_client, flashcard_generator)
+        sync_manager = NotionSyncManager(
+            mock_notion_client, flashcard_generator
+        )  # noqa: F841
 
         # Test flashcard generation
         flashcards = await flashcard_generator.generate_flashcards_from_page(

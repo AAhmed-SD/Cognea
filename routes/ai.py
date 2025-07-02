@@ -7,6 +7,12 @@ from services.auth import get_current_user
 from services.cost_tracking import cost_tracking_service
 from services.ai_cache import ai_cached, ai_cache_service, invalidate_ai_cache_for_user
 from services.openai_integration import generate_openai_text
+from services.background_workers import (
+    background_worker,
+    background_task,
+    scheduled_job,
+)
+from services.performance_monitor import monitor_performance
 import logging
 import json
 
@@ -72,22 +78,58 @@ class SmartScheduleRequest(BaseModel):
     preferences: dict  # User preferences
 
 
+class AIInsightRequest(BaseModel):
+    insight_type: str
+    user_data: Optional[Dict[str, Any]] = None
+    parameters: Optional[Dict[str, Any]] = None
+
+
+class AIAnalysisRequest(BaseModel):
+    analysis_type: str
+    data: Dict[str, Any]
+    parameters: Optional[Dict[str, Any]] = None
+
+
+class AISuggestionRequest(BaseModel):
+    suggestion_type: str
+    context: Dict[str, Any]
+    parameters: Optional[Dict[str, Any]] = None
+
+
 async def _get_user_context(user_id: str) -> Dict[str, Any]:
     """Get user context data for AI operations"""
     try:
         supabase = get_supabase_client()
-        
+
         # Fetch user's recent data in parallel
-        tasks_result = supabase.table("tasks").select("*").eq("user_id", user_id).limit(20).execute()
-        goals_result = supabase.table("goals").select("*").eq("user_id", user_id).limit(10).execute()
-        schedule_result = supabase.table("schedule_blocks").select("*").eq("user_id", user_id).limit(15).execute()
-        
+        tasks_result = (
+            supabase.table("tasks")
+            .select("*")
+            .eq("user_id", user_id)
+            .limit(20)
+            .execute()
+        )
+        goals_result = (
+            supabase.table("goals")
+            .select("*")
+            .eq("user_id", user_id)
+            .limit(10)
+            .execute()
+        )
+        schedule_result = (
+            supabase.table("schedule_blocks")
+            .select("*")
+            .eq("user_id", user_id)
+            .limit(15)
+            .execute()
+        )
+
         return {
             "tasks": tasks_result.data or [],
             "goals": goals_result.data or [],
             "schedule_blocks": schedule_result.data or [],
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:
         logger.error(f"Error getting user context: {e}")
@@ -97,20 +139,22 @@ async def _get_user_context(user_id: str) -> Dict[str, Any]:
 @router.post("/plan-day", summary="Generate a daily plan based on preferences")
 @ai_cached("ai_planning", ttl=1800)  # Cache for 30 minutes
 async def plan_day(
-    request: PlanDayRequest, 
+    request: PlanDayRequest,
     current_user: dict = Depends(get_current_user),
-    background_tasks: BackgroundTasks = None
+    background_tasks: BackgroundTasks = None,
 ):
     """Generate AI-powered daily plan with caching and optimization"""
     try:
         # Check budget limits before making AI call
-        budget_check = await cost_tracking_service.check_budget_limits(current_user["id"])
+        budget_check = await cost_tracking_service.check_budget_limits(
+            current_user["id"]
+        )
         if budget_check["daily_exceeded"] or budget_check["monthly_exceeded"]:
             raise HTTPException(status_code=429, detail="Budget limit exceeded")
 
         # Get user context for personalization
-        user_context = await _get_user_context(current_user["id"])
-        
+        user_context = await _get_user_context(current_user["id"])  # noqa: F841
+
         # Generate AI prompt for planning
         prompt = f"""Create a personalized daily schedule for {request.date} based on:
 
@@ -128,10 +172,7 @@ Return as JSON array with time, activity, and focus_area fields."""
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=800,
-            temperature=0.3
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=800, temperature=0.3
         )
 
         if "error" in response:
@@ -150,9 +191,17 @@ Return as JSON array with time, activity, and focus_area fields."""
                     {
                         "time": "09:00-10:30",
                         "activity": "Deep work session",
-                        "focus_area": request.preferences.focus_areas[0] if request.preferences.focus_areas else "work",
+                        "focus_area": (
+                            request.preferences.focus_areas[0]
+                            if request.preferences.focus_areas
+                            else "work"
+                        ),
                     },
-                    {"time": "10:45-12:00", "activity": "Team meeting", "focus_area": "work"},
+                    {
+                        "time": "10:45-12:00",
+                        "activity": "Team meeting",
+                        "focus_area": "work",
+                    },
                 ]
         except json.JSONDecodeError:
             # Fallback schedule
@@ -160,9 +209,17 @@ Return as JSON array with time, activity, and focus_area fields."""
                 {
                     "time": "09:00-10:30",
                     "activity": "Deep work session",
-                    "focus_area": request.preferences.focus_areas[0] if request.preferences.focus_areas else "work",
+                    "focus_area": (
+                        request.preferences.focus_areas[0]
+                        if request.preferences.focus_areas
+                        else "work"
+                    ),
                 },
-                {"time": "10:45-12:00", "activity": "Team meeting", "focus_area": "work"},
+                {
+                    "time": "10:45-12:00",
+                    "activity": "Team meeting",
+                    "focus_area": "work",
+                },
             ]
 
         # Track API usage
@@ -177,14 +234,20 @@ Return as JSON array with time, activity, and focus_area fields."""
 
         # Store plan in database (async)
         if background_tasks:
-            background_tasks.add_task(_store_plan, current_user["id"], request.date, request.preferences.model_dump(), schedule)
+            background_tasks.add_task(
+                _store_plan,
+                current_user["id"],
+                request.date,
+                request.preferences.model_dump(),
+                schedule,
+            )
 
         return {
             "success": True,
             "plan": {
                 "date": request.date,
                 "schedule": schedule,
-                "cached": False  # Will be true when served from cache
+                "cached": False,  # Will be true when served from cache
             },
         }
 
@@ -217,7 +280,9 @@ async def generate_flashcards(
     """Generate AI-powered flashcards with caching"""
     try:
         # Check budget limits
-        budget_check = await cost_tracking_service.check_budget_limits(current_user["id"])
+        budget_check = await cost_tracking_service.check_budget_limits(
+            current_user["id"]
+        )
         if budget_check["daily_exceeded"] or budget_check["monthly_exceeded"]:
             raise HTTPException(status_code=429, detail="Budget limit exceeded")
 
@@ -238,10 +303,7 @@ Make the flashcards engaging and appropriate for {request.difficulty} difficulty
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=1000,
-            temperature=0.4
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1000, temperature=0.4
         )
 
         if "error" in response:
@@ -257,18 +319,30 @@ Make the flashcards engaging and appropriate for {request.difficulty} difficulty
             else:
                 # Fallback flashcards
                 flashcard_data = [
-                    {"front": "What is Python?", "back": "Python is a high-level, interpreted programming language."},
-                    {"front": "What is a list in Python?", "back": "A list is a mutable sequence type that can store multiple items."},
+                    {
+                        "front": "What is Python?",
+                        "back": "Python is a high-level, interpreted programming language.",
+                    },
+                    {
+                        "front": "What is a list in Python?",
+                        "back": "A list is a mutable sequence type that can store multiple items.",
+                    },
                 ]
         except json.JSONDecodeError:
             # Fallback flashcards
             flashcard_data = [
-                {"front": "What is Python?", "back": "Python is a high-level, interpreted programming language."},
-                {"front": "What is a list in Python?", "back": "A list is a mutable sequence type that can store multiple items."},
+                {
+                    "front": "What is Python?",
+                    "back": "Python is a high-level, interpreted programming language.",
+                },
+                {
+                    "front": "What is a list in Python?",
+                    "back": "A list is a mutable sequence type that can store multiple items.",
+                },
             ]
 
         # Limit to requested count
-        flashcard_data = flashcard_data[:request.count]
+        flashcard_data = flashcard_data[: request.count]
 
         # Track API usage
         await cost_tracking_service.track_api_call(
@@ -319,100 +393,55 @@ Make the flashcards engaging and appropriate for {request.difficulty} difficulty
 
 
 @router.post("/insights", summary="Generate AI insights based on user data")
-@ai_cached("ai_insights", ttl=3600)  # Cache for 1 hour
-async def generate_insights(
-    request: InsightRequest, current_user: dict = Depends(get_current_user)
+@monitor_performance("ai_insights")
+async def get_ai_insights(
+    request: AIInsightRequest,
+    current_user: Dict = Depends(get_current_user),
 ):
-    """Generate AI-powered insights with caching"""
+    """Get AI insights for user data"""
     try:
-        # Check budget limits
-        budget_check = await cost_tracking_service.check_budget_limits(current_user["id"])
-        if budget_check["daily_exceeded"] or budget_check["monthly_exceeded"]:
-            raise HTTPException(status_code=429, detail="Budget limit exceeded")
+        user_id = current_user["id"]
 
-        # Get user context
-        user_context = await _get_user_context(current_user["id"])
+        # Check cache first
+        cached_insight = await ai_cache_service.get_cached_ai_response(
+            "ai_insights",
+            user_id,
+            request.user_data,
+            insight_type=request.insight_type,
+            **request.parameters or {},
+        )
+
+        if cached_insight:
+            return cached_insight.get("response")
+
+        # Generate AI insight
+        prompt = f"""
+        Analyze the user data and provide insights for {request.insight_type}.
+        Focus on actionable recommendations and patterns.
         
-        # Generate AI prompt for insights
-        prompt = f"""Analyze the user's productivity data and generate insights for {request.date_range}.
+        User Data: {request.user_data}
+        Parameters: {request.parameters}
+        
+        Provide a comprehensive analysis with specific insights and recommendations.
+        """
 
-Categories to focus on: {', '.join(request.categories)}
+        insight = await generate_openai_text(prompt, max_tokens=1000)
 
-User Data:
-- Tasks: {len(user_context.get('tasks', []))} tasks
-- Goals: {len(user_context.get('goals', []))} goals
-- Schedule blocks: {len(user_context.get('schedule_blocks', []))} blocks
-
-Generate insights in JSON format:
-{{
-    "productivity_trends": [
-        {{
-            "category": "Focus Time",
-            "trend": "increasing/decreasing/stable",
-            "details": "Specific insights about this trend"
-        }}
-    ],
-    "recommendations": [
-        "Specific actionable recommendation 1",
-        "Specific actionable recommendation 2"
-    ],
-    "achievements": [
-        "Notable achievement 1",
-        "Notable achievement 2"
-    ]
-}}"""
-
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=800,
-            temperature=0.3
+        # Cache the result
+        await ai_cache_service.set_cached_ai_response(
+            "ai_insights",
+            user_id,
+            insight,
+            request.user_data,
+            insight_type=request.insight_type,
+            **request.parameters or {},
         )
 
-        if "error" in response:
-            raise HTTPException(status_code=500, detail=response["error"])
-
-        # Parse AI response
-        try:
-            response_text = response.get("generated_text", "")
-            start_idx = response_text.find("{")
-            end_idx = response_text.rfind("}") + 1
-            if start_idx != -1 and end_idx != 0:
-                insights = json.loads(response_text[start_idx:end_idx])
-            else:
-                insights = {
-                    "productivity_trends": [{"category": "Focus Time", "trend": "stable", "details": "Your focus time has been consistent"}],
-                    "recommendations": ["Continue with your current productivity patterns", "Consider reviewing your goals weekly"],
-                    "achievements": ["Maintained consistent task completion", "Kept up with your learning goals"]
-                }
-        except json.JSONDecodeError:
-            insights = {
-                "productivity_trends": [{"category": "Focus Time", "trend": "stable", "details": "Your focus time has been consistent"}],
-                "recommendations": ["Continue with your current productivity patterns", "Consider reviewing your goals weekly"],
-                "achievements": ["Maintained consistent task completion", "Kept up with your learning goals"]
-            }
-
-        # Track API usage
-        await cost_tracking_service.track_api_call(
-            user_id=current_user["id"],
-            endpoint="/insights",
-            model="gpt-4-turbo-preview",
-            input_tokens=response.get("usage", {}).get("prompt_tokens", 200),
-            output_tokens=response.get("usage", {}).get("completion_tokens", 400),
-            cost_usd=response.get("usage", {}).get("total_cost", 0.02),
-        )
-
-        return {
-            "success": True,
-            "insights": insights,
-            "date_range": request.date_range,
-            "categories": request.categories,
-        }
+        return {"insight": insight, "type": request.insight_type}
 
     except Exception as e:
-        logger.error(f"Error in generate_insights: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error generating AI insights: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate AI insights")
 
 
 @router.get("/insights/latest", summary="Get latest AI insights")
@@ -421,16 +450,15 @@ async def get_latest_insights(current_user: dict = Depends(get_current_user)):
     """Get latest cached insights for user"""
     try:
         # Get user context
-        user_context = await _get_user_context(current_user["id"])
-        
+        user_context = await _get_user_context(current_user["id"])  # noqa: F841
+
         # Generate insights for the current week
         request = InsightRequest(
-            date_range="this_week",
-            categories=["productivity", "goals", "habits"]
+            date_range="this_week", categories=["productivity", "goals", "habits"]
         )
-        
-        return await generate_insights(request, current_user)
-        
+
+        return await get_ai_insights(request, current_user)
+
     except Exception as e:
         logger.error(f"Error in get_latest_insights: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -444,7 +472,9 @@ async def suggest_habits(
     """Generate AI-powered habit suggestions with caching"""
     try:
         # Check budget limits
-        budget_check = await cost_tracking_service.check_budget_limits(current_user["id"])
+        budget_check = await cost_tracking_service.check_budget_limits(
+            current_user["id"]
+        )
         if budget_check["daily_exceeded"] or budget_check["monthly_exceeded"]:
             raise HTTPException(status_code=429, detail="Budget limit exceeded")
 
@@ -471,10 +501,7 @@ Generate suggestions in JSON format:
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=600,
-            temperature=0.4
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=600, temperature=0.4
         )
 
         if "error" in response:
@@ -495,10 +522,10 @@ Generate suggestions in JSON format:
                             "description": "Spend 10 minutes planning your day",
                             "time_required": 10,
                             "difficulty": "easy",
-                            "expected_impact": "high"
+                            "expected_impact": "high",
                         }
                     ],
-                    "reasoning": "Morning planning helps set clear priorities for the day"
+                    "reasoning": "Morning planning helps set clear priorities for the day",
                 }
         except json.JSONDecodeError:
             suggestions = {
@@ -508,10 +535,10 @@ Generate suggestions in JSON format:
                         "description": "Spend 10 minutes planning your day",
                         "time_required": 10,
                         "difficulty": "easy",
-                        "expected_impact": "high"
+                        "expected_impact": "high",
                     }
                 ],
-                "reasoning": "Morning planning helps set clear priorities for the day"
+                "reasoning": "Morning planning helps set clear priorities for the day",
             }
 
         # Track API usage
@@ -542,13 +569,15 @@ async def analyze_productivity(
     """Analyze productivity patterns with caching"""
     try:
         # Check budget limits
-        budget_check = await cost_tracking_service.check_budget_limits(current_user["id"])
+        budget_check = await cost_tracking_service.check_budget_limits(
+            current_user["id"]
+        )
         if budget_check["daily_exceeded"] or budget_check["monthly_exceeded"]:
             raise HTTPException(status_code=429, detail="Budget limit exceeded")
 
         # Get user context
-        user_context = await _get_user_context(current_user["id"])
-        
+        user_context = await _get_user_context(current_user["id"])  # noqa: F841
+
         # Generate AI prompt for productivity analysis
         prompt = f"""Analyze productivity patterns for {request.date_range}.
 
@@ -596,10 +625,7 @@ Generate analysis in JSON format:
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=1200,
-            temperature=0.3
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1200, temperature=0.3
         )
 
         if "error" in response:
@@ -618,31 +644,31 @@ Generate analysis in JSON format:
                     "trends": {
                         "focus_time": {"trend": "stable", "change": "+5%"},
                         "task_completion": {"trend": "stable", "change": "+2%"},
-                        "learning_consistency": {"trend": "stable", "change": "+3%"}
+                        "learning_consistency": {"trend": "stable", "change": "+3%"},
                     },
                     "peak_hours": {
                         "morning": "09:00-11:00",
                         "afternoon": "14:00-16:00",
-                        "evening": "19:00-21:00"
+                        "evening": "19:00-21:00",
                     },
                     "productivity_blocks": [
                         {
                             "type": "Deep Work",
                             "duration": "2-3 hours",
                             "best_time": "Morning",
-                            "success_rate": 0.8
+                            "success_rate": 0.8,
                         }
                     ],
                     "ai_insights": [
                         "Your productivity is consistent",
                         "You maintain good focus during scheduled blocks",
-                        "Your goal progress shows steady improvement"
+                        "Your goal progress shows steady improvement",
                     ],
                     "optimization_suggestions": [
                         "Continue with your current productivity patterns",
                         "Consider adding more breaks between deep work sessions",
-                        "Review your goals weekly to maintain focus"
-                    ]
+                        "Review your goals weekly to maintain focus",
+                    ],
                 }
         except json.JSONDecodeError:
             analysis = {
@@ -650,31 +676,31 @@ Generate analysis in JSON format:
                 "trends": {
                     "focus_time": {"trend": "stable", "change": "+5%"},
                     "task_completion": {"trend": "stable", "change": "+2%"},
-                    "learning_consistency": {"trend": "stable", "change": "+3%"}
+                    "learning_consistency": {"trend": "stable", "change": "+3%"},
                 },
                 "peak_hours": {
                     "morning": "09:00-11:00",
                     "afternoon": "14:00-16:00",
-                    "evening": "19:00-21:00"
+                    "evening": "19:00-21:00",
                 },
                 "productivity_blocks": [
                     {
                         "type": "Deep Work",
                         "duration": "2-3 hours",
                         "best_time": "Morning",
-                        "success_rate": 0.8
+                        "success_rate": 0.8,
                     }
                 ],
                 "ai_insights": [
                     "Your productivity is consistent",
                     "You maintain good focus during scheduled blocks",
-                    "Your goal progress shows steady improvement"
+                    "Your goal progress shows steady improvement",
                 ],
                 "optimization_suggestions": [
                     "Continue with your current productivity patterns",
                     "Consider adding more breaks between deep work sessions",
-                    "Review your goals weekly to maintain focus"
-                ]
+                    "Review your goals weekly to maintain focus",
+                ],
             }
 
         # Track API usage
@@ -706,7 +732,9 @@ async def optimize_schedule(
     """Optimize schedule using AI with caching"""
     try:
         # Check budget limits
-        budget_check = await cost_tracking_service.check_budget_limits(current_user["id"])
+        budget_check = await cost_tracking_service.check_budget_limits(
+            current_user["id"]
+        )
         if budget_check["daily_exceeded"] or budget_check["monthly_exceeded"]:
             raise HTTPException(status_code=429, detail="Budget limit exceeded")
 
@@ -738,10 +766,7 @@ Generate optimized schedule in JSON format:
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=1000,
-            temperature=0.3
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1000, temperature=0.3
         )
 
         if "error" in response:
@@ -759,14 +784,20 @@ Generate optimized schedule in JSON format:
                     "optimized_schedule": [],
                     "efficiency_score": 80,
                     "time_saved": "1 hour",
-                    "recommendations": ["Consider batching similar tasks", "Schedule breaks between deep work sessions"]
+                    "recommendations": [
+                        "Consider batching similar tasks",
+                        "Schedule breaks between deep work sessions",
+                    ],
                 }
         except json.JSONDecodeError:
             optimization = {
                 "optimized_schedule": [],
                 "efficiency_score": 80,
                 "time_saved": "1 hour",
-                "recommendations": ["Consider batching similar tasks", "Schedule breaks between deep work sessions"]
+                "recommendations": [
+                    "Consider batching similar tasks",
+                    "Schedule breaks between deep work sessions",
+                ],
             }
 
         # Track API usage
@@ -795,13 +826,13 @@ async def get_weekly_summary(current_user: dict = Depends(get_current_user)):
     """Get weekly productivity summary with caching"""
     try:
         # Get user context
-        user_context = await _get_user_context(current_user["id"])
-        
+        user_context = await _get_user_context(current_user["id"])  # noqa: F841
+
         # Calculate date range for this week
         now = datetime.utcnow()
         start_date = now - timedelta(days=7)
         end_date = now
-        
+
         # Generate AI prompt for weekly summary
         prompt = f"""Generate a weekly productivity summary for the past week.
 
@@ -843,10 +874,7 @@ Generate summary in JSON format:
 
         # Call OpenAI API
         response = await generate_openai_text(
-            prompt=prompt,
-            model="gpt-4-turbo-preview",
-            max_tokens=1000,
-            temperature=0.4
+            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1000, temperature=0.4
         )
 
         if "error" in response:
@@ -861,41 +889,65 @@ Generate summary in JSON format:
                 summary = json.loads(response_text[start_idx:end_idx])
             else:
                 summary = {
-                    "week_ending": end_date.strftime('%Y-%m-%d'),
+                    "week_ending": end_date.strftime("%Y-%m-%d"),
                     "overall_score": 80,
-                    "key_achievements": ["Maintained consistent productivity", "Completed all high-priority tasks"],
-                    "areas_for_improvement": ["Consider adding more breaks", "Review goals weekly"],
-                    "next_week_focus": ["Continue current patterns", "Focus on high-impact tasks"],
+                    "key_achievements": [
+                        "Maintained consistent productivity",
+                        "Completed all high-priority tasks",
+                    ],
+                    "areas_for_improvement": [
+                        "Consider adding more breaks",
+                        "Review goals weekly",
+                    ],
+                    "next_week_focus": [
+                        "Continue current patterns",
+                        "Focus on high-impact tasks",
+                    ],
                     "productivity_metrics": {
                         "focus_time": "18 hours",
                         "tasks_completed": 12,
                         "learning_sessions": 4,
-                        "habit_streak": 5
+                        "habit_streak": 5,
                     },
                     "ai_predictions": {
                         "next_week_score": 85,
                         "confidence": 0.8,
-                        "key_factors": ["Consistent task completion", "Good schedule adherence"]
-                    }
+                        "key_factors": [
+                            "Consistent task completion",
+                            "Good schedule adherence",
+                        ],
+                    },
                 }
         except json.JSONDecodeError:
             summary = {
-                "week_ending": end_date.strftime('%Y-%m-%d'),
+                "week_ending": end_date.strftime("%Y-%m-%d"),
                 "overall_score": 80,
-                "key_achievements": ["Maintained consistent productivity", "Completed all high-priority tasks"],
-                "areas_for_improvement": ["Consider adding more breaks", "Review goals weekly"],
-                "next_week_focus": ["Continue current patterns", "Focus on high-impact tasks"],
+                "key_achievements": [
+                    "Maintained consistent productivity",
+                    "Completed all high-priority tasks",
+                ],
+                "areas_for_improvement": [
+                    "Consider adding more breaks",
+                    "Review goals weekly",
+                ],
+                "next_week_focus": [
+                    "Continue current patterns",
+                    "Focus on high-impact tasks",
+                ],
                 "productivity_metrics": {
                     "focus_time": "18 hours",
                     "tasks_completed": 12,
                     "learning_sessions": 4,
-                    "habit_streak": 5
+                    "habit_streak": 5,
                 },
                 "ai_predictions": {
                     "next_week_score": 85,
                     "confidence": 0.8,
-                    "key_factors": ["Consistent task completion", "Good schedule adherence"]
-                }
+                    "key_factors": [
+                        "Consistent task completion",
+                        "Good schedule adherence",
+                    ],
+                },
             }
 
         # Track API usage
@@ -925,13 +977,13 @@ async def invalidate_cache(
 ):
     """Invalidate AI cache for specific operations"""
     try:
-        deleted_count = await ai_cache_service.invalidate_user_ai_cache(
+        deleted_count = await invalidate_ai_cache_for_user(
             current_user["id"], operations
         )
         return {
             "success": True,
             "deleted_entries": deleted_count,
-            "operations": operations or "all"
+            "operations": operations or "all",
         }
     except Exception as e:
         logger.error(f"Error invalidating cache: {str(e)}")
@@ -943,10 +995,94 @@ async def get_cache_stats(current_user: dict = Depends(get_current_user)):
     """Get AI cache statistics"""
     try:
         stats = ai_cache_service.get_cache_stats()
-        return {
-            "success": True,
-            "stats": stats
-        }
+        return {"success": True, "stats": stats}
     except Exception as e:
         logger.error(f"Error getting cache stats: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Background task for AI processing
+@background_task(name="ai_batch_processing", priority="normal")
+async def process_ai_batch(user_id: str, data: Dict[str, Any]):
+    """Background task for batch AI processing"""
+    try:
+        logger.info(f"Processing AI batch for user {user_id}")
+
+        # Process AI operations in background
+        results = {}
+
+        # Example: Process multiple AI operations
+        for operation_type in ["insights", "analysis", "suggestions"]:
+            prompt = f"Process {operation_type} for user data: {data}"
+            result = await generate_openai_text(prompt, max_tokens=500)
+            results[operation_type] = result
+
+        # Store results in database
+        supabase = get_supabase_client()
+        await supabase.table("ai_results").insert(
+            {"user_id": user_id, "results": results, "processed_at": "now()"}
+        ).execute()
+
+        logger.info(f"Completed AI batch processing for user {user_id}")
+        return results
+
+    except Exception as e:
+        logger.error(f"Error in AI batch processing: {e}")
+        raise
+
+
+@router.post("/batch-process")
+async def start_ai_batch_processing(
+    data: Dict[str, Any],
+    current_user: Dict = Depends(get_current_user),
+):
+    """Start background AI batch processing"""
+    try:
+        user_id = current_user["id"]
+
+        # Enqueue background task
+        task_id = await background_worker.enqueue_task(
+            "ai_batch_processing", user_id, data, priority="normal"
+        )
+
+        return {
+            "message": "AI batch processing started",
+            "task_id": task_id,
+            "status": "queued",
+        }
+
+    except Exception as e:
+        logger.error(f"Error starting AI batch processing: {e}")
+        raise HTTPException(status_code=500, detail="Failed to start batch processing")
+
+
+# Scheduled job for AI maintenance
+@scheduled_job(cron_expression="0 2 * * *")  # Daily at 2 AM
+async def ai_cache_maintenance():
+    """Scheduled job for AI cache maintenance"""
+    try:
+        logger.info("Starting AI cache maintenance")
+
+        # Clean up old cache entries
+        # This would be implemented based on your cache strategy
+
+        logger.info("Completed AI cache maintenance")
+
+    except Exception as e:
+        logger.error(f"Error in AI cache maintenance: {e}")
+
+
+@scheduled_job(cron_expression="0 */6 * * *")  # Every 6 hours
+async def ai_performance_analysis():
+    """Scheduled job for AI performance analysis"""
+    try:
+        logger.info("Starting AI performance analysis")
+
+        # Analyze AI performance metrics
+        # Generate performance reports
+        # Send alerts if needed
+
+        logger.info("Completed AI performance analysis")
+
+    except Exception as e:
+        logger.error(f"Error in AI performance analysis: {e}")

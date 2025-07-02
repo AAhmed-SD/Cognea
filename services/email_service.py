@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class EmailService:
     """Email service for sending transactional emails"""
-    
+
     def __init__(self):
         self.smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
         self.smtp_port = int(os.getenv("SMTP_PORT", "587"))
@@ -27,21 +27,18 @@ class EmailService:
         self.app_name = os.getenv("APP_NAME", "Cognie")
         self.app_url = os.getenv("APP_URL", "https://cognie.app")
         self.jwt_secret = os.getenv("JWT_SECRET", "your-secret-key")
-        
+
         # Token expiration times
         self.password_reset_expiry = timedelta(hours=24)
         self.email_verification_expiry = timedelta(days=7)
-        
+
         self.supabase = get_supabase_client()
-    
+
     def _create_token(self, payload: Dict[str, Any], expiry: timedelta) -> str:
         """Create a JWT token with expiration"""
-        payload.update({
-            "exp": datetime.utcnow() + expiry,
-            "iat": datetime.utcnow()
-        })
+        payload.update({"exp": datetime.utcnow() + expiry, "iat": datetime.utcnow()})
         return jwt.encode(payload, self.jwt_secret, algorithm="HS256")
-    
+
     def _verify_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Verify and decode a JWT token"""
         try:
@@ -53,64 +50,70 @@ class EmailService:
         except jwt.InvalidTokenError:
             logger.warning("Invalid token")
             return None
-    
-    def _send_email(self, to_email: str, subject: str, html_content: str, text_content: str) -> bool:
+
+    def _send_email(
+        self, to_email: str, subject: str, html_content: str, text_content: str
+    ) -> bool:
         """Send email using SMTP"""
         try:
             if not all([self.smtp_username, self.smtp_password]):
                 logger.warning("SMTP credentials not configured, skipping email send")
                 return False
-            
+
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
             msg["From"] = self.from_email
             msg["To"] = to_email
-            
+
             # Attach both HTML and text versions
             text_part = MIMEText(text_content, "plain")
             html_part = MIMEText(html_content, "html")
             msg.attach(text_part)
             msg.attach(html_part)
-            
+
             # Send email
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
-            
+
             logger.info(f"Email sent successfully to {to_email}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             return False
-    
-    def send_password_reset_email(self, user_id: str, email: str, user_name: str = None) -> bool:
+
+    def send_password_reset_email(
+        self, user_id: str, email: str, user_name: str = None
+    ) -> bool:
         """Send password reset email"""
         try:
             # Create password reset token
             token = self._create_token(
                 {"user_id": user_id, "type": "password_reset"},
-                self.password_reset_expiry
+                self.password_reset_expiry,
             )
-            
+
             # Store token in database
             token_data = {
                 "user_id": user_id,
                 "token": token,
                 "type": "password_reset",
-                "expires_at": (datetime.utcnow() + self.password_reset_expiry).isoformat(),
-                "created_at": datetime.utcnow().isoformat()
+                "expires_at": (
+                    datetime.utcnow() + self.password_reset_expiry
+                ).isoformat(),
+                "created_at": datetime.utcnow().isoformat(),
             }
-            
+
             self.supabase.table("auth_tokens").insert(token_data).execute()
-            
+
             # Create reset URL
             reset_url = f"{self.app_url}/reset-password?token={token}"
-            
+
             # Email content
             subject = f"Reset Your {self.app_name} Password"
-            
+
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -151,7 +154,7 @@ class EmailService:
             </body>
             </html>
             """
-            
+
             text_content = f"""
             Reset Your {self.app_name} Password
             
@@ -169,39 +172,43 @@ class EmailService:
             Best regards,
             The {self.app_name} Team
             """
-            
+
             return self._send_email(email, subject, html_content, text_content)
-            
+
         except Exception as e:
             logger.error(f"Failed to send password reset email: {str(e)}")
             return False
-    
-    def send_email_verification(self, user_id: str, email: str, user_name: str = None) -> bool:
+
+    def send_email_verification(
+        self, user_id: str, email: str, user_name: str = None
+    ) -> bool:
         """Send email verification email"""
         try:
             # Create verification token
             token = self._create_token(
                 {"user_id": user_id, "type": "email_verification"},
-                self.email_verification_expiry
+                self.email_verification_expiry,
             )
-            
+
             # Store token in database
             token_data = {
                 "user_id": user_id,
                 "token": token,
                 "type": "email_verification",
-                "expires_at": (datetime.utcnow() + self.email_verification_expiry).isoformat(),
-                "created_at": datetime.utcnow().isoformat()
+                "expires_at": (
+                    datetime.utcnow() + self.email_verification_expiry
+                ).isoformat(),
+                "created_at": datetime.utcnow().isoformat(),
             }
-            
+
             self.supabase.table("auth_tokens").insert(token_data).execute()
-            
+
             # Create verification URL
             verify_url = f"{self.app_url}/verify-email?token={token}"
-            
+
             # Email content
             subject = f"Verify Your {self.app_name} Email Address"
-            
+
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -241,7 +248,7 @@ class EmailService:
             </body>
             </html>
             """
-            
+
             text_content = f"""
             Verify Your {self.app_name} Email Address
             
@@ -257,13 +264,13 @@ class EmailService:
             Best regards,
             The {self.app_name} Team
             """
-            
+
             return self._send_email(email, subject, html_content, text_content)
-            
+
         except Exception as e:
             logger.error(f"Failed to send email verification: {str(e)}")
             return False
-    
+
     def verify_password_reset_token(self, token: str) -> Optional[str]:
         """Verify password reset token and return user_id"""
         try:
@@ -271,29 +278,37 @@ class EmailService:
             payload = self._verify_token(token)
             if not payload or payload.get("type") != "password_reset":
                 return None
-            
+
             user_id = payload.get("user_id")
             if not user_id:
                 return None
-            
+
             # Check if token exists in database and is not expired
-            result = self.supabase.table("auth_tokens").select("*").eq("token", token).eq("type", "password_reset").execute()
-            
+            result = (
+                self.supabase.table("auth_tokens")
+                .select("*")
+                .eq("token", token)
+                .eq("type", "password_reset")
+                .execute()
+            )
+
             if not result.data:
                 return None
-            
+
             token_record = result.data[0]
-            expires_at = datetime.fromisoformat(token_record["expires_at"].replace("Z", "+00:00"))
-            
+            expires_at = datetime.fromisoformat(
+                token_record["expires_at"].replace("Z", "+00:00")
+            )
+
             if datetime.utcnow() > expires_at:
                 return None
-            
+
             return user_id
-            
+
         except Exception as e:
             logger.error(f"Failed to verify password reset token: {str(e)}")
             return None
-    
+
     def verify_email_token(self, token: str) -> Optional[str]:
         """Verify email verification token and return user_id"""
         try:
@@ -301,29 +316,37 @@ class EmailService:
             payload = self._verify_token(token)
             if not payload or payload.get("type") != "email_verification":
                 return None
-            
+
             user_id = payload.get("user_id")
             if not user_id:
                 return None
-            
+
             # Check if token exists in database and is not expired
-            result = self.supabase.table("auth_tokens").select("*").eq("token", token).eq("type", "email_verification").execute()
-            
+            result = (
+                self.supabase.table("auth_tokens")
+                .select("*")
+                .eq("token", token)
+                .eq("type", "email_verification")
+                .execute()
+            )
+
             if not result.data:
                 return None
-            
+
             token_record = result.data[0]
-            expires_at = datetime.fromisoformat(token_record["expires_at"].replace("Z", "+00:00"))
-            
+            expires_at = datetime.fromisoformat(
+                token_record["expires_at"].replace("Z", "+00:00")
+            )
+
             if datetime.utcnow() > expires_at:
                 return None
-            
+
             return user_id
-            
+
         except Exception as e:
             logger.error(f"Failed to verify email token: {str(e)}")
             return None
-    
+
     def invalidate_token(self, token: str) -> bool:
         """Invalidate a token by deleting it from database"""
         try:
@@ -332,12 +355,17 @@ class EmailService:
         except Exception as e:
             logger.error(f"Failed to invalidate token: {str(e)}")
             return False
-    
+
     def cleanup_expired_tokens(self) -> int:
         """Clean up expired tokens from database"""
         try:
             # Delete tokens that have expired
-            result = self.supabase.table("auth_tokens").delete().lt("expires_at", datetime.utcnow().isoformat()).execute()
+            result = (
+                self.supabase.table("auth_tokens")
+                .delete()
+                .lt("expires_at", datetime.utcnow().isoformat())
+                .execute()
+            )
             deleted_count = len(result.data) if result.data else 0
             logger.info(f"Cleaned up {deleted_count} expired tokens")
             return deleted_count
@@ -347,4 +375,4 @@ class EmailService:
 
 
 # Global email service instance
-email_service = EmailService() 
+email_service = EmailService()

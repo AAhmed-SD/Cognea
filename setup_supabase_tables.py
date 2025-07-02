@@ -28,7 +28,7 @@ def create_audit_logs_table():
         CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
         """
 
-        result = supabase.rpc("exec_sql", {"sql": sql}).execute()
+        result = supabase.rpc("exec_sql", {"sql": sql}).execute()  # noqa: F841
         print("✅ audit_logs table created successfully!")
         return True
 
@@ -36,7 +36,9 @@ def create_audit_logs_table():
         print(f"❌ Error creating audit_logs table: {e}")
         # Try alternative approach using direct SQL
         try:
-            result = supabase.table("audit_logs").select("id").limit(1).execute()
+            result = (
+                supabase.table("audit_logs").select("id").limit(1).execute()
+            )  # noqa: F841
             print("✅ audit_logs table already exists!")
             return True
         except Exception as e2:
@@ -67,7 +69,7 @@ def create_diary_entries_table():
         """
 
         # Execute the SQL using Supabase's RPC (Remote Procedure Call)
-        result = supabase.rpc("exec_sql", {"sql": sql}).execute()
+        result = supabase.rpc("exec_sql", {"sql": sql}).execute()  # noqa: F841
         print("✅ diary_entries table created successfully!")
         return True
 
@@ -76,7 +78,9 @@ def create_diary_entries_table():
         # Try alternative approach using direct SQL
         try:
             # This might work if RPC is not available
-            result = supabase.table("diary_entries").select("id").limit(1).execute()
+            result = (
+                supabase.table("diary_entries").select("id").limit(1).execute()
+            )  # noqa: F841
             print("✅ diary_entries table already exists!")
             return True
         except Exception as e2:
@@ -99,7 +103,7 @@ def create_users_table():
         CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
         """
 
-        result = supabase.rpc("exec_sql", {"sql": sql}).execute()
+        result = supabase.rpc("exec_sql", {"sql": sql}).execute()  # noqa: F841
         print("✅ users table created successfully!")
         return True
 
@@ -129,7 +133,7 @@ def setup_row_level_security():
             FOR DELETE USING (auth.uid()::text = user_id::text);
         """
 
-        result = supabase.rpc("exec_sql", {"sql": sql}).execute()
+        result = supabase.rpc("exec_sql", {"sql": sql}).execute()  # noqa: F841
         print("✅ Row Level Security enabled!")
         return True
 
@@ -149,7 +153,7 @@ def main():
     audit_ok = create_audit_logs_table()
 
     # Setup security (optional)
-    rls_ok = setup_row_level_security()
+    rls_ok = setup_row_level_security()  # noqa: F841
 
     if users_ok and diary_ok and audit_ok:
         print("\n🎉 Database setup completed successfully!")

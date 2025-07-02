@@ -12,6 +12,30 @@ import asyncio
 logger = logging.getLogger(__name__)
 
 
+class RedisConnectionError(Exception):
+    """Exception raised when Redis connection fails."""
+
+    pass
+
+
+class RateLimitExceededError(Exception):
+    """Exception raised when rate limit is exceeded."""
+
+    pass
+
+
+class MaxRetriesExceededError(Exception):
+    """Exception raised when maximum retries are exceeded."""
+
+    def __init__(
+        self, func_name: str, max_retries: int, last_error: Optional[Exception] = None
+    ):
+        self.func_name = func_name
+        self.max_retries = max_retries
+        self.last_error = last_error
+        super().__init__(f"Max retries ({max_retries}) exceeded for {func_name}")
+
+
 class RedisClient:
     """Redis client for caching, rate limiting, and token tracking."""
 
@@ -39,7 +63,7 @@ class RedisClient:
         try:
             self.client.ping()
             return True
-        except:
+        except Exception:
             return False
 
     async def safe_call(self, key: str, func, *args, max_retries=5, rate=3, **kwargs):
@@ -53,30 +77,59 @@ class RedisClient:
             rate: Allowed requests per second
         Returns:
             Result of func(*args, **kwargs)
+        Raises:
+            RateLimitExceededError: When rate limit is exceeded
+            MaxRetriesExceededError: When max retries are exceeded
+            Exception: Original exception from the function call
         """
         retry = 0
         delay = 1.0 / rate
+        last_error = None
+
         while retry <= max_retries:
             # Global rate limit using Redis
             allowed = self.check_rate_limit(f"safe_call:{key}", rate, 1)
             if not allowed:
+                logger.warning(f"Rate limit exceeded for {key}, waiting {delay}s")
                 await asyncio.sleep(delay)
                 continue
+
             try:
                 result = await func(*args, **kwargs)
                 return result
             except Exception as e:
+                last_error = e
+
+                # Check if it's a rate limit error (429)
                 if hasattr(e, "status_code") and e.status_code == 429:
                     # Exponential back-off
                     backoff = min(2**retry, 30)
                     logger.warning(
-                        f"429 received, backing off for {backoff}s (retry {retry+1})"
+                        f"429 received for {key}, backing off for {backoff}s (retry {retry+1}/{max_retries})"
+                    )
+                    await asyncio.sleep(backoff)
+                    retry += 1
+                elif (
+                    hasattr(e, "response")
+                    and hasattr(e.response, "status_code")
+                    and e.response.status_code == 429
+                ):
+                    # Handle httpx.HTTPStatusError with 429
+                    backoff = min(2**retry, 30)
+                    logger.warning(
+                        f"429 received for {key}, backing off for {backoff}s (retry {retry+1}/{max_retries})"
                     )
                     await asyncio.sleep(backoff)
                     retry += 1
                 else:
+                    # For other errors, don't retry
+                    logger.error(f"Non-retryable error for {key}: {e}")
                     raise
-        raise Exception(f"safe_call: Max retries exceeded for {func.__name__}")
+
+        # If we get here, max retries exceeded
+        raise MaxRetriesExceededError(
+            func_name=func.__name__, max_retries=max_retries, last_error=last_error
+        )
 
     # Rate Limiting Methods
     def check_rate_limit(
@@ -238,8 +291,8 @@ class RedisClient:
         try:
             serialized_value = json.dumps(value)
             self.client.setex(key, expire_seconds, serialized_value)
-        except Exception as e:
-            logger.error(f"Error setting cache: {e}")
+        except Exception:
+            logger.error("Error setting cache")
 
     def get_cache(self, key: str) -> Optional[Any]:
         """Get a cache value."""
@@ -251,8 +304,8 @@ class RedisClient:
             if value:
                 return json.loads(value)
             return None
-        except Exception as e:
-            logger.error(f"Error getting cache: {e}")
+        except Exception:
+            logger.error("Error getting cache")
             return None
 
     def delete_cache(self, key: str):
@@ -262,8 +315,8 @@ class RedisClient:
 
         try:
             self.client.delete(key)
-        except Exception as e:
-            logger.error(f"Error deleting cache: {e}")
+        except Exception:
+            logger.error("Error deleting cache")
 
     def clear_user_cache(self, user_id: str):
         """Clear all cache entries for a user."""
@@ -274,8 +327,8 @@ class RedisClient:
             pattern = f"cache:user:{user_id}:*"
             for key in self.client.scan_iter(match=pattern):
                 self.client.delete(key)
-        except Exception as e:
-            logger.error(f"Error clearing user cache: {e}")
+        except Exception:
+            logger.error("Error clearing user cache")
 
 
 # Global Redis client instance

@@ -1,225 +1,449 @@
+"""
+Main FastAPI Application with Enhanced Features
+- Enhanced Redis caching
+- Background workers
+- Performance monitoring
+- Health checks
+- Metrics endpoints
+"""
+
+import logging
 import os
-from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
-from datetime import datetime, UTC
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
-from middleware.error_handler import error_handler, APIError
-from middleware.logging import LoggingMiddleware, RequestContextMiddleware
-from services.redis_client import get_redis_client
-from services.monitoring import monitoring_service
-from routes.diary import router as diary_router
-from routes.habits import router as habits_router
-from routes.mood import router as mood_router
-from routes.analytics import router as analytics_router
-from routes.profile import router as profile_router
-from routes.privacy import router as privacy_router
-from routes.ai import router as ai_router
-from routes.user_settings import router as user_settings_router
-from routes.fitness import router as fitness_router
-from routes.calendar import router as calendar_router
-from routes.notion import router as notion_router
-from routes.generate import router as generate_router
-from routes.user import router as user_router
-from routes.auth import router as auth_router
-from routes.tasks import router as tasks_router
-from routes.goals import router as goals_router
-from routes.schedule_blocks import router as schedule_blocks_router
-from routes.flashcards import router as flashcards_router
-from routes.notifications import router as notifications_router
-from routes.stripe import router as stripe_router
+from fastapi.middleware.gzip import GZipMiddleware
+import time
 
-# Load environment variables from .env file
-load_dotenv()
+# Import enhanced services
+from services.redis_cache import enhanced_cache
+from services.background_workers import background_worker, job_scheduler
+from services.performance_monitor import performance_monitor
+from middleware.error_handler import setup_error_handlers
+from middleware.logging import setup_logging
+from middleware.rate_limit import setup_rate_limiting
 
+# Import routes
+from routes import (
+    auth,
+    user,
+    tasks,
+    goals,
+    habits,
+    schedule_blocks,
+    flashcards,
+    notifications,
+    ai,
+    generate,
+    analytics,
+    mood,
+    notion,
+    stripe,
+    profile,
+    user_settings,
+    privacy,
+    calendar,
+    diary,
+    fitness,
+)
 
-# Security middleware
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app):
-        super().__init__(app)
-
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains"
-        )
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
-        )
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = (
-            "geolocation=(), microphone=(), camera=()"
-        )
-        return response
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-# Token tracking middleware
-class TokenTrackingMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app):
-        super().__init__(app)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan manager for Cognie AI Personal Assistant.
 
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
+    This function handles the startup and shutdown of all application services
+    including Redis cache, background workers, job scheduler, and performance monitoring.
 
-        # Track token usage for AI endpoints
-        if request.url.path.startswith("/api/") and any(
-            ai_path in request.url.path
-            for ai_path in ["/plan-day", "/generate-flashcards", "/insights"]
-        ):
-            # This would be implemented to track actual token usage from OpenAI responses
-            # For now, we'll just log the request
-            pass
+    Args:
+        app (FastAPI): The FastAPI application instance
 
-        return response
+    Yields:
+        None: Control is yielded to the application runtime
 
+    Raises:
+        Exception: If any service fails to start, the application will fail to start
+    """
+    # Startup phase - Initialize all core services
+    logger.info("Starting Cognie AI Personal Assistant...")
 
-def create_app(redis_client=None):
-    app = FastAPI(
-        title="Personal Agent API",
-        description="API for personal productivity and habits tracking.",
-        version="1.0.0",
-        docs_url="/api/docs",
-        redoc_url="/api/redoc",
-        openapi_url="/api/openapi.json",
-    )
+    try:
+        # Initialize Redis cache with health monitoring
+        # This provides fast data access and session storage
+        await enhanced_cache.start_health_check()
+        logger.info("Enhanced Redis cache started")
 
-    # Security: Trusted Host Middleware (only allow specific hosts in production)
-    if os.getenv("ENVIRONMENT") == "production":
-        app.add_middleware(
-            TrustedHostMiddleware,
-            allowed_hosts=["yourdomain.com", "api.yourdomain.com", "localhost"],
-        )
+        # Start background workers for async task processing
+        # Handles AI operations, email sending, and data processing
+        await background_worker.start()
+        logger.info("Background workers started")
 
-    # Add middleware in correct order
-    app.add_middleware(SecurityHeadersMiddleware)  # Security headers first
-    app.add_middleware(TokenTrackingMiddleware)  # Token tracking
-    app.add_middleware(RequestContextMiddleware)  # Request context
-    app.add_middleware(LoggingMiddleware)  # Logging
+        # Initialize job scheduler for recurring tasks
+        # Manages scheduled operations like daily briefs and reminders
+        await job_scheduler.start()
+        logger.info("Job scheduler started")
 
-    # Configure CORS based on environment
-    if os.getenv("ENVIRONMENT") == "production":
-        allowed_origins = [
-            "https://yourdomain.com",
-            "https://www.yourdomain.com",
-            "https://app.yourdomain.com",
-        ]
-    else:
-        allowed_origins = [
-            "http://localhost:3000",
-            "http://localhost:3001",
-            "http://127.0.0.1:3000",
-            "http://test",  # For test client
-            "http://testserver",  # For test client
-            "*",  # Allow all origins in development
-        ]
+        # Start performance monitoring system
+        # Tracks system metrics, response times, and generates alerts
+        await performance_monitor.start()
+        logger.info("Performance monitoring started")
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=allowed_origins,
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["*"],
-        max_age=3600,
-    )
-
-    # Add rate limiting middleware using Redis
-    redis_client = get_redis_client()
-    if os.getenv("DISABLE_RATE_LIMIT") != "true" and redis_client.is_connected():
-        print("Setting up rate limiter with Redis client")
-
-        @app.middleware("http")
-        async def rate_limit_middleware(request: Request, call_next):
-            # Get client IP or user ID for rate limiting
-            client_id = request.headers.get("X-Forwarded-For", request.client.host)
-
-            # Check rate limit
-            rate_limit_key = f"rate_limit:{client_id}"
-            if not redis_client.check_rate_limit(
-                rate_limit_key, 60, 60
-            ):  # 60 requests per minute
-                return JSONResponse(
-                    status_code=429,
-                    content={"detail": "Rate limit exceeded. Please try again later."},
-                )
-
-            return await call_next(request)
-
-    else:
-        print(
-            f"Rate limiting disabled. DISABLE_RATE_LIMIT={os.getenv('DISABLE_RATE_LIMIT')}, redis_connected={redis_client.is_connected() if redis_client else False}"
-        )
-
-    # Register error handlers
-    app.add_exception_handler(APIError, error_handler)
-    app.add_exception_handler(Exception, error_handler)
-
-    # Include all routers
-    app.include_router(diary_router, prefix="/api")
-    app.include_router(habits_router, prefix="/api")
-    app.include_router(mood_router, prefix="/api")
-    app.include_router(analytics_router, prefix="/api")
-    app.include_router(profile_router, prefix="/api")
-    app.include_router(privacy_router, prefix="/api")
-    app.include_router(ai_router, prefix="/api")
-    app.include_router(user_settings_router, prefix="/api")
-    app.include_router(fitness_router, prefix="/api")
-    app.include_router(calendar_router, prefix="/api")
-    app.include_router(notion_router, prefix="/api")
-    app.include_router(generate_router, prefix="/api")
-    app.include_router(user_router, prefix="/api")
-    app.include_router(auth_router)
-    app.include_router(tasks_router, prefix="/api")
-    app.include_router(goals_router, prefix="/api")
-    app.include_router(schedule_blocks_router, prefix="/api")
-    app.include_router(flashcards_router, prefix="/api")
-    app.include_router(notifications_router, prefix="/api")
-    app.include_router(stripe_router, prefix="/api")
-
-    @app.get("/", tags=["Root"], summary="Root endpoint with meta tags for SEO")
-    async def root(request: Request):
-        challenge = request.query_params.get("challenge")
-        if challenge:
-            return {"challenge": challenge}
-        return {
-            "message": "Welcome to Cognie!",
-            "meta": {
-                "title": "Personal Agent API",
-                "description": "API for personal productivity and habits tracking.",
-                "keywords": "productivity, habits, tracking, API",
-            },
+        # Configure alert thresholds for different system metrics
+        # These thresholds trigger warnings and critical alerts
+        performance_monitor.alert_thresholds = {
+            "cpu_usage": {"warning": 80, "critical": 95},  # CPU utilization limits
+            "memory_usage": {"warning": 85, "critical": 95},  # Memory usage limits
+            "disk_usage": {"warning": 90, "critical": 95},  # Disk space limits
+            "error_rate": {"warning": 5, "critical": 10},  # Error percentage limits
+            "avg_response_time": {
+                "warning": 1.0,
+                "critical": 2.0,
+            },  # Response time limits
         }
 
-    @app.options("/", tags=["Root"], summary="CORS preflight handler")
-    async def root_options():
-        return {"message": "OK"}
+        # Set up alert handler for performance notifications
+        # Logs alerts and can be extended to send notifications
+        def alert_handler(alert):
+            logger.warning(
+                f"Performance Alert: {alert.severity.upper()} - {alert.message}"
+            )
 
-    @app.get("/health", tags=["Health"], summary="Health check endpoint")
-    async def health_check():
-        redis_status = "connected" if redis_client.is_connected() else "disconnected"
-        return {
+        performance_monitor.add_alert_handler(alert_handler)
+
+        logger.info("Cognie AI Personal Assistant started successfully!")
+
+    except Exception as e:
+        logger.error(f"Failed to start application: {e}")
+        raise
+
+    # Application runtime - yield control to FastAPI
+    yield
+
+    # Shutdown phase - Gracefully stop all services
+    logger.info("Shutting down Cognie AI Personal Assistant...")
+
+    try:
+        # Stop performance monitoring first to prevent new metrics
+        await performance_monitor.stop()
+        logger.info("Performance monitoring stopped")
+
+        # Stop job scheduler to prevent new scheduled tasks
+        await job_scheduler.stop()
+        logger.info("Job scheduler stopped")
+
+        # Stop background workers and wait for current tasks to complete
+        await background_worker.stop()
+        logger.info("Background workers stopped")
+
+        # Close Redis connections and flush any pending data
+        await enhanced_cache.close()
+        logger.info("Enhanced Redis cache stopped")
+
+        logger.info("Cognie AI Personal Assistant stopped successfully!")
+
+    except Exception as e:
+        logger.error(f"Error during shutdown: {e}")
+
+
+# Create FastAPI app
+app = FastAPI(
+    title="Cognie AI Personal Assistant",
+    description="An intelligent personal productivity assistant with AI integration",
+    version="2.0.0",
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+# Add middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Setup custom middleware
+setup_error_handlers(app)
+setup_logging(app)
+setup_rate_limiting(app)
+
+
+# Performance monitoring middleware
+@app.middleware("http")
+async def performance_middleware(request: Request, call_next):
+    """
+    Middleware to monitor request performance and add performance headers.
+
+    This middleware tracks request duration, status codes, and adds performance
+    headers to responses for monitoring and debugging purposes.
+
+    Args:
+        request (Request): The incoming HTTP request
+        call_next: The next middleware or route handler in the chain
+
+    Returns:
+        Response: The HTTP response with performance headers added
+    """
+    # Record start time for performance measurement
+    start_time = time.time()
+
+    # Process the request through the middleware chain
+    response = await call_next(request)
+
+    # Calculate request duration in seconds
+    duration = time.time() - start_time
+
+    # Record request metrics for monitoring and analytics
+    # This data is used for performance analysis and alerting
+    await performance_monitor.record_request(
+        method=request.method,
+        path=request.url.path,
+        status_code=response.status_code,
+        duration=duration,
+    )
+
+    # Add performance headers for client-side monitoring
+    # X-Response-Time: Request duration for debugging
+    # X-Request-ID: Unique identifier for request tracing
+    response.headers["X-Response-Time"] = str(duration)
+    response.headers["X-Request-ID"] = str(time.time())
+
+    return response
+
+
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint for monitoring system status.
+
+    This endpoint checks the health of all critical services including
+    Redis cache, background workers, and performance monitoring.
+
+    Returns:
+        dict: Health status with service status and system metrics
+
+    Example Response:
+        {
             "status": "healthy",
-            "version": "1.0.0",
-            "timestamp": datetime.now(UTC).isoformat(),
-            "redis": redis_status,
+            "timestamp": 1640995200.0,
+            "services": {
+                "redis_cache": "healthy",
+                "background_workers": "healthy",
+                "performance_monitor": "healthy"
+            },
+            "system_metrics": {
+                "cpu_usage": 45.2,
+                "memory_usage": 67.8,
+                "disk_usage": 23.1
+            }
+        }
+    """
+    try:
+        # Check Redis cache connectivity and health
+        # Redis is critical for session storage and caching
+        redis_healthy = enhanced_cache.client is not None
+
+        # Verify background workers are running
+        # Background workers handle async tasks and AI operations
+        worker_healthy = background_worker.running
+
+        # Check performance monitoring system
+        # Performance monitoring tracks system health and metrics
+        monitor_healthy = performance_monitor.running
+
+        # Collect current system performance metrics
+        # These metrics help identify performance issues
+        system_metrics = performance_monitor.get_performance_summary()
+
+        # Determine overall health status
+        # System is healthy only if all critical services are running
+        health_status = {
+            "status": (
+                "healthy"
+                if all([redis_healthy, worker_healthy, monitor_healthy])
+                else "unhealthy"
+            ),
+            "timestamp": time.time(),
+            "services": {
+                "redis_cache": "healthy" if redis_healthy else "unhealthy",
+                "background_workers": "healthy" if worker_healthy else "unhealthy",
+                "performance_monitor": "healthy" if monitor_healthy else "unhealthy",
+            },
+            "system_metrics": system_metrics,
         }
 
-    @app.get("/metrics", include_in_schema=False)
-    async def metrics():
-        return Response(
-            content=monitoring_service.get_metrics(), media_type="text/plain"
-        )
+        return health_status
 
-    return app
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": time.time(),
+        }
 
 
-# Create the FastAPI app instance
-app = create_app()
+# Metrics endpoint
+@app.get("/metrics")
+async def get_metrics():
+    """Get performance metrics"""
+    try:
+        # Get recent metrics
+        recent_metrics = await performance_monitor.get_metrics(limit=100)
 
-# Example usage
-# Run the FastAPI server with: uvicorn main:app --reload
+        # Get worker metrics
+        worker_metrics = background_worker.get_metrics()
+
+        # Get cache metrics
+        cache_metrics = enhanced_cache.get_metrics()
+
+        # Get optimization recommendations
+        recommendations = await performance_monitor.get_optimization_recommendations()
+
+        return {
+            "performance_metrics": recent_metrics,
+            "worker_metrics": worker_metrics,
+            "cache_metrics": cache_metrics,
+            "optimization_recommendations": recommendations,
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting metrics: {e}")
+        return {"error": str(e)}
+
+
+# Alerts endpoint
+@app.get("/alerts")
+async def get_alerts(resolved: bool = None, limit: int = 50):
+    """Get performance alerts"""
+    try:
+        alerts = await performance_monitor.get_alerts(resolved=resolved, limit=limit)
+        return {"alerts": alerts}
+    except Exception as e:
+        logger.error(f"Error getting alerts: {e}")
+        return {"error": str(e)}
+
+
+# Cache management endpoints
+@app.get("/cache/stats")
+async def get_cache_stats():
+    """Get cache statistics"""
+    try:
+        return enhanced_cache.get_metrics()
+    except Exception as e:
+        logger.error(f"Error getting cache stats: {e}")
+        return {"error": str(e)}
+
+
+@app.post("/cache/clear")
+async def clear_cache(pattern: str = "*"):
+    """Clear cache entries"""
+    try:
+        deleted = await enhanced_cache.clear_pattern(pattern)
+        return {"deleted_entries": deleted, "pattern": pattern}
+    except Exception as e:
+        logger.error(f"Error clearing cache: {e}")
+        return {"error": str(e)}
+
+
+# Background task management endpoints
+@app.get("/tasks/status/{task_id}")
+async def get_task_status(task_id: str):
+    """Get background task status"""
+    try:
+        task = await background_worker.get_task_status(task_id)
+        if task:
+            return task.to_dict()
+        return {"error": "Task not found"}
+    except Exception as e:
+        logger.error(f"Error getting task status: {e}")
+        return {"error": str(e)}
+
+
+@app.post("/tasks/cancel/{task_id}")
+async def cancel_task(task_id: str):
+    """Cancel a background task"""
+    try:
+        cancelled = await background_worker.cancel_task(task_id)
+        return {"cancelled": cancelled, "task_id": task_id}
+    except Exception as e:
+        logger.error(f"Error cancelling task: {e}")
+        return {"error": str(e)}
+
+
+# Include all route modules
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(user.router, prefix="/api/user", tags=["User Management"])
+app.include_router(tasks.router, prefix="/api/tasks", tags=["Tasks"])
+app.include_router(goals.router, prefix="/api/goals", tags=["Goals"])
+app.include_router(habits.router, prefix="/api/habits", tags=["Habits"])
+app.include_router(schedule_blocks.router, prefix="/api/schedule", tags=["Schedule"])
+app.include_router(flashcards.router, prefix="/api/flashcards", tags=["Flashcards"])
+app.include_router(
+    notifications.router, prefix="/api/notifications", tags=["Notifications"]
+)
+app.include_router(ai.router, prefix="/api/ai", tags=["AI Services"])
+app.include_router(generate.router, prefix="/api/generate", tags=["Content Generation"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
+app.include_router(mood.router, prefix="/api/mood", tags=["Mood Tracking"])
+app.include_router(notion.router, prefix="/api/notion", tags=["Notion Integration"])
+app.include_router(stripe.router, prefix="/api/stripe", tags=["Payment"])
+app.include_router(profile.router, prefix="/api/profile", tags=["Profile"])
+app.include_router(user_settings.router, prefix="/api/settings", tags=["Settings"])
+app.include_router(privacy.router, prefix="/api/privacy", tags=["Privacy"])
+app.include_router(calendar.router, prefix="/api/calendar", tags=["Calendar"])
+app.include_router(diary.router, prefix="/api/diary", tags=["Diary"])
+app.include_router(fitness.router, prefix="/api/fitness", tags=["Fitness"])
+
+
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint with API information"""
+    return {
+        "message": "Cognie AI Personal Assistant API",
+        "version": "2.0.0",
+        "status": "running",
+        "features": [
+            "Enhanced Redis Caching",
+            "Background Workers",
+            "Performance Monitoring",
+            "AI Integration",
+            "Notion Sync",
+            "Stripe Payments",
+            "Real-time Analytics",
+        ],
+        "endpoints": {
+            "docs": "/docs",
+            "health": "/health",
+            "metrics": "/metrics",
+            "alerts": "/alerts",
+        },
+        "meta": {
+            "timestamp": time.time(),
+            "environment": os.getenv("ENVIRONMENT", "development"),
+        },
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    # Run the application
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info",
+    )

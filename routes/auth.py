@@ -34,7 +34,7 @@ class ResetPasswordRequest(BaseModel):
 @router.post("/signup", response_model=Dict[str, Any])
 def signup(request: UserCreate):
     """Register a new user using Supabase Auth"""
-    supabase = get_supabase_client()
+    supabase = get_supabase_client()  # noqa: F841
 
     # Validate password strength
     is_valid, error_message = validate_password_strength(request.password)
@@ -51,7 +51,7 @@ def signup(request: UserCreate):
             # Create user profile in public.users table
             user_data = {"id": auth_response.user.id, "email": request.email}
 
-            result = supabase.table("users").insert(user_data).execute()
+            result = supabase.table("users").insert(user_data).execute()  # noqa: F841
 
             # Generate access token
             access_token = create_access_token({"sub": request.email})
@@ -174,7 +174,7 @@ def forgot_password(request: ForgotPasswordRequest):
 @router.post("/reset-password", response_model=dict)
 def reset_password(request: ResetPasswordRequest):
     """Reset password using Supabase Auth"""
-    supabase = get_supabase_client()
+    supabase = get_supabase_client()  # noqa: F841
 
     try:
         # Validate new password strength

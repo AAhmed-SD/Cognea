@@ -216,7 +216,7 @@ async def delete_flashcard(
         if not existing.data:
             raise HTTPException(status_code=404, detail="Flashcard not found")
 
-        result = (
+        result = (  # noqa: F841
             supabase.table("flashcards")
             .delete()
             .eq("id", str(flashcard_id))

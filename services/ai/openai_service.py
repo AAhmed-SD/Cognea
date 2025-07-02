@@ -10,7 +10,7 @@ from pydantic import BaseModel
 import time
 from ..rate_limited_queue import get_openai_queue
 
-from services.cost_tracking import cost_tracking_service
+from services.cost_tracking import cost_tracking_service, track_openai_usage
 from services.cache import cache_service
 from config.security import security_config
 

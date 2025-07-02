@@ -184,7 +184,7 @@ async def test_model_validation():
         print("\n1. Testing TaskCreate model...")
 
         # Valid task
-        valid_task = TaskCreate(
+        valid_task = TaskCreate(  # noqa: F841
             user_id=uuid4(),
             title="Valid Task",
             description="This is a valid task",
@@ -195,7 +195,7 @@ async def test_model_validation():
         # Test GoalCreate model
         print("\n2. Testing GoalCreate model...")
 
-        valid_goal = GoalCreate(
+        valid_goal = GoalCreate(  # noqa: F841
             user_id=uuid4(),
             title="Valid Goal",
             description="This is a valid goal",

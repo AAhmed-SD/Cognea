@@ -221,8 +221,8 @@ async def list_notion_databases(current_user: dict = Depends(get_current_user)):
     }
 
     # Use rate-limited queue for Notion API calls
-    notion_client = NotionClient(api_key=connection["access_token"])
-    queue = get_notion_queue()
+    notion_client = NotionClient(api_key=connection["access_token"])  # noqa: F841
+    queue = get_notion_queue()  # noqa: F841
 
     try:
         # Enqueue the search request
@@ -274,7 +274,7 @@ async def sync_notion_database(
         "Authorization": f"Bearer {connection['access_token']}",
         "Notion-Version": "2022-06-28",
     }
-    queue = get_notion_queue()
+    queue = get_notion_queue()  # noqa: F841
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{NOTION_API_BASE}/databases/{request.database_id}/query", headers=headers
@@ -488,7 +488,7 @@ async def receive_notion_webhook(
         # Echo prevention: Check if this is a recent sync
         if page_id or database_id:
             # Check last_synced_ts to prevent echo loops
-            sync_key = f"last_synced_{user_id}_{page_id or database_id}"
+            sync_key = f"last_synced_{user_id}_{page_id or database_id}"  # noqa: F841
             last_synced = (
                 supabase.table("notion_sync_status")
                 .select("last_synced_ts")
@@ -945,7 +945,7 @@ async def queue_notion_sync(
         )
 
         if user_settings.data and user_settings.data[0].get("notion_api_key"):
-            notion_client = NotionClient(
+            notion_client = NotionClient(  # noqa: F841
                 api_key=user_settings.data[0]["notion_api_key"]
             )
             notion_queue = get_notion_queue()
@@ -1088,7 +1088,3 @@ async def authenticate_notion(
 async def verify_notion_webhook(challenge: str):
     """Handle Notion webhook verification challenge."""
     return {"challenge": challenge}
-
-
-# Import os for environment variables
-import os

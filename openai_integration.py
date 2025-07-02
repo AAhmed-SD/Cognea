@@ -1,12 +1,12 @@
 import os
-from dotenv import load_dotenv
 import logging
+from dotenv import load_dotenv
 from services.rate_limited_queue import get_openai_queue
-
-logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 logger.info("OpenAI integration initialized successfully")
 

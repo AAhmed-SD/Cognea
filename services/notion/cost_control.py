@@ -221,7 +221,7 @@ class CostControlService:
         """Calculate cost savings from compression."""
         # OpenAI GPT-4 pricing (approximate)
         input_cost_per_1k = 0.03  # $0.03 per 1K input tokens
-        output_cost_per_1k = 0.06  # $0.06 per 1K output tokens
+        output_cost_per_1k = 0.06  # $0.06 per 1K output tokens  # noqa: F841
 
         original_cost = (original_tokens / 1000) * input_cost_per_1k
         compressed_cost = (compressed_tokens / 1000) * input_cost_per_1k

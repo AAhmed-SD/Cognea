@@ -331,7 +331,7 @@ def analyze_productivity_patterns(schedule_blocks):
                 )
                 day = start_time.strftime("%A")
                 day_counts[day] = day_counts.get(day, 0) + 1
-            except:
+            except Exception:
                 continue
 
     best_day = (
@@ -356,7 +356,7 @@ def analyze_productivity_patterns(schedule_blocks):
                     afternoon_blocks += 1
                 else:
                     evening_blocks += 1
-            except:
+            except Exception:
                 continue
 
     if morning_blocks >= afternoon_blocks and morning_blocks >= evening_blocks:

@@ -209,7 +209,9 @@ def delete_diary_entry(entry_id: int, request: Request):
         )
 
         # Delete the entry
-        result = supabase.table("diary_entries").delete().eq("id", entry_id).execute()
+        result = (
+            supabase.table("diary_entries").delete().eq("id", entry_id).execute()
+        )  # noqa: F841
 
         return {"message": f"Diary entry {entry_id} deleted"}
 

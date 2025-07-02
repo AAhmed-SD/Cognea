@@ -37,7 +37,9 @@ def test_connection():
     """Test the Supabase connection."""
     try:
         # Try to query a table to test connection
-        result = supabase_client.table("users").select("id").limit(1).execute()
+        result = (
+            supabase_client.table("users").select("id").limit(1).execute()
+        )  # noqa: F841
         print("✅ Supabase connection successful!")
         return True
     except Exception as e:

@@ -177,7 +177,7 @@ async def delete_task(task_id: UUID, current_user: dict = Depends(get_current_us
         if not existing.data:
             raise HTTPException(status_code=404, detail="Task not found")
 
-        result = (
+        result = (  # noqa: F841
             supabase.table("tasks")
             .delete()
             .eq("id", str(task_id))

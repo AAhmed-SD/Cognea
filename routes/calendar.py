@@ -20,7 +20,7 @@ async def calendar_connect(user_id: str):
         "connected": True,
         "connected_at": datetime.now().isoformat(),
     }
-    result = (
+    result = (  # noqa: F841
         supabase.table("calendar_connections")
         .upsert(data, on_conflict=["user_id"])
         .execute()

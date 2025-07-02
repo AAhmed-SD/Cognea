@@ -199,7 +199,7 @@ class MonitoringService:
         if not self.redis_client.is_connected():
             return
 
-        cutoff_date = datetime.now(UTC) - timedelta(days=days_to_keep)
+        cutoff_date = datetime.now(UTC) - timedelta(days=days_to_keep)  # noqa: F841
 
         # Clean up request logs
         for i in range(days_to_keep + 1, days_to_keep + 31):  # Clean up extra days

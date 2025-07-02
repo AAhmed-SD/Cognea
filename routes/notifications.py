@@ -244,7 +244,7 @@ async def delete_notification(
         if not existing.data:
             raise HTTPException(status_code=404, detail="Notification not found")
 
-        result = (
+        result = (  # noqa: F841
             supabase.table("notifications").delete().eq("id", notification_id).execute()
         )
 
@@ -276,7 +276,7 @@ async def mark_notification_read(
         if not existing.data:
             raise HTTPException(status_code=404, detail="Notification not found")
 
-        result = (
+        result = (  # noqa: F841
             supabase.table("notifications")
             .update({"is_read": True, "updated_at": datetime.utcnow().isoformat()})
             .eq("id", notification_id)
@@ -311,7 +311,7 @@ async def mark_notification_unread(
         if not existing.data:
             raise HTTPException(status_code=404, detail="Notification not found")
 
-        result = (
+        result = (  # noqa: F841
             supabase.table("notifications")
             .update({"is_read": False, "updated_at": datetime.utcnow().isoformat()})
             .eq("id", notification_id)
@@ -403,7 +403,7 @@ async def mark_multiple_read(
                 )
 
         # Update all notifications
-        result = (
+        result = (  # noqa: F841
             supabase.table("notifications")
             .update({"is_read": True, "updated_at": datetime.utcnow().isoformat()})
             .in_("id", notification_ids)

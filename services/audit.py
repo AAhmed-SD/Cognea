@@ -44,7 +44,7 @@ def log_audit_event(
         }
 
         # Insert audit log into Supabase
-        result = supabase.table("audit_logs").insert(audit_data).execute()
+        result = supabase.table("audit_logs").insert(audit_data).execute()  # noqa: F841
 
         logger.info(f"Audit log: {action} {resource} {resource_id} by {user_id}")
     except Exception as exc:

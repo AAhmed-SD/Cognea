@@ -4,7 +4,8 @@ Rate-limited queue service for API calls.
 
 import asyncio
 import logging
-from typing import Optional
+import httpx
+from typing import Optional, Dict, Any
 from datetime import datetime, UTC
 from .redis_client import get_redis_client
 
@@ -86,13 +87,100 @@ class RateLimitedQueue:
 
     async def _make_api_request(
         self, method: str, endpoint: str, api_key: str, **kwargs
-    ):
+    ) -> Dict[str, Any]:
         """
-        Make the actual API request.
-        TODO: Implement real API call logic here.
+        Make the actual API request using httpx.
+
+        Args:
+            method: HTTP method (GET, POST, PUT, DELETE, etc.)
+            endpoint: API endpoint URL
+            api_key: API key for authentication
+            **kwargs: Additional request parameters (headers, json, data, etc.)
+
+        Returns:
+            Dictionary containing response data and metadata
+
+        Raises:
+            httpx.HTTPStatusError: For HTTP error responses
+            httpx.RequestError: For network/connection errors
         """
-        # TODO: Implement real API call logic
-        pass
+        # Prepare headers with authentication
+        headers = kwargs.get("headers", {})
+        headers.update(
+            {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": f"Cognie-{self.service_name}-client/1.0",
+            }
+        )
+
+        # Extract request parameters
+        json_data = kwargs.get("json")
+        data = kwargs.get("data")
+        params = kwargs.get("params")
+        timeout = kwargs.get("timeout", 30.0)
+
+        # Determine base URL based on service
+        base_urls = {
+            "openai": "https://api.openai.com/v1",
+            "notion": "https://api.notion.com/v1",
+            "stripe": "https://api.stripe.com/v1",
+        }
+
+        base_url = base_urls.get(self.service_name, "")
+        if not base_url:
+            raise ValueError(f"Unknown service: {self.service_name}")
+
+        full_url = f"{base_url}/{endpoint.lstrip('/')}"
+
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                logger.debug(f"Making {method} request to {full_url}")
+
+                response = await client.request(
+                    method=method.upper(),
+                    url=full_url,
+                    headers=headers,
+                    json=json_data,
+                    data=data,
+                    params=params,
+                )
+
+                # Handle different response types
+                if response.headers.get("content-type", "").startswith(
+                    "application/json"
+                ):
+                    response_data = response.json()
+                else:
+                    response_data = {"content": response.text}
+
+                # Add metadata
+                result = {
+                    "data": response_data,
+                    "status_code": response.status_code,
+                    "headers": dict(response.headers),
+                    "url": str(response.url),
+                    "method": method.upper(),
+                }
+
+                # Log success
+                logger.info(
+                    f"API request successful: {method} {endpoint} -> {response.status_code}"
+                )
+
+                return result
+
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                f"HTTP error for {method} {endpoint}: {e.response.status_code} - {e.response.text}"
+            )
+            raise
+        except httpx.RequestError as e:
+            logger.error(f"Request error for {method} {endpoint}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error for {method} {endpoint}: {e}")
+            raise
 
     async def start(self):
         """Start the queue processor."""

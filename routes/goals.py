@@ -186,7 +186,7 @@ async def delete_goal(goal_id: UUID, current_user: dict = Depends(get_current_us
         if not existing.data:
             raise HTTPException(status_code=404, detail="Goal not found")
 
-        result = (
+        result = (  # noqa: F841
             supabase.table("goals")
             .delete()
             .eq("id", str(goal_id))
