@@ -12,7 +12,7 @@ from models.goal import Goal, GoalCreate, GoalUpdate, PriorityLevel
 from services.auth import get_current_user
 from services.supabase import get_supabase_client
 
-router = APIRouter(prefix="/goals", tags=["Goals"])
+router = APIRouter(tags=["Goals"])
 
 logger = logging.getLogger(__name__)
 

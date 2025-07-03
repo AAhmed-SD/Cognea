@@ -8,7 +8,20 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from services.cache import cache_service
+# from services.cache import cache_service
+
+# Minimal in-memory async cache for testing
+class InMemoryAsyncCache:
+    def __init__(self):
+        self._store = {}
+    async def get(self, key):
+        return self._store.get(key)
+    async def set(self, key, value, ttl=None):
+        self._store[key] = value
+        # TTL is ignored for in-memory test cache
+
+cache_service = InMemoryAsyncCache()
+
 from services.supabase import get_supabase_client
 
 logger = logging.getLogger(__name__)

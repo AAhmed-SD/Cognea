@@ -44,7 +44,7 @@ from routes import (
     user_settings,
 )
 from services.background_workers import background_worker, job_scheduler
-from services.performance_monitor import performance_monitor
+from services.performance_monitor import get_performance_monitor
 
 # Import enhanced services
 from services.redis_cache import enhanced_cache
@@ -92,11 +92,12 @@ async def lifespan(app: FastAPI):
 
         # Start performance monitoring system
         # Tracks system metrics, response times, and generates alerts
-        await performance_monitor.start()
+        await get_performance_monitor().start()
         logger.info("Performance monitoring started")
 
         # Configure alert thresholds for different system metrics
         # These thresholds trigger warnings and critical alerts
+        performance_monitor = get_performance_monitor()
         performance_monitor.alert_thresholds = {
             "cpu_usage": {"warning": 80, "critical": 95},  # CPU utilization limits
             "memory_usage": {"warning": 85, "critical": 95},  # Memory usage limits
@@ -131,7 +132,7 @@ async def lifespan(app: FastAPI):
 
     try:
         # Stop performance monitoring first to prevent new metrics
-        await performance_monitor.stop()
+        await get_performance_monitor().stop()
         logger.info("Performance monitoring stopped")
 
         # Stop job scheduler to prevent new scheduled tasks
@@ -212,7 +213,7 @@ async def performance_middleware(request: Request, call_next):
 
     # Record request metrics for monitoring and analytics
     # This data is used for performance analysis and alerting
-    await performance_monitor.record_request(
+    await get_performance_monitor().record_request(
         method=request.method,
         path=request.url.path,
         status_code=response.status_code,
@@ -267,11 +268,11 @@ async def health_check():
 
         # Check performance monitoring system
         # Performance monitoring tracks system health and metrics
-        monitor_healthy = performance_monitor.running
+        monitor_healthy = get_performance_monitor().running
 
         # Collect current system performance metrics
         # These metrics help identify performance issues
-        system_metrics = performance_monitor.get_performance_summary()
+        system_metrics = get_performance_monitor().get_performance_summary()
 
         # Determine overall health status
         # System is healthy only if all critical services are running
@@ -307,7 +308,7 @@ async def get_metrics():
     """Get performance metrics"""
     try:
         # Get recent metrics
-        recent_metrics = await performance_monitor.get_metrics(limit=100)
+        recent_metrics = await get_performance_monitor().get_metrics(limit=100)
 
         # Get worker metrics
         worker_metrics = background_worker.get_metrics()
@@ -316,7 +317,7 @@ async def get_metrics():
         cache_metrics = enhanced_cache.get_metrics()
 
         # Get optimization recommendations
-        recommendations = await performance_monitor.get_optimization_recommendations()
+        recommendations = await get_performance_monitor().get_optimization_recommendations()
 
         return {
             "performance_metrics": recent_metrics,
@@ -335,7 +336,7 @@ async def get_metrics():
 async def get_alerts(resolved: bool = None, limit: int = 50):
     """Get performance alerts"""
     try:
-        alerts = await performance_monitor.get_alerts(resolved=resolved, limit=limit)
+        alerts = await get_performance_monitor().get_alerts(resolved=resolved, limit=limit)
         return {"alerts": alerts}
     except Exception as e:
         logger.error(f"Error getting alerts: {e}")

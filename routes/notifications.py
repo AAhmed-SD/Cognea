@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from services.auth import get_current_user
 from services.supabase import get_supabase_client
 
-router = APIRouter(prefix="/notifications", tags=["Notifications"])
+router = APIRouter(tags=["Notifications"])
 
 
 # Pydantic models

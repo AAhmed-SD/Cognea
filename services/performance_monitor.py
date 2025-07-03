@@ -572,7 +572,24 @@ class PerformanceMonitor:
 
 
 # Global performance monitor instance
-performance_monitor = PerformanceMonitor()
+_performance_monitor = None
+
+
+def get_performance_monitor() -> PerformanceMonitor:
+    """Get the global performance monitor instance"""
+    global _performance_monitor
+    if _performance_monitor is None:
+        _performance_monitor = PerformanceMonitor()
+    return _performance_monitor
+
+
+async def setup_performance_monitoring():
+    """Setup global performance monitoring"""
+    global _performance_monitor
+    if _performance_monitor is None:
+        _performance_monitor = PerformanceMonitor()
+        await _performance_monitor.start()
+    return _performance_monitor
 
 
 # Performance monitoring decorators

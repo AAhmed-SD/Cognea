@@ -16,7 +16,7 @@ from models.schedule_block import (
 from services.auth import get_current_user
 from services.supabase import get_supabase_client
 
-router = APIRouter(prefix="/schedule-blocks", tags=["Schedule Blocks"])
+router = APIRouter(tags=["Schedule Blocks"])
 
 logger = logging.getLogger(__name__)
 

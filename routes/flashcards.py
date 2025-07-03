@@ -12,7 +12,7 @@ from models.flashcard import Flashcard, FlashcardCreate, FlashcardUpdate
 from services.auth import get_current_user
 from services.supabase import get_supabase_client
 
-router = APIRouter(prefix="/flashcards", tags=["Flashcards"])
+router = APIRouter(tags=["Flashcards"])
 
 logger = logging.getLogger(__name__)
 

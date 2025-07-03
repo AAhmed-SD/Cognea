@@ -64,10 +64,9 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
     user_data = result.data[0]
 
-    # Create a simple user object for compatibility
-    class User:
-        def __init__(self, user_data):
-            self.id = user_data["id"]
-            self.email = user_data["email"]
-
-    return User(user_data)
+    # Return user data as dict for compatibility with routes
+    return {
+        "id": user_data["id"],
+        "email": user_data["email"],
+        "role": user_data.get("role", "user")
+    }

@@ -151,14 +151,14 @@ class TestScheduleBlocksEndpoints:
     async def test_create_schedule_block_unauthorized(self, async_client):
         """Test creating schedule block without authentication."""
         response = await async_client.post(
-            "/api/schedule-blocks/", json=test_schedule_block
+            "/api/schedule/", json=test_schedule_block
         )
         assert response.status_code in [401, 403]
 
     @pytest.mark.asyncio
     async def test_get_schedule_blocks_unauthorized(self, async_client):
         """Test getting schedule blocks without authentication."""
-        response = await async_client.get("/api/schedule-blocks/")
+        response = await async_client.get("/api/schedule/")
         assert response.status_code in [401, 403]
 
 
@@ -194,7 +194,7 @@ class TestAIEndpoints:
     async def test_plan_day_unauthorized(self, async_client):
         """Test daily planning without authentication."""
         response = await async_client.post(
-            "/api/plan-day",
+            "/api/ai/plan-day",
             json={
                 "date": "2024-01-15",
                 "preferences": {"focus_areas": ["work"], "duration": "8h"},
@@ -206,7 +206,7 @@ class TestAIEndpoints:
     async def test_generate_flashcards_unauthorized(self, async_client):
         """Test flashcard generation without authentication."""
         response = await async_client.post(
-            "/api/generate-flashcards",
+            "/api/ai/generate-flashcards",
             json={"topic": "Python", "difficulty": "beginner", "count": 5},
         )
         assert response.status_code in [401, 403]
@@ -214,7 +214,7 @@ class TestAIEndpoints:
     @pytest.mark.asyncio
     async def test_get_insights_unauthorized(self, async_client):
         """Test getting insights without authentication."""
-        response = await async_client.get("/api/insights/latest")
+        response = await async_client.get("/api/ai/insights/latest")
         assert response.status_code in [401, 403]
 
 

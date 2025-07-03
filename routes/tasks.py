@@ -12,7 +12,7 @@ from models.task import PriorityLevel, Task, TaskCreate, TaskStatus, TaskUpdate
 from services.auth import get_current_user
 from services.supabase import get_supabase_client
 
-router = APIRouter(prefix="/tasks", tags=["Tasks"])
+router = APIRouter(tags=["Tasks"])
 
 logger = logging.getLogger(__name__)
 
