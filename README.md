@@ -1,4 +1,4 @@
-# AI Personal Scheduler Agent
+# Congniy
 
 > The smart planner that adapts to your brain — not the other way around.
 
