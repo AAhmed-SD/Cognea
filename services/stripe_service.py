@@ -1,12 +1,14 @@
 """Stripe service for payment processing and subscription management."""
 
-import os
-import stripe
 import logging
-from typing import Dict, Any
+import os
 from datetime import datetime
-from services.supabase import get_supabase_client
+from typing import Any
+
+import stripe
+
 from services.redis_client import get_redis_client
+from services.supabase import get_supabase_client
 
 # Configure Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -95,7 +97,7 @@ class StripeService:
             logger.error(f"Failed to create portal session: {str(e)}")
             raise
 
-    async def get_subscription_status(self, user_id: str) -> Dict[str, Any]:
+    async def get_subscription_status(self, user_id: str) -> dict[str, Any]:
         """Get current user's subscription status."""
         try:
             # Get user's subscription data

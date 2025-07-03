@@ -2,12 +2,11 @@
 Task model for the Personal Agent application.
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
 from datetime import datetime
-from uuid import UUID
 from enum import Enum
-from pydantic import ConfigDict
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TaskStatus(str, Enum):
@@ -25,8 +24,8 @@ class PriorityLevel(str, Enum):
 
 class TaskBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
-    due_date: Optional[datetime] = None
+    description: str | None = None
+    due_date: datetime | None = None
     priority: PriorityLevel = PriorityLevel.MEDIUM
 
 
@@ -35,11 +34,11 @@ class TaskCreate(TaskBase):
 
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=200)
-    description: Optional[str] = None
-    status: Optional[TaskStatus] = None
-    due_date: Optional[datetime] = None
-    priority: Optional[PriorityLevel] = None
+    title: str | None = Field(None, min_length=1, max_length=200)
+    description: str | None = None
+    status: TaskStatus | None = None
+    due_date: datetime | None = None
+    priority: PriorityLevel | None = None
 
 
 class Task(TaskBase):

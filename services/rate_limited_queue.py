@@ -4,9 +4,11 @@ Rate-limited queue service for API calls.
 
 import asyncio
 import logging
+from datetime import UTC, datetime
+from typing import Any
+
 import httpx
-from typing import Optional, Dict, Any
-from datetime import datetime, UTC
+
 from .redis_client import get_redis_client
 
 logger = logging.getLogger(__name__)
@@ -78,7 +80,7 @@ class RateLimitedQueue:
                 if not request_data["future"].done():
                     request_data["future"].set_result(result)
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except Exception as e:
                 logger.error(f"Error processing request: {e}")
@@ -87,7 +89,7 @@ class RateLimitedQueue:
 
     async def _make_api_request(
         self, method: str, endpoint: str, api_key: str, **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Make the actual API request using httpx.
 
@@ -195,9 +197,9 @@ class RateLimitedQueue:
 
 
 # Global queue instances
-_openai_queue: Optional[RateLimitedQueue] = None
-_notion_queue: Optional[RateLimitedQueue] = None
-_stripe_queue: Optional[RateLimitedQueue] = None
+_openai_queue: RateLimitedQueue | None = None
+_notion_queue: RateLimitedQueue | None = None
+_stripe_queue: RateLimitedQueue | None = None
 
 
 def get_openai_queue() -> RateLimitedQueue:

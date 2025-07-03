@@ -4,11 +4,11 @@ Implements compression, chunking, and caching to minimize OpenAI token usage.
 """
 
 import hashlib
-import re
-import logging
-from typing import List, Dict, Any, Optional
-from datetime import datetime, UTC, timedelta
 import json
+import logging
+import re
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from services.supabase import get_supabase_client
 
@@ -53,7 +53,7 @@ class CostControlService:
         # Rough estimate: 1 token ≈ 4 characters for English text
         return len(text) // 4
 
-    def chunk_content(self, content: str, max_tokens: int = None) -> List[str]:
+    def chunk_content(self, content: str, max_tokens: int = None) -> list[str]:
         """Split content into chunks that fit within token limits."""
         if max_tokens is None:
             max_tokens = self.max_chunk_tokens
@@ -131,7 +131,7 @@ class CostControlService:
         cache_string = json.dumps(cache_data, sort_keys=True)
         return hashlib.sha256(cache_string.encode()).hexdigest()
 
-    async def get_cached_flashcards(self, cache_key: str) -> Optional[List[Dict]]:
+    async def get_cached_flashcards(self, cache_key: str) -> list[dict] | None:
         """Get cached flashcards if they exist and are not expired."""
         try:
             # Check if cache entry exists and is not expired
@@ -155,7 +155,7 @@ class CostControlService:
             logger.error(f"Error getting cached flashcards: {e}")
             return None
 
-    async def cache_flashcards(self, cache_key: str, flashcards: List[Dict]):
+    async def cache_flashcards(self, cache_key: str, flashcards: list[dict]):
         """Cache flashcards for future use."""
         try:
             cache_data = {
@@ -176,7 +176,7 @@ class CostControlService:
 
     async def process_content_for_flashcards(
         self, content: str, title: str, count: int, difficulty: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Process content for flashcard generation with cost control."""
         # Generate cache key
         cache_key = self.generate_cache_key(content, count, difficulty)
@@ -211,13 +211,13 @@ class CostControlService:
             "cache_key": cache_key,
         }
 
-    async def save_flashcards_to_cache(self, cache_key: str, flashcards: List[Dict]):
+    async def save_flashcards_to_cache(self, cache_key: str, flashcards: list[dict]):
         """Save generated flashcards to cache."""
         await self.cache_flashcards(cache_key, flashcards)
 
     def calculate_cost_savings(
         self, original_tokens: int, compressed_tokens: int
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Calculate cost savings from compression."""
         # OpenAI GPT-4 pricing (approximate)
         input_cost_per_1k = 0.03  # $0.03 per 1K input tokens

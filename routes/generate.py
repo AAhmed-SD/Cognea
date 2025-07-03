@@ -1,19 +1,21 @@
-from fastapi import APIRouter, HTTPException, Depends, Header, BackgroundTasks, Request
-from models.text import TextGenerationRequest, TextGenerationResponse
-from services.openai_integration import generate_openai_text
-from services.ai_cache import ai_cached, ai_cache_service
-from services.cost_tracking import cost_tracking_service
+import json
 import logging
 import os
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
 from datetime import datetime
-import json
+from typing import Any
+
 import aioredis
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
+from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from services.supabase import get_supabase_client
+
+from models.text import TextGenerationRequest, TextGenerationResponse
+from services.ai_cache import ai_cache_service, ai_cached
 from services.auth import get_current_user
+from services.cost_tracking import cost_tracking_service
+from services.openai_integration import generate_openai_text
+from services.supabase import get_supabase_client
 
 router = APIRouter()
 
@@ -40,7 +42,7 @@ async def get_redis_client():
     return await aioredis.create_redis_pool("redis://localhost")
 
 
-async def _get_user_context(user_id: str) -> Dict[str, Any]:
+async def _get_user_context(user_id: str) -> dict[str, Any]:
     """Get user context data for AI operations"""
     try:
         supabase = get_supabase_client()
@@ -367,12 +369,12 @@ async def quiz_me(
 # Define the request model for input validation
 class SummarizeNotesRequest(BaseModel):
     notes: str
-    summary_type: Optional[str] = "TL;DR"
-    user_id: Optional[int] = None
+    summary_type: str | None = "TL;DR"
+    user_id: int | None = None
 
 
 # Function to split text into manageable chunks
-async def split_into_chunks(text: str, max_tokens: int = 1000) -> List[str]:
+async def split_into_chunks(text: str, max_tokens: int = 1000) -> list[str]:
     """Split text into manageable chunks for processing"""
     logging.info("Splitting text into chunks")
     # Simple splitting by sentences or paragraphs
@@ -481,18 +483,18 @@ async def summarize_notes_endpoint(
 # Define the request model for input validation
 class SuggestRescheduleRequest(BaseModel):
     task_title: str
-    reason_missed: Optional[str]
-    task_deadline: Optional[str]
-    task_duration_minutes: Optional[int]
-    energy_level: Optional[str]  # low, medium, high
-    user_schedule_context: Optional[str]  # e.g., "Fully booked on Thursday"
+    reason_missed: str | None
+    task_deadline: str | None
+    task_duration_minutes: int | None
+    energy_level: str | None  # low, medium, high
+    user_schedule_context: str | None  # e.g., "Fully booked on Thursday"
 
 
 # Define the response model
 class RescheduleSuggestion(BaseModel):
     suggested_time: str
     reason: str
-    alternative_times: Optional[List[str]] = None
+    alternative_times: list[str] | None = None
 
 
 # Function to suggest a reschedule time
@@ -609,20 +611,20 @@ async def suggest_reschedule_endpoint(
 # Define the request model for input validation
 class ExtractTasksRequest(BaseModel):
     text: str
-    goal_context: Optional[str] = None  # Optional: Help AI link tasks to goals
+    goal_context: str | None = None  # Optional: Help AI link tasks to goals
 
 
 # Define the response model
 class ExtractedTask(BaseModel):
     task: str
-    priority: Optional[str] = "medium"
-    time_estimate_minutes: Optional[int] = None
-    goal: Optional[str] = None
+    priority: str | None = "medium"
+    time_estimate_minutes: int | None = None
+    goal: str | None = None
 
 
 # Define the response model
 class ExtractTasksResponse(BaseModel):
-    extracted_tasks: List[ExtractedTask]
+    extracted_tasks: list[ExtractedTask]
 
 
 @router.post(
@@ -732,12 +734,12 @@ Focus on extracting actionable, specific tasks rather than general statements.""
 class PlanMyDayRequest(BaseModel):
     user_id: str
     date: str  # e.g. "2025-06-06"
-    focus_hours: Optional[List[str]] = None  # e.g. ["09:00-12:00", "14:00-17:00"]
-    include_reflections: Optional[bool] = False
-    preferred_working_hours: Optional[List[str]] = (
+    focus_hours: list[str] | None = None  # e.g. ["09:00-12:00", "14:00-17:00"]
+    include_reflections: bool | None = False
+    preferred_working_hours: list[str] | None = (
         None  # e.g. ["08:00-12:00", "13:00-17:00"]
     )
-    break_times: Optional[List[str]] = None  # e.g. ["12:00-13:00"]
+    break_times: list[str] | None = None  # e.g. ["12:00-13:00"]
 
 
 # Define the response model
@@ -745,17 +747,17 @@ class TimeBlock(BaseModel):
     start_time: str
     end_time: str
     task_name: str
-    task_id: Optional[str]
-    goal: Optional[str]
-    priority: Optional[str]
+    task_id: str | None
+    goal: str | None
+    priority: str | None
 
 
 # Define the response model
 class PlanMyDayResponse(BaseModel):
     date: str
     user_id: str
-    timeblocks: List[TimeBlock]
-    notes: Optional[str]  # Optional summary or planning AI notes
+    timeblocks: list[TimeBlock]
+    notes: str | None  # Optional summary or planning AI notes
 
 
 @router.post(
@@ -894,7 +896,7 @@ Generate a structured daily plan in JSON format:
 # Keep only unique review-related endpoints
 @router.get(
     "/review-plan",
-    response_model=List[dict],  # Simplified response model
+    response_model=list[dict],  # Simplified response model
     tags=["Review"],
     summary="Get today's review plan",
 )
@@ -1104,7 +1106,7 @@ async def update_review_result(
 # Cache management endpoints
 @router.post("/cache/invalidate", summary="Invalidate AI cache for user")
 async def invalidate_cache(
-    operations: List[str] = None, current_user: dict = Depends(get_current_user)
+    operations: list[str] = None, current_user: dict = Depends(get_current_user)
 ):
     """Invalidate AI cache for specific operations"""
     try:

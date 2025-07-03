@@ -1,9 +1,10 @@
-from celery import Celery
-from celery.signals import after_setup_logger
 import logging
-from typing import Any, Dict
 import os
 from datetime import timedelta
+from typing import Any
+
+from celery import Celery
+from celery.signals import after_setup_logger
 
 # Ensure logs directory exists
 os.makedirs("logs", exist_ok=True)
@@ -68,7 +69,7 @@ celery_app.conf.update(
 
 
 @after_setup_logger.connect
-def setup_loggers(logger: logging.Logger, *args: Any, **kwargs: Dict[str, Any]) -> None:
+def setup_loggers(logger: logging.Logger, *args: Any, **kwargs: dict[str, Any]) -> None:
     """Configure Celery logging."""
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

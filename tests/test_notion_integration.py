@@ -2,9 +2,10 @@
 Tests for Notion integration functionality.
 """
 
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from datetime import datetime, UTC
 
 from services.notion import NotionClient, NotionFlashcardGenerator, NotionSyncManager
 
@@ -223,9 +224,9 @@ async def test_notion_integration_end_to_end(
         flashcard_generator = NotionFlashcardGenerator(
             mock_notion_client, mock_openai_service
         )
-        sync_manager = NotionSyncManager(
-            mock_notion_client, flashcard_generator
-        )  # noqa: F841
+        # sync_manager = NotionSyncManager(
+        #     mock_notion_client, flashcard_generator
+        # )  # noqa: F841
 
         # Test flashcard generation
         flashcards = await flashcard_generator.generate_flashcards_from_page(

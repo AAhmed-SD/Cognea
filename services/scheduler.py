@@ -4,9 +4,10 @@ Scores tasks by priority × (1/length) × availability, with energy feedback sup
 """
 
 import logging
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class Task:
     priority: str  # low, medium, high, urgent
     estimated_minutes: int
     category: str
-    due_date: Optional[datetime] = None
+    due_date: datetime | None = None
     energy_requirement: int = 5  # 1-10 scale
     focus_type: str = "deep_work"
 
@@ -44,7 +45,7 @@ class SchedulerConfig(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     # Priority weights
-    priority_weights: Dict[str, float] = {
+    priority_weights: dict[str, float] = {
         "urgent": 4.0,
         "high": 3.0,
         "medium": 2.0,
@@ -52,7 +53,7 @@ class SchedulerConfig(BaseModel):
     }
 
     # Energy multipliers
-    energy_multipliers: Dict[str, float] = {
+    energy_multipliers: dict[str, float] = {
         "deep_work": 1.5,
         "learning": 1.2,
         "meeting": 1.0,
@@ -70,7 +71,7 @@ class SchedulerConfig(BaseModel):
 class SimpleScheduler:
     """Simple scheduler using priority × (1/length) × availability scoring."""
 
-    def __init__(self, config: Optional[SchedulerConfig] = None):
+    def __init__(self, config: SchedulerConfig | None = None):
         self.config = config or SchedulerConfig()
 
     def calculate_task_score(
@@ -141,8 +142,8 @@ class SimpleScheduler:
             return 1.0
 
     def schedule_tasks(
-        self, tasks: List[Task], time_slots: List[TimeSlot], user_energy: int = 5
-    ) -> List[Dict[str, Any]]:
+        self, tasks: list[Task], time_slots: list[TimeSlot], user_energy: int = 5
+    ) -> list[dict[str, Any]]:
         """Schedule tasks into time slots using greedy algorithm."""
 
         # Sort tasks by priority first
@@ -194,8 +195,8 @@ class SimpleScheduler:
         return schedule
 
     def optimize_schedule(
-        self, current_schedule: List[Dict], user_energy: int = 5
-    ) -> List[Dict]:
+        self, current_schedule: list[dict], user_energy: int = 5
+    ) -> list[dict]:
         """Optimize an existing schedule based on user energy."""
 
         # Extract tasks and time slots
@@ -208,8 +209,8 @@ class SimpleScheduler:
         return optimized_schedule
 
     def add_breaks(
-        self, schedule: List[Dict], min_break_minutes: int = None
-    ) -> List[Dict]:
+        self, schedule: list[dict], min_break_minutes: int = None
+    ) -> list[dict]:
         """Add breaks between tasks to prevent burnout."""
 
         if min_break_minutes is None:
@@ -259,7 +260,7 @@ class SimpleScheduler:
 
         return schedule_with_breaks
 
-    def get_schedule_insights(self, schedule: List[Dict]) -> Dict[str, Any]:
+    def get_schedule_insights(self, schedule: list[dict]) -> dict[str, Any]:
         """Generate insights about the schedule."""
 
         if not schedule:
@@ -296,7 +297,7 @@ class SimpleScheduler:
             "schedule_efficiency": self._calculate_schedule_efficiency(schedule),
         }
 
-    def _calculate_schedule_efficiency(self, schedule: List[Dict]) -> float:
+    def _calculate_schedule_efficiency(self, schedule: list[dict]) -> float:
         """Calculate schedule efficiency score."""
         if not schedule:
             return 0.0

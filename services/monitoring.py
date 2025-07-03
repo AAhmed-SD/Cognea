@@ -2,12 +2,14 @@
 Monitoring and logging service for production deployment.
 """
 
-import logging
 import json
-from datetime import datetime, timedelta, UTC
-from typing import Dict, Any, Optional
+import logging
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
 from fastapi import Request, Response
-from prometheus_client import Counter, Histogram, Gauge, generate_latest
+from prometheus_client import Counter, Gauge, Histogram, generate_latest
+
 from services.redis_client import get_redis_client
 
 # Prometheus metrics
@@ -63,7 +65,7 @@ class MonitoringService:
         endpoint: str,
         error_type: str,
         error_message: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ):
         """Log API errors."""
         API_ERRORS.labels(endpoint=endpoint, error_type=error_type).inc()
@@ -98,7 +100,7 @@ class MonitoringService:
         """Get Prometheus metrics."""
         return generate_latest()
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get application health status."""
         uptime = datetime.now(UTC) - self.start_time
 
@@ -123,7 +125,7 @@ class MonitoringService:
             "version": "1.0.0",
         }
 
-    def get_analytics(self, days: int = 7) -> Dict[str, Any]:
+    def get_analytics(self, days: int = 7) -> dict[str, Any]:
         """Get analytics data."""
         if not self.redis_client.is_connected():
             return {"error": "Redis not connected"}

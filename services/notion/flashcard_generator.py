@@ -3,17 +3,19 @@ Notion flashcard generator for Cognie.
 Converts Notion notes and content into flashcards using AI.
 """
 
-import re
 import logging
-from typing import List, Dict, Any, Optional
-from datetime import datetime, UTC
-from pydantic import BaseModel, ConfigDict
-import httpx
+import re
+from datetime import UTC, datetime
+from typing import Any
 
-from .notion_client import NotionClient
+import httpx
+from pydantic import BaseModel, ConfigDict
+
 from services.ai.openai_service import get_openai_service
 from services.cost_tracking import cost_tracking_service
 from services.rate_limited_queue import get_notion_queue
+
+from .notion_client import NotionClient
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 class FlashcardGenerationError(Exception):
     """Custom exception for flashcard generation errors."""
 
-    def __init__(self, message: str, source: Optional[str] = None):
+    def __init__(self, message: str, source: str | None = None):
         self.message = message
         self.source = source
         super().__init__(self.message)
@@ -34,10 +36,10 @@ class FlashcardData(BaseModel):
 
     question: str
     answer: str
-    tags: List[str]
+    tags: list[str]
     difficulty: str = "medium"
-    source_page_id: Optional[str] = None
-    source_page_title: Optional[str] = None
+    source_page_id: str | None = None
+    source_page_title: str | None = None
     created_at: datetime = datetime.now(UTC)
 
 
@@ -52,7 +54,7 @@ class NotionFlashcardGenerator:
 
     async def generate_flashcards_from_page(
         self, page_id: str, count: int = 5, difficulty: str = "medium"
-    ) -> List[FlashcardData]:
+    ) -> list[FlashcardData]:
         """Generate flashcards from a Notion page."""
         try:
             notion_queue = get_notion_queue()
@@ -85,7 +87,7 @@ class NotionFlashcardGenerator:
 
     async def generate_flashcards_from_database(
         self, database_id: str, count: int = 10, difficulty: str = "medium"
-    ) -> List[FlashcardData]:
+    ) -> list[FlashcardData]:
         """Generate flashcards from a Notion database."""
         try:
             notion_queue = get_notion_queue()
@@ -168,7 +170,7 @@ class NotionFlashcardGenerator:
             ) from e
 
     async def _extract_page_content_from_database_item(
-        self, page_data: Dict[str, Any]
+        self, page_data: dict[str, Any]
     ) -> str:
         """Extract content from a database page item."""
         content_parts = []
@@ -211,7 +213,7 @@ class NotionFlashcardGenerator:
         difficulty: str,
         source_page_id: str,
         source_page_title: str,
-    ) -> List[FlashcardData]:
+    ) -> list[FlashcardData]:
         """Generate flashcards using OpenAI."""
         try:
             # Prepare the prompt
@@ -235,12 +237,12 @@ class NotionFlashcardGenerator:
 
     async def _generate_flashcards_from_multiple_sources(
         self,
-        content_items: List[Dict[str, str]],
+        content_items: list[dict[str, str]],
         count: int,
         difficulty: str,
         source_database_id: str,
         source_database_title: str,
-    ) -> List[FlashcardData]:
+    ) -> list[FlashcardData]:
         """Generate flashcards from multiple content sources."""
         try:
             # Combine all content
@@ -296,7 +298,7 @@ Generate the flashcards now:
 
     def _parse_ai_response(
         self, response: str, source_page_id: str, source_page_title: str
-    ) -> List[FlashcardData]:
+    ) -> list[FlashcardData]:
         """Parse AI response into FlashcardData objects."""
         flashcards = []
 
@@ -323,7 +325,7 @@ Generate the flashcards now:
 
     def _parse_flashcard_line(
         self, line: str, source_page_id: str, source_page_title: str
-    ) -> Optional[FlashcardData]:
+    ) -> FlashcardData | None:
         """Parse a single flashcard line with improved error handling and validation."""
         try:
             # Validate input
@@ -415,7 +417,7 @@ Generate the flashcards now:
         title: str = "Manual Input",
         count: int = 5,
         difficulty: str = "medium",
-    ) -> List[FlashcardData]:
+    ) -> list[FlashcardData]:
         """Generate flashcards from plain text input."""
         try:
             flashcards = await self._generate_flashcards_with_ai(
@@ -433,7 +435,7 @@ Generate the flashcards now:
             logger.error(f"Failed to generate flashcards from text: {e}")
             raise
 
-    def extract_key_concepts(self, content: str) -> List[str]:
+    def extract_key_concepts(self, content: str) -> list[str]:
         """Extract key concepts from content for tag generation."""
         # Simple keyword extraction (could be enhanced with NLP)
         words = re.findall(r"\b\w+\b", content.lower())

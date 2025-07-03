@@ -1,6 +1,8 @@
-import os
 import logging
+import os
+
 from dotenv import load_dotenv
+
 from services.rate_limited_queue import get_openai_queue
 
 # Load environment variables from .env file

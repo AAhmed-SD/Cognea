@@ -36,10 +36,8 @@ def create_audit_logs_table():
         print(f"❌ Error creating audit_logs table: {e}")
         # Try alternative approach using direct SQL
         try:
-            result = (
-                supabase.table("audit_logs").select("id").limit(1).execute()
-            )  # noqa: F841
-            print("✅ audit_logs table already exists!")
+            supabase.table("audit_logs").select("id").limit(1).execute()
+            print("✅ Audit logs table exists")
             return True
         except Exception as e2:
             print(f"❌ Table does not exist and cannot be created: {e2}")
@@ -78,10 +76,8 @@ def create_diary_entries_table():
         # Try alternative approach using direct SQL
         try:
             # This might work if RPC is not available
-            result = (
-                supabase.table("diary_entries").select("id").limit(1).execute()
-            )  # noqa: F841
-            print("✅ diary_entries table already exists!")
+            supabase.table("diary_entries").select("id").limit(1).execute()
+            print("✅ Diary entries table exists")
             return True
         except Exception as e2:
             print(f"❌ Table does not exist and cannot be created: {e2}")

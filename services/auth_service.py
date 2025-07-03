@@ -2,30 +2,32 @@
 Enhanced authentication service with RBAC, password reset, and email verification
 """
 
-import os
 import logging
-from typing import Optional, Dict, Any, List
+import os
 from datetime import datetime, timedelta
+from typing import Any
+
 import jwt
 from passlib.context import CryptContext
-from services.supabase import get_supabase_client
-from services.email_service import email_service
+
 from models.auth import (
-    UserRole,
+    AuditLogEntry,
+    EmailVerificationConfirm,
+    EmailVerificationRequest,
+    PasswordChange,
+    PasswordResetConfirm,
+    PasswordResetRequest,
     Permission,
     UserCreate,
     UserLogin,
+    UserRole,
     UserUpdate,
-    PasswordChange,
-    PasswordResetRequest,
-    PasswordResetConfirm,
-    EmailVerificationRequest,
-    EmailVerificationConfirm,
-    AuditLogEntry,
+    can_manage_role,
     get_user_permissions,
     has_permission,
-    can_manage_role,
 )
+from services.email_service import email_service
+from services.supabase import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +99,7 @@ class AuthService:
         """
         return pwd_context.verify(plain_password, hashed_password)
 
-    def _create_tokens(self, user_id: str, role: UserRole) -> Dict[str, str]:
+    def _create_tokens(self, user_id: str, role: UserRole) -> dict[str, str]:
         """
         Create JWT access and refresh tokens for a user.
 
@@ -140,7 +142,7 @@ class AuthService:
 
     def _verify_token(
         self, token: str, token_type: str = "access"
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Verify and decode a JWT token"""
         try:
             payload = jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
@@ -154,7 +156,7 @@ class AuthService:
             logger.warning("Invalid token")
             return None
 
-    async def register_user(self, user_data: UserCreate) -> Dict[str, Any]:
+    async def register_user(self, user_data: UserCreate) -> dict[str, Any]:
         """Register a new user"""
         try:
             # Check if user already exists
@@ -208,7 +210,7 @@ class AuthService:
             logger.error(f"Failed to register user: {str(e)}")
             raise
 
-    async def login_user(self, login_data: UserLogin) -> Dict[str, Any]:
+    async def login_user(self, login_data: UserLogin) -> dict[str, Any]:
         """Login a user"""
         try:
             # Find user by email
@@ -246,7 +248,7 @@ class AuthService:
             logger.error(f"Failed to login user: {str(e)}")
             raise
 
-    async def refresh_token(self, refresh_token: str) -> Dict[str, str]:
+    async def refresh_token(self, refresh_token: str) -> dict[str, str]:
         """Refresh access token using refresh token"""
         try:
             # Verify refresh token
@@ -432,7 +434,7 @@ class AuthService:
             logger.error(f"Failed to verify email: {str(e)}")
             raise
 
-    async def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+    async def get_user_by_id(self, user_id: str) -> dict[str, Any] | None:
         """Get user by ID"""
         try:
             result = (
@@ -445,7 +447,7 @@ class AuthService:
 
     async def update_user(
         self, user_id: str, update_data: UserUpdate
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Update user information"""
         try:
             update_fields = {}
@@ -491,7 +493,7 @@ class AuthService:
             logger.error(f"Failed to check permission: {str(e)}")
             return False
 
-    async def get_user_permissions(self, user_id: str) -> List[Permission]:
+    async def get_user_permissions(self, user_id: str) -> list[Permission]:
         """Get all permissions for a user"""
         try:
             user = await self.get_user_by_id(user_id)
@@ -543,7 +545,7 @@ class AuthService:
 
     async def get_users(
         self, current_user_id: str, limit: int = 50, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get list of users (admin only)"""
         try:
             # Check if user has permission

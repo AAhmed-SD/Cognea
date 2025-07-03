@@ -1,43 +1,46 @@
+from __future__ import annotations
+
 """
 Security configuration for the application.
 This module centralizes all security-related settings.
 """
 
-from typing import List, Optional
-from pydantic_settings import BaseSettings
-from pydantic import Field, ConfigDict
 import secrets
+from typing import Any
+
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class SecurityConfig(BaseSettings):
     """Security configuration settings"""
 
-    model_config = ConfigDict(
-        env_file=".env",
-        case_sensitive=False,
-        extra="ignore",  # Ignore extra fields to prevent validation errors
-    )
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": False,
+        "extra": "ignore",  # Ignore extra fields to prevent validation errors
+    }
 
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = False
 
     # Supabase Configuration
-    SUPABASE_URL: Optional[str] = Field(default=None, alias="SUPABASE_URL")
-    SUPABASE_ANON_KEY: Optional[str] = Field(default=None, alias="SUPABASE_ANON_KEY")
-    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = Field(
+    SUPABASE_URL: str | None = Field(default=None, alias="SUPABASE_URL")
+    SUPABASE_ANON_KEY: str | None = Field(default=None, alias="SUPABASE_ANON_KEY")
+    SUPABASE_SERVICE_ROLE_KEY: str | None = Field(
         default=None, alias="SUPABASE_SERVICE_ROLE_KEY"
     )
-    SUPABASE_JWT_KEY: Optional[str] = Field(default=None, alias="SUPABASE_JWT_KEY")
+    SUPABASE_JWT_KEY: str | None = Field(default=None, alias="SUPABASE_JWT_KEY")
 
     # OpenAI Configuration
-    OPENAI_API_KEY: Optional[str] = Field(default=None, alias="OPENAI_API_KEY")
+    OPENAI_API_KEY: str | None = Field(default=None, alias="OPENAI_API_KEY")
 
     # Stripe Configuration
-    STRIPE_PUBLISHING_KEY: Optional[str] = Field(
+    STRIPE_PUBLISHING_KEY: str | None = Field(
         default=None, alias="STRIPE_PUBLISHING_KEY"
     )
-    STRIPE_API: Optional[str] = Field(default=None, alias="STRIPE_API")
+    STRIPE_API: str | None = Field(default=None, alias="STRIPE_API")
 
     # Secret Key
     SECRET_KEY: str = Field(
@@ -45,22 +48,22 @@ class SecurityConfig(BaseSettings):
     )
 
     # CORS Settings
-    ALLOWED_ORIGINS: Optional[str] = Field(default=None, alias="ALLOWED_ORIGINS")
+    ALLOWED_ORIGINS: str | None = Field(default=None, alias="ALLOWED_ORIGINS")
 
     # Trusted Hosts
-    TRUSTED_HOSTS: Optional[str] = Field(default=None, alias="TRUSTED_HOSTS")
+    TRUSTED_HOSTS: str | None = Field(default=None, alias="TRUSTED_HOSTS")
 
     # Rate Limiting
     RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60
     RATE_LIMIT_REQUESTS_PER_HOUR: int = 1000
-    DISABLE_RATE_LIMIT: Optional[bool] = Field(default=None, alias="DISABLE_RATE_LIMIT")
+    DISABLE_RATE_LIMIT: bool | None = Field(default=None, alias="DISABLE_RATE_LIMIT")
 
     # Budget Limits
     DAILY_BUDGET_LIMIT_USD: float = 10.0
     MONTHLY_BUDGET_LIMIT_USD: float = 100.0
 
     # Redis
-    REDIS_URL: Optional[str] = Field(default=None, alias="REDIS_URL")
+    REDIS_URL: str | None = Field(default=None, alias="REDIS_URL")
 
     # Monitoring
     ENABLE_MONITORING: bool = True
@@ -68,8 +71,8 @@ class SecurityConfig(BaseSettings):
 
     # HTTPS
     ENABLE_HTTPS: bool = False
-    SSL_CERT_PATH: Optional[str] = None
-    SSL_KEY_PATH: Optional[str] = None
+    SSL_CERT_PATH: str | None = None
+    SSL_KEY_PATH: str | None = None
 
     # Authentication
     JWT_SECRET_KEY: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
@@ -126,7 +129,7 @@ class SecurityConfig(BaseSettings):
 
     # File Upload Security
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_FILE_TYPES: List[str] = [
+    ALLOWED_FILE_TYPES: list[str] = [
         "image/jpeg",
         "image/png",
         "image/gif",
@@ -143,17 +146,18 @@ class SecurityConfig(BaseSettings):
 security_config = SecurityConfig()
 
 
-def get_cors_origins() -> List[str]:
+def get_cors_origins() -> list[str]:
     """Get CORS origins based on environment"""
     if security_config.ENVIRONMENT == "production":
-        return security_config.PRODUCTION_ORIGINS
-    return security_config.ALLOWED_ORIGINS
+        # Return a default list for production since PRODUCTION_ORIGINS doesn't exist
+        return ["https://cognie.app", "https://www.cognie.app"]
+    return [security_config.ALLOWED_ORIGINS] if security_config.ALLOWED_ORIGINS else []
 
 
-def get_trusted_hosts() -> List[str]:
+def get_trusted_hosts() -> list[str]:
     """Get trusted hosts based on environment"""
     if security_config.ENVIRONMENT == "production":
-        return security_config.TRUSTED_HOSTS
+        return [security_config.TRUSTED_HOSTS] if security_config.TRUSTED_HOSTS else []
     return ["localhost", "127.0.0.1"]
 
 
@@ -204,34 +208,34 @@ def validate_password_strength(password: str) -> tuple[bool, str]:
     ):
         return False, "Password must contain at least one special character"
 
-    return True, "Password meets security requirements"
+    return True, "Password meets all requirements"
 
 
-def sanitize_input(text: str, max_length: int = None) -> str:
-    """Sanitize user input"""
-    if max_length is None:
-        max_length = security_config.MAX_STRING_LENGTH
+def sanitize_input(text: str, max_length: int | None = None) -> str:
+    """Sanitize user input to prevent injection attacks"""
+    if not text:
+        return ""
 
-    # Remove null bytes and control characters
-    sanitized = "".join(char for char in text if ord(char) >= 32 or char in "\n\r\t")
+    # Remove potentially dangerous characters
+    sanitized = "".join(c for c in text if c.isprintable() and c not in "<>\"'&")
 
-    # Truncate if too long
-    if len(sanitized) > max_length:
+    # Truncate if max_length is specified
+    if max_length is not None:
         sanitized = sanitized[:max_length]
 
     return sanitized.strip()
 
 
 def is_safe_filename(filename: str) -> bool:
-    """Check if filename is safe"""
+    """Check if filename is safe for file upload"""
     dangerous_chars = ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]
     return not any(char in filename for char in dangerous_chars)
 
 
-def get_rate_limit_config() -> dict:
+def get_rate_limit_config() -> dict[str, Any]:
     """Get rate limiting configuration"""
     return {
         "requests_per_minute": security_config.RATE_LIMIT_REQUESTS_PER_MINUTE,
         "requests_per_hour": security_config.RATE_LIMIT_REQUESTS_PER_HOUR,
-        "disabled": security_config.DISABLE_RATE_LIMIT,
+        "disabled": security_config.DISABLE_RATE_LIMIT or False,
     }

@@ -1,11 +1,12 @@
-from fastapi import Request, status, FastAPI
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from typing import Union, Dict, Any, Optional
 import logging
 import traceback
 import uuid
 from datetime import datetime
+from typing import Any
+
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,8 @@ class APIError(Exception):
         message: str,
         status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
         error_code: str = "INTERNAL_SERVER_ERROR",
-        details: Union[Dict[str, Any], None] = None,
-        retry_after: Optional[int] = None,
+        details: dict[str, Any] | None = None,
+        retry_after: int | None = None,
     ):
         self.message = message
         self.status_code = status_code
@@ -32,7 +33,7 @@ class APIError(Exception):
 class ValidationError(APIError):
     """Exception for validation errors."""
 
-    def __init__(self, message: str, details: Union[Dict[str, Any], None] = None):
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
         super().__init__(
             message=message,
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -44,7 +45,7 @@ class ValidationError(APIError):
 class AuthenticationError(APIError):
     """Exception for authentication errors."""
 
-    def __init__(self, message: str = "Authentication failed"):
+    def __init__(self, message: str = "Authentication failed") -> None:
         super().__init__(
             message=message,
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -55,7 +56,7 @@ class AuthenticationError(APIError):
 class AuthorizationError(APIError):
     """Exception for authorization errors."""
 
-    def __init__(self, message: str = "Not authorized to perform this action"):
+    def __init__(self, message: str = "Not authorized to perform this action") -> None:
         super().__init__(
             message=message,
             status_code=status.HTTP_403_FORBIDDEN,
@@ -66,7 +67,7 @@ class AuthorizationError(APIError):
 class NotFoundError(APIError):
     """Exception for not found errors."""
 
-    def __init__(self, message: str = "Resource not found"):
+    def __init__(self, message: str = "Resource not found") -> None:
         super().__init__(
             message=message,
             status_code=status.HTTP_404_NOT_FOUND,
@@ -77,7 +78,9 @@ class NotFoundError(APIError):
 class RateLimitError(APIError):
     """Exception for rate limiting errors."""
 
-    def __init__(self, message: str = "Rate limit exceeded", retry_after: int = 60):
+    def __init__(
+        self, message: str = "Rate limit exceeded", retry_after: int = 60
+    ) -> None:
         super().__init__(
             message=message,
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -89,7 +92,7 @@ class RateLimitError(APIError):
 class ServiceUnavailableError(APIError):
     """Exception for service unavailable errors."""
 
-    def __init__(self, message: str = "Service temporarily unavailable"):
+    def __init__(self, message: str = "Service temporarily unavailable") -> None:
         super().__init__(
             message=message,
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -100,7 +103,7 @@ class ServiceUnavailableError(APIError):
 class ExternalServiceError(APIError):
     """Exception for external service errors."""
 
-    def __init__(self, service: str, message: str = "External service error"):
+    def __init__(self, service: str, message: str = "External service error") -> None:
         super().__init__(
             message=f"{service}: {message}",
             status_code=status.HTTP_502_BAD_GATEWAY,
@@ -109,7 +112,7 @@ class ExternalServiceError(APIError):
         )
 
 
-def categorize_error(exc: Exception) -> Dict[str, Any]:
+def categorize_error(exc: Exception) -> dict[str, Any]:
     """Categorize errors for better handling and monitoring."""
     error_info = {
         "category": "unknown",
@@ -154,7 +157,7 @@ def categorize_error(exc: Exception) -> Dict[str, Any]:
 
 def create_error_response(
     exc: Exception, error_id: str, request: Request, include_traceback: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a structured error response."""
     error_info = categorize_error(exc)
 
@@ -270,7 +273,7 @@ async def error_handler(request: Request, exc: Exception) -> JSONResponse:
     )
 
 
-def setup_error_handlers(app: FastAPI):
+def setup_error_handlers(app: FastAPI) -> None:
     """Setup error handlers for the FastAPI application."""
     app.add_exception_handler(Exception, error_handler)
     app.add_exception_handler(APIError, error_handler)
@@ -282,7 +285,7 @@ def setup_error_handlers(app: FastAPI):
 class ErrorTracker:
     """Utility for tracking and alerting on errors."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.error_counts = {}
         self.alert_thresholds = {
             "high": 5,  # Alert after 5 high severity errors
@@ -290,7 +293,7 @@ class ErrorTracker:
             "low": 100,  # Alert after 100 low severity errors
         }
 
-    def track_error(self, error_info: Dict[str, Any]):
+    def track_error(self, error_info: dict[str, Any]) -> None:
         """Track an error for monitoring purposes."""
         category = error_info["category"]
         severity = error_info["severity"]
@@ -303,7 +306,7 @@ class ErrorTracker:
         if self.error_counts[key] >= threshold:
             self._send_alert(category, severity, self.error_counts[key])
 
-    def _send_alert(self, category: str, severity: str, count: int):
+    def _send_alert(self, category: str, severity: str, count: int) -> None:
         """Send an alert for error threshold exceeded."""
         logger.critical(
             f"Error threshold exceeded: {category} ({severity}) - {count} errors",

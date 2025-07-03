@@ -1,9 +1,11 @@
-from enum import Enum
-from services.supabase import get_supabase_client
-from typing import Optional, Dict, Any
-from fastapi import Request
 import logging
 from datetime import datetime
+from enum import Enum
+from typing import Any
+
+from fastapi import Request
+
+from services.supabase import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +21,14 @@ class AuditAction(Enum):
 
 
 def log_audit_event(
-    user_id: Optional[str],
+    user_id: str | None,
     action: AuditAction,
     resource: str,
-    resource_id: Optional[str] = None,
-    ip_address: Optional[str] = None,
-    user_agent: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None,
-    db: Optional[Any] = None,  # Keep for compatibility but not used
+    resource_id: str | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+    details: dict[str, Any] | None = None,
+    db: Any | None = None,  # Keep for compatibility but not used
 ) -> None:
     """Log an audit event to the database using Supabase."""
     try:
@@ -53,7 +55,7 @@ def log_audit_event(
         # This could happen if the audit_logs table doesn't exist yet
 
 
-def extract_request_context(request: Request) -> Dict[str, Any]:
+def extract_request_context(request: Request) -> dict[str, Any]:
     """Extract context info from FastAPI request for audit logging."""
     return {
         "ip_address": request.client.host if request.client else None,
@@ -63,12 +65,12 @@ def extract_request_context(request: Request) -> Dict[str, Any]:
 
 def log_audit_from_request(
     request: Request,
-    user_id: Optional[str],
+    user_id: str | None,
     action: AuditAction,
     resource: str,
-    resource_id: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None,
-    db: Optional[Any] = None,
+    resource_id: str | None = None,
+    details: dict[str, Any] | None = None,
+    db: Any | None = None,
 ) -> None:
     ctx = extract_request_context(request)
     log_audit_event(

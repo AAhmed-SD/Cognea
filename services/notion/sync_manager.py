@@ -3,17 +3,19 @@ Notion sync manager for Cognie.
 Handles two-way synchronization between Cognie and Notion.
 """
 
-import logging
-from typing import List, Dict, Any, Optional
-from datetime import datetime, UTC, timedelta
-from pydantic import BaseModel, ConfigDict
-from enum import Enum
 import asyncio
+import logging
+from datetime import UTC, datetime, timedelta
+from enum import Enum
+from typing import Any
 
-from .notion_client import NotionClient
-from .flashcard_generator import NotionFlashcardGenerator, FlashcardData
-from services.supabase import get_supabase_client
+from pydantic import BaseModel, ConfigDict
+
 from services.rate_limited_queue import get_notion_queue
+from services.supabase import get_supabase_client
+
+from .flashcard_generator import FlashcardData, NotionFlashcardGenerator
+from .notion_client import NotionClient
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ class SyncStatus(BaseModel):
     last_sync_time: datetime
     sync_direction: str  # "notion_to_cognie", "cognie_to_notion", "bidirectional"
     status: str  # "success", "failed", "in_progress", "conflict_resolved"
-    error_message: Optional[str] = None
+    error_message: str | None = None
     items_synced: int = 0
     conflicts_resolved: int = 0
     retry_count: int = 0
@@ -49,7 +51,7 @@ class ConflictResolution(BaseModel):
     strategy: str  # "notion_wins", "cognie_wins", "manual", "merge"
     resolved_at: datetime
     resolved_by: str
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None
 
 
 class NotionSyncManager:
@@ -177,7 +179,7 @@ class NotionSyncManager:
         count: int = 10,
         difficulty: str = "medium",
         max_retries: int = 3,
-    ) -> List[FlashcardData]:
+    ) -> list[FlashcardData]:
         """Generate flashcards with retry logic."""
         for attempt in range(max_retries):
             try:
@@ -197,7 +199,7 @@ class NotionSyncManager:
 
     async def _detect_conflicts(
         self, user_id: str, notion_page_id: str, notion_page: Any
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Detect conflicts between Notion and Cognie data."""
         conflicts = []
 
@@ -251,7 +253,7 @@ class NotionSyncManager:
         return conflicts
 
     async def _resolve_conflicts(
-        self, conflicts: List[Dict[str, Any]], strategy: str, user_id: str
+        self, conflicts: list[dict[str, Any]], strategy: str, user_id: str
     ) -> int:
         """Resolve conflicts using the specified strategy."""
         resolved_count = 0
@@ -316,8 +318,8 @@ class NotionSyncManager:
         ).eq("id", flashcard_id).execute()
 
     async def _save_flashcards_with_conflict_resolution(
-        self, user_id: str, flashcards: List[FlashcardData], notion_last_edited: str
-    ) -> List[Dict[str, Any]]:
+        self, user_id: str, flashcards: list[FlashcardData], notion_last_edited: str
+    ) -> list[dict[str, Any]]:
         """Save flashcards with conflict resolution."""
         saved_flashcards = []
 
@@ -343,7 +345,7 @@ class NotionSyncManager:
 
     async def _get_local_last_synced_ts(
         self, user_id: str, notion_page_id: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """Get local last synced timestamp."""
         try:
             local_flashcard = (
@@ -402,7 +404,7 @@ class NotionSyncManager:
         except Exception as e:
             logger.error(f"Error scheduling retry: {e}")
 
-    async def get_sync_health_status(self, user_id: str) -> Dict[str, Any]:
+    async def get_sync_health_status(self, user_id: str) -> dict[str, Any]:
         """Get sync health status for a user."""
         try:
             # Get recent sync history
@@ -513,7 +515,7 @@ class NotionSyncManager:
             raise
 
     async def sync_flashcards_to_notion(
-        self, user_id: str, flashcard_ids: List[str], target_page_id: str
+        self, user_id: str, flashcard_ids: list[str], target_page_id: str
     ) -> SyncStatus:
         """Sync Cognie flashcards back to Notion."""
         try:
@@ -573,7 +575,7 @@ class NotionSyncManager:
 
     async def _save_flashcard_to_cognie(
         self, user_id: str, flashcard: FlashcardData
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Save a flashcard to the Cognie database."""
         try:
             flashcard_data = {
@@ -599,8 +601,8 @@ class NotionSyncManager:
             return None
 
     async def _get_flashcards_from_cognie(
-        self, user_id: str, flashcard_ids: List[str]
-    ) -> List[Dict[str, Any]]:
+        self, user_id: str, flashcard_ids: list[str]
+    ) -> list[dict[str, Any]]:
         """Get flashcards from Cognie database."""
         try:
             result = (
@@ -616,7 +618,7 @@ class NotionSyncManager:
             return []
 
     def _create_notion_content_from_flashcards(
-        self, flashcards: List[Dict[str, Any]]
+        self, flashcards: list[dict[str, Any]]
     ) -> str:
         """Create Notion content from flashcards."""
         content_lines = []
@@ -673,7 +675,7 @@ class NotionSyncManager:
 
     async def get_sync_status(
         self, user_id: str, notion_page_id: str
-    ) -> Optional[SyncStatus]:
+    ) -> SyncStatus | None:
         """Get sync status for a specific page."""
         try:
             result = (
@@ -701,7 +703,7 @@ class NotionSyncManager:
             logger.error(f"Failed to get sync status: {e}")
             return None
 
-    async def get_user_sync_history(self, user_id: str) -> List[SyncStatus]:
+    async def get_user_sync_history(self, user_id: str) -> list[SyncStatus]:
         """Get sync history for a user."""
         try:
             result = (

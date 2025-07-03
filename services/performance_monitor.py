@@ -12,12 +12,14 @@ import asyncio
 import json
 import logging
 import time
-import psutil
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Callable
-from functools import wraps
-from dataclasses import dataclass, asdict
 from collections import deque
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from functools import wraps
+from typing import Any
+
+import psutil
 import redis.asyncio as redis
 
 logger = logging.getLogger(__name__)
@@ -29,8 +31,8 @@ class PerformanceMetric:
     metric_type: str
     value: float
     unit: str
-    tags: Dict[str, str]
-    metadata: Dict[str, Any]
+    tags: dict[str, str]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -44,7 +46,7 @@ class Alert:
     threshold: float
     current_value: float
     resolved: bool = False
-    resolved_at: Optional[datetime] = None
+    resolved_at: datetime | None = None
 
 
 class PerformanceMonitor:
@@ -55,7 +57,7 @@ class PerformanceMonitor:
         redis_url: str = "redis://localhost:6379",
         collection_interval: int = 30,
         retention_days: int = 30,
-        alert_thresholds: Dict[str, Dict[str, float]] = None,
+        alert_thresholds: dict[str, dict[str, float]] = None,
     ):
         self.redis_url = redis_url
         self.collection_interval = collection_interval
@@ -72,7 +74,7 @@ class PerformanceMonitor:
 
         # Metrics storage
         self.metrics_buffer = deque(maxlen=1000)
-        self.alert_handlers: List[Callable] = []
+        self.alert_handlers: list[Callable] = []
 
         # Performance counters
         self.request_count = 0
@@ -131,8 +133,8 @@ class PerformanceMonitor:
         metric_type: str,
         value: float,
         unit: str = "",
-        tags: Dict[str, str] = None,
-        metadata: Dict[str, Any] = None,
+        tags: dict[str, str] = None,
+        metadata: dict[str, Any] = None,
     ):
         """Record a performance metric"""
         metric = PerformanceMetric(
@@ -378,7 +380,7 @@ class PerformanceMonitor:
         start_time: datetime = None,
         end_time: datetime = None,
         limit: int = 100,
-    ) -> List[PerformanceMetric]:
+    ) -> list[PerformanceMetric]:
         """Get metrics from storage"""
         try:
             if not start_time:
@@ -418,7 +420,7 @@ class PerformanceMonitor:
         severity: str = None,
         resolved: bool = None,
         limit: int = 100,
-    ) -> List[Alert]:
+    ) -> list[Alert]:
         """Get alerts from storage"""
         try:
             keys = await self.redis.keys("alert:*")
@@ -455,7 +457,7 @@ class PerformanceMonitor:
             logger.error(f"Error resolving alert: {e}")
             return False
 
-    def get_performance_summary(self) -> Dict[str, Any]:
+    def get_performance_summary(self) -> dict[str, Any]:
         """Get performance summary"""
         summary = {
             "request_count": self.request_count,
@@ -486,7 +488,7 @@ class PerformanceMonitor:
 
         return summary
 
-    async def get_optimization_recommendations(self) -> List[Dict[str, Any]]:
+    async def get_optimization_recommendations(self) -> list[dict[str, Any]]:
         """Get performance optimization recommendations"""
         recommendations = []
 
@@ -574,7 +576,7 @@ performance_monitor = PerformanceMonitor()
 
 
 # Performance monitoring decorators
-def monitor_performance(metric_type: str, tags: Dict[str, str] = None):
+def monitor_performance(metric_type: str, tags: dict[str, str] = None):
     """Decorator to monitor function performance"""
 
     def decorator(func):

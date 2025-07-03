@@ -2,8 +2,10 @@
 Tests for rate-limit back-off functionality.
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from services.redis_client import RedisClient
 
 

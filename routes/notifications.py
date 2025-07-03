@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
-from datetime import datetime, timedelta
 import logging
-from services.supabase import get_supabase_client
+from datetime import datetime, timedelta
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, ConfigDict, Field
+
 from services.auth import get_current_user
+from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
@@ -16,9 +17,7 @@ class NotificationBase(BaseModel):
     send_time: datetime
     type: str = Field(default="reminder", pattern="^(reminder|alert|system|goal|task)$")
     category: str = Field(default="task", pattern="^(task|goal|system|alert|schedule)$")
-    repeat_interval: Optional[str] = Field(
-        None, pattern="^(daily|weekly|monthly|custom)$"
-    )
+    repeat_interval: str | None = Field(None, pattern="^(daily|weekly|monthly|custom)$")
     is_read: bool = False
     is_sent: bool = False
 
@@ -28,16 +27,14 @@ class NotificationCreate(NotificationBase):
 
 
 class NotificationUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=200)
-    message: Optional[str] = Field(None, min_length=1, max_length=1000)
-    send_time: Optional[datetime] = None
-    type: Optional[str] = Field(None, pattern="^(reminder|alert|system|goal|task)$")
-    category: Optional[str] = Field(None, pattern="^(task|goal|system|alert|schedule)$")
-    repeat_interval: Optional[str] = Field(
-        None, pattern="^(daily|weekly|monthly|custom)$"
-    )
-    is_read: Optional[bool] = None
-    is_sent: Optional[bool] = None
+    title: str | None = Field(None, min_length=1, max_length=200)
+    message: str | None = Field(None, min_length=1, max_length=1000)
+    send_time: datetime | None = None
+    type: str | None = Field(None, pattern="^(reminder|alert|system|goal|task)$")
+    category: str | None = Field(None, pattern="^(task|goal|system|alert|schedule)$")
+    repeat_interval: str | None = Field(None, pattern="^(daily|weekly|monthly|custom)$")
+    is_read: bool | None = None
+    is_sent: bool | None = None
 
 
 class NotificationResponse(NotificationBase):
@@ -87,15 +84,15 @@ async def create_notification(
 
 @router.get(
     "/",
-    response_model=List[NotificationResponse],
+    response_model=list[NotificationResponse],
     summary="Get all notifications for current user",
 )
 async def get_notifications(
     current_user: dict = Depends(get_current_user),
     limit: int = 50,
     offset: int = 0,
-    category: Optional[str] = None,
-    is_read: Optional[bool] = None,
+    category: str | None = None,
+    is_read: bool | None = None,
 ):
     """Get all notifications for the current user with optional filtering"""
     try:
@@ -348,7 +345,7 @@ async def get_unread_count(current_user: dict = Depends(get_current_user)):
 
 @router.get(
     "/upcoming",
-    response_model=List[NotificationResponse],
+    response_model=list[NotificationResponse],
     summary="Get upcoming notifications",
 )
 async def get_upcoming_notifications(
@@ -382,7 +379,7 @@ async def get_upcoming_notifications(
 
 @router.post("/bulk/mark-read", summary="Mark multiple notifications as read")
 async def mark_multiple_read(
-    notification_ids: List[str], current_user: dict = Depends(get_current_user)
+    notification_ids: list[str], current_user: dict = Depends(get_current_user)
 ):
     """Mark multiple notifications as read"""
     try:

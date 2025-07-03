@@ -1,9 +1,10 @@
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
-from typing import List, Optional
+
+from services.audit import AuditAction, log_audit_from_request
 from services.supabase import get_supabase_client
-from services.audit import log_audit_from_request, AuditAction
-from datetime import datetime, UTC
 
 router = APIRouter(prefix="/diary", tags=["Diary / Journal"])
 
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/diary", tags=["Diary / Journal"])
 class DiaryEntryBase(BaseModel):
     content: str
     mood: str
-    tags: Optional[List[str]] = []
+    tags: list[str] | None = []
 
 
 class DiaryEntryCreate(DiaryEntryBase):
@@ -68,7 +69,7 @@ def create_diary_entry(entry: DiaryEntryCreate, request: Request):
 
 @router.get(
     "/entries/{user_id}",
-    response_model=List[DiaryEntryOut],
+    response_model=list[DiaryEntryOut],
     summary="List all diary entries for a user",
 )
 def list_diary_entries(user_id: int, request: Request):
@@ -209,9 +210,7 @@ def delete_diary_entry(entry_id: int, request: Request):
         )
 
         # Delete the entry
-        result = (
-            supabase.table("diary_entries").delete().eq("id", entry_id).execute()
-        )  # noqa: F841
+        supabase.table("diary_entries").delete().eq("id", entry_id).execute()
 
         return {"message": f"Diary entry {entry_id} deleted"}
 

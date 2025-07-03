@@ -1,11 +1,12 @@
-import time
-import logging
 import asyncio
-from typing import Dict, List, Callable, Any
+import logging
+import statistics
+import time
+from collections import defaultdict, deque
+from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from collections import defaultdict, deque
-import statistics
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,12 +16,12 @@ class PerformanceMonitor:
 
     def __init__(self, max_history: int = 1000):
         self.max_history = max_history
-        self.response_times: Dict[str, deque] = defaultdict(
+        self.response_times: dict[str, deque] = defaultdict(
             lambda: deque(maxlen=max_history)
         )
-        self.error_counts: Dict[str, int] = defaultdict(int)
-        self.request_counts: Dict[str, int] = defaultdict(int)
-        self.slow_queries: List[Dict] = []
+        self.error_counts: dict[str, int] = defaultdict(int)
+        self.request_counts: dict[str, int] = defaultdict(int)
+        self.slow_queries: list[dict] = []
         self.start_time = datetime.utcnow()
 
     def record_request(
@@ -49,7 +50,7 @@ class PerformanceMonitor:
             if len(self.slow_queries) > 100:
                 self.slow_queries = self.slow_queries[-100:]
 
-    def get_endpoint_stats(self, endpoint: str, method: str = "GET") -> Dict:
+    def get_endpoint_stats(self, endpoint: str, method: str = "GET") -> dict:
         """Get performance statistics for an endpoint"""
         key = f"{method} {endpoint}"
         times = list(self.response_times[key])
@@ -85,7 +86,7 @@ class PerformanceMonitor:
             ),
         }
 
-    def get_overall_stats(self) -> Dict:
+    def get_overall_stats(self) -> dict:
         """Get overall performance statistics"""
         all_times = []
         for times in self.response_times.values():
@@ -115,7 +116,7 @@ class PerformanceMonitor:
             ),
         }
 
-    def get_slowest_endpoints(self, limit: int = 10) -> List[Dict]:
+    def get_slowest_endpoints(self, limit: int = 10) -> list[dict]:
         """Get the slowest endpoints"""
         endpoint_stats = []
         for key in self.response_times.keys():
@@ -127,7 +128,7 @@ class PerformanceMonitor:
             endpoint_stats, key=lambda x: x["avg_response_time"], reverse=True
         )[:limit]
 
-    def get_recent_slow_queries(self, limit: int = 20) -> List[Dict]:
+    def get_recent_slow_queries(self, limit: int = 20) -> list[dict]:
         """Get recent slow queries"""
         return self.slow_queries[-limit:]
 
@@ -195,7 +196,7 @@ class DatabaseQueryOptimizer:
 
     @staticmethod
     def optimize_select_query(
-        table: str, columns: List[str], filters: Dict = None, limit: int = None
+        table: str, columns: list[str], filters: dict = None, limit: int = None
     ) -> str:
         """Generate optimized SELECT query"""
         # Only select needed columns
@@ -237,12 +238,12 @@ class ResponseTimeOptimizer:
     """Response time optimization utilities"""
 
     @staticmethod
-    async def parallel_requests(requests: List[Callable]) -> List[Any]:
+    async def parallel_requests(requests: list[Callable]) -> list[Any]:
         """Execute multiple requests in parallel"""
         return await asyncio.gather(*requests, return_exceptions=True)
 
     @staticmethod
-    def batch_operations(items: List[Any], batch_size: int = 100) -> List[List[Any]]:
+    def batch_operations(items: list[Any], batch_size: int = 100) -> list[list[Any]]:
         """Split items into batches for batch processing"""
         return [items[i : i + batch_size] for i in range(0, len(items), batch_size)]
 

@@ -2,10 +2,11 @@
 Authentication and authorization models
 """
 
-from pydantic import BaseModel, EmailStr, validator
-from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, EmailStr, validator
 
 
 class UserRole(str, Enum):
@@ -50,12 +51,12 @@ class RolePermission(BaseModel):
     """Role-permission mapping"""
 
     role: UserRole
-    permissions: List[Permission]
+    permissions: list[Permission]
     description: str
 
 
 # Define role-permission mappings
-ROLE_PERMISSIONS: Dict[UserRole, RolePermission] = {
+ROLE_PERMISSIONS: dict[UserRole, RolePermission] = {
     UserRole.FREE_USER: RolePermission(
         role=UserRole.FREE_USER,
         permissions=[
@@ -111,12 +112,12 @@ class UserCreate(BaseModel):
 
     email: EmailStr
     password: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: str | None = None
+    last_name: str | None = None
     role: UserRole = UserRole.FREE_USER
 
     @validator("password")
-    def validate_password(cls, v):
+    def validate_password(cls, v) -> None:
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long")
         if not any(c.isupper() for c in v):
@@ -138,10 +139,10 @@ class UserLogin(BaseModel):
 class UserUpdate(BaseModel):
     """User update model"""
 
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    role: Optional[UserRole] = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: EmailStr | None = None
+    role: UserRole | None = None
 
 
 class PasswordChange(BaseModel):
@@ -151,7 +152,7 @@ class PasswordChange(BaseModel):
     new_password: str
 
     @validator("new_password")
-    def validate_new_password(cls, v):
+    def validate_new_password(cls, v) -> None:
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long")
         if not any(c.isupper() for c in v):
@@ -176,7 +177,7 @@ class PasswordResetConfirm(BaseModel):
     new_password: str
 
     @validator("new_password")
-    def validate_new_password(cls, v):
+    def validate_new_password(cls, v) -> None:
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long")
         if not any(c.isupper() for c in v):
@@ -205,15 +206,15 @@ class UserResponse(BaseModel):
 
     id: str
     email: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: str | None = None
+    last_name: str | None = None
     role: UserRole
     is_email_verified: bool
     is_active: bool
     created_at: datetime
     updated_at: datetime
-    last_login: Optional[datetime] = None
-    permissions: List[Permission] = []
+    last_login: datetime | None = None
+    permissions: list[Permission] = []
 
 
 class TokenResponse(BaseModel):
@@ -235,7 +236,7 @@ class PermissionCheck(BaseModel):
     """Permission check model"""
 
     permission: Permission
-    resource_id: Optional[str] = None
+    resource_id: str | None = None
 
 
 class RoleAssignment(BaseModel):
@@ -244,7 +245,7 @@ class RoleAssignment(BaseModel):
     user_id: str
     role: UserRole
     assigned_by: str
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class AuditLogEntry(BaseModel):
@@ -253,14 +254,14 @@ class AuditLogEntry(BaseModel):
     user_id: str
     action: str
     resource_type: str
-    resource_id: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
+    resource_id: str | None = None
+    details: dict[str, Any] | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
     timestamp: datetime = datetime.utcnow()
 
 
-def get_user_permissions(role: UserRole) -> List[Permission]:
+def get_user_permissions(role: UserRole) -> list[Permission]:
     """Get permissions for a given role"""
     role_permission = ROLE_PERMISSIONS.get(role)
     return role_permission.permissions if role_permission else []
@@ -272,7 +273,7 @@ def has_permission(user_role: UserRole, required_permission: Permission) -> bool
     return required_permission in user_permissions
 
 
-def get_role_hierarchy() -> Dict[UserRole, int]:
+def get_role_hierarchy() -> dict[UserRole, int]:
     """Get role hierarchy levels (higher number = more privileges)"""
     return {
         UserRole.FREE_USER: 1,

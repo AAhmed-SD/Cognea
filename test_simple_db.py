@@ -3,7 +3,9 @@
 Simple test to verify basic database connectivity.
 """
 import os
+
 from dotenv import load_dotenv
+
 from services.supabase import get_supabase_client
 
 # Load environment variables

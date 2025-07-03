@@ -1,7 +1,8 @@
-from fastapi import APIRouter
-from typing import List
 from datetime import datetime
+
+from fastapi import APIRouter
 from pydantic import BaseModel
+
 from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/calendar", tags=["Calendar Sync"])
@@ -9,7 +10,7 @@ router = APIRouter(prefix="/calendar", tags=["Calendar Sync"])
 
 class CalendarPushRequest(BaseModel):
     user_id: str
-    tasks: List[str]
+    tasks: list[str]
 
 
 @router.post("/connect", summary="Start Google/Apple Calendar sync via OAuth")

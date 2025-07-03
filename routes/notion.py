@@ -1,21 +1,21 @@
-from fastapi import APIRouter, HTTPException, Depends, Request, Header, status
-from typing import List, Optional
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict
-from services.supabase import get_supabase_client
-from services.auth import get_current_user
-import httpx
-import json
-import os
-from urllib.parse import urlencode
-import logging
-import hmac
-import hashlib
 import base64
+import hashlib
+import hmac
+import json
+import logging
+import os
+from datetime import datetime
+from urllib.parse import urlencode
 
-from services.notion import NotionClient, NotionFlashcardGenerator, NotionSyncManager
+import httpx
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from pydantic import BaseModel, ConfigDict
+
 from services.ai.openai_service import get_openai_service
+from services.auth import get_current_user
+from services.notion import NotionClient, NotionFlashcardGenerator, NotionSyncManager
 from services.rate_limited_queue import get_notion_queue
+from services.supabase import get_supabase_client
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/notion", tags=["Notion Sync"])
@@ -41,17 +41,17 @@ class NotionDatabaseRequest(BaseModel):
 
 class NotionTaskSync(BaseModel):
     title: str
-    description: Optional[str] = None
-    due_date: Optional[str] = None
-    priority: Optional[str] = "medium"
-    tags: Optional[List[str]] = []
+    description: str | None = None
+    due_date: str | None = None
+    priority: str | None = "medium"
+    tags: list[str] | None = []
 
 
 class NotionWebhookRequest(BaseModel):
     type: str
     workspace_id: str
-    page_id: Optional[str] = None
-    database_id: Optional[str] = None
+    page_id: str | None = None
+    database_id: str | None = None
 
 
 class FlashcardGenerationRequest(BaseModel):
@@ -59,8 +59,8 @@ class FlashcardGenerationRequest(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    page_id: Optional[str] = None
-    database_id: Optional[str] = None
+    page_id: str | None = None
+    database_id: str | None = None
     count: int = 5
     difficulty: str = "medium"
 
@@ -70,8 +70,8 @@ class SyncRequest(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    page_id: Optional[str] = None
-    database_id: Optional[str] = None
+    page_id: str | None = None
+    database_id: str | None = None
     sync_direction: str = (
         "notion_to_cognie"  # "notion_to_cognie", "cognie_to_notion", "bidirectional"
     )
@@ -86,7 +86,7 @@ class NotionPageInfo(BaseModel):
     title: str
     url: str
     last_edited_time: datetime
-    parent_type: Optional[str] = None
+    parent_type: str | None = None
 
 
 class SyncStatusResponse(BaseModel):
@@ -99,7 +99,7 @@ class SyncStatusResponse(BaseModel):
     last_sync_time: datetime
     sync_direction: str
     status: str
-    error_message: Optional[str] = None
+    error_message: str | None = None
     items_synced: int
 
 
@@ -109,10 +109,10 @@ class NotionWebhookEvent(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     type: str  # page.updated, database.updated, etc.
-    page_id: Optional[str] = None
-    database_id: Optional[str] = None
-    last_edited_time: Optional[str] = None
-    user_id: Optional[str] = None
+    page_id: str | None = None
+    database_id: str | None = None
+    last_edited_time: str | None = None
+    user_id: str | None = None
 
 
 @router.get("/auth/url", summary="Get Notion OAuth URL")
@@ -929,9 +929,9 @@ async def generate_flashcards_from_text(
 
 async def queue_notion_sync(
     user_id: str,
-    page_id: Optional[str],
-    database_id: Optional[str],
-    last_edited_time: Optional[str],
+    page_id: str | None,
+    database_id: str | None,
+    last_edited_time: str | None,
 ):
     """Queue a Notion sync operation using the rate-limited queue."""
     try:
@@ -971,9 +971,9 @@ async def queue_notion_sync(
 @router.post("/internal/sync", summary="Internal sync endpoint for webhook processing")
 async def internal_sync(
     user_id: str,
-    page_id: Optional[str] = None,
-    database_id: Optional[str] = None,
-    last_edited_time: Optional[str] = None,
+    page_id: str | None = None,
+    database_id: str | None = None,
+    last_edited_time: str | None = None,
 ):
     """Internal endpoint for processing queued sync operations from webhooks."""
     try:

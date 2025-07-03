@@ -2,37 +2,37 @@
 Comprehensive tests for enhanced error handling and monitoring systems.
 """
 
-import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, Mock, patch
 
-from services.background_workers import (
-    BackgroundWorker,
-    Task,
-    TaskStatus,
-    TaskPriority,
-    TaskErrorType,
-    categorize_task_error,
+import pytest
+
+from middleware.error_handler import (
+    APIError,
+    AuthenticationError,
+    ErrorTracker,
+    RateLimitError,
+    ValidationError,
+    categorize_error,
 )
 from services.background_tasks import (
     BackgroundTaskManager,
     TaskMetrics,
     log_background_task,
 )
-from services.notion.sync_manager import (
-    NotionSyncManager,
-    SyncStatus,
-    ConflictResolution,
-    SyncDirection,
+from services.background_workers import (
+    BackgroundWorker,
+    Task,
+    TaskErrorType,
+    TaskPriority,
+    TaskStatus,
+    categorize_task_error,
 )
-from middleware.error_handler import (
-    APIError,
-    ValidationError,
-    AuthenticationError,
-    RateLimitError,
-    categorize_error,
-    ErrorTracker,
+from services.notion.sync_manager import (
+    ConflictResolution,
+    NotionSyncManager,
+    SyncDirection,
+    SyncStatus,
 )
 
 
@@ -51,7 +51,7 @@ class TestErrorCategorization:
 
     def test_timeout_error_categorization(self):
         """Test timeout error categorization."""
-        error = asyncio.TimeoutError()
+        error = TimeoutError()
         task_error = categorize_task_error(error)
 
         assert task_error.type == TaskErrorType.TIMEOUT_ERROR
@@ -516,7 +516,7 @@ class TestNetworkFailureRecovery:
         network_errors = [
             ConnectionError("Connection failed"),
             TimeoutError("Request timeout"),
-            asyncio.TimeoutError(),
+            TimeoutError(),
         ]
 
         for error in network_errors:

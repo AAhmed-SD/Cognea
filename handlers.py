@@ -3,7 +3,9 @@ from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 
 
-async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+async def custom_rate_limit_exceeded_handler(
+    request: Request, exc: RateLimitExceeded
+) -> None:
     return JSONResponse(
         status_code=429,
         content={

@@ -11,15 +11,17 @@ Async Background Worker System
 import asyncio
 import logging
 import time
+import traceback
 import uuid
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
-from dataclasses import dataclass, asdict
 from functools import wraps
+from typing import Any
+
 import redis.asyncio as redis
 from croniter import croniter
-import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,7 @@ class TaskError:
 
     type: TaskErrorType
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None
     retryable: bool = True
     retry_delay_multiplier: float = 1.0
     max_retries: int = 3
@@ -165,18 +167,18 @@ class Task:
     priority: TaskPriority
     status: TaskStatus
     created_at: datetime
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     result: Any = None
-    error: Optional[str] = None
-    error_type: Optional[TaskErrorType] = None
+    error: str | None = None
+    error_type: TaskErrorType | None = None
     retry_count: int = 0
     max_retries: int = 3
     retry_delay: int = 60
     timeout: int = 300
-    tags: List[str] = None
-    metadata: Dict[str, Any] = None
-    processing_time: Optional[float] = None
+    tags: list[str] = None
+    metadata: dict[str, Any] = None
+    processing_time: float | None = None
 
     def __post_init__(self):
         if self.tags is None:
@@ -184,7 +186,7 @@ class Task:
         if self.metadata is None:
             self.metadata = {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert task to dictionary for serialization"""
         data = asdict(self)
         data["priority"] = self.priority.value
@@ -198,7 +200,7 @@ class Task:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Task":
+    def from_dict(cls, data: dict[str, Any]) -> "Task":
         """Create task from dictionary"""
         data["priority"] = TaskPriority(data["priority"])
         data["status"] = TaskStatus(data["status"])
@@ -221,11 +223,11 @@ class ScheduledJob:
     args: tuple
     kwargs: dict
     enabled: bool = True
-    last_run: Optional[datetime] = None
-    next_run: Optional[datetime] = None
+    last_run: datetime | None = None
+    next_run: datetime | None = None
     created_at: datetime = None
-    tags: List[str] = None
-    metadata: Dict[str, Any] = None
+    tags: list[str] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.created_at is None:
@@ -246,7 +248,7 @@ class ScheduledJob:
             logger.error(f"Invalid cron expression {self.cron_expression}: {e}")
             self.next_run = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert job to dictionary for serialization"""
         data = asdict(self)
         data["created_at"] = self.created_at.isoformat()
@@ -257,7 +259,7 @@ class ScheduledJob:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ScheduledJob":
+    def from_dict(cls, data: dict[str, Any]) -> "ScheduledJob":
         """Create job from dictionary"""
         if data.get("created_at"):
             data["created_at"] = datetime.fromisoformat(data["created_at"])
@@ -289,10 +291,10 @@ class BackgroundWorker:
         self.redis = None
 
         # Task registry
-        self.task_registry: Dict[str, Callable] = {}
+        self.task_registry: dict[str, Callable] = {}
 
         # Worker state
-        self.workers: List[asyncio.Task] = []
+        self.workers: list[asyncio.Task] = []
         self.running = False
 
         # Enhanced metrics
@@ -362,8 +364,8 @@ class BackgroundWorker:
         timeout: int = None,
         max_retries: int = None,
         retry_delay: int = None,
-        tags: List[str] = None,
-        metadata: Dict[str, Any] = None,
+        tags: list[str] = None,
+        metadata: dict[str, Any] = None,
         **kwargs,
     ) -> str:
         """Enqueue a task for processing"""
@@ -476,7 +478,7 @@ class BackgroundWorker:
                 f"Task {task_id} completed successfully in {processing_time:.2f}s"
             )
 
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             processing_time = time.time() - start_time
             await self._handle_task_failure(
                 task_id,
@@ -580,7 +582,7 @@ class BackgroundWorker:
             except Exception:
                 pass
 
-    async def get_task_status(self, task_id: str) -> Optional[Task]:
+    async def get_task_status(self, task_id: str) -> Task | None:
         """Get task status by ID"""
         try:
             task_data = await self.redis.hgetall(f"task:{task_id}")
@@ -673,7 +675,7 @@ class BackgroundWorker:
         except Exception as e:
             logger.warning(f"Failed to update worker health: {e}")
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get comprehensive worker metrics"""
         # Update real-time metrics
         asyncio.create_task(self._update_queue_metrics())
@@ -706,7 +708,7 @@ class BackgroundWorker:
             "health_status": self._get_health_status(),
         }
 
-    def _get_uptime(self) -> Optional[float]:
+    def _get_uptime(self) -> float | None:
         """Get worker uptime in seconds"""
         if hasattr(self, "_start_time"):
             return time.time() - self._start_time
@@ -725,7 +727,7 @@ class BackgroundWorker:
         else:
             return "healthy"
 
-    async def get_health_check(self) -> Dict[str, Any]:
+    async def get_health_check(self) -> dict[str, Any]:
         """Get detailed health check information"""
         try:
             # Check Redis connection
@@ -794,7 +796,7 @@ class JobScheduler:
     def __init__(self, worker: BackgroundWorker):
         self.worker = worker
         self.redis = worker.redis
-        self.jobs: Dict[str, ScheduledJob] = {}
+        self.jobs: dict[str, ScheduledJob] = {}
         self.scheduler_task = None
         self.running = False
 
@@ -821,8 +823,8 @@ class JobScheduler:
         func_name: str,
         cron_expression: str,
         *args,
-        tags: List[str] = None,
-        metadata: Dict[str, Any] = None,
+        tags: list[str] = None,
+        metadata: dict[str, Any] = None,
         **kwargs,
     ) -> str:
         """Add a scheduled job"""

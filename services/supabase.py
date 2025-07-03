@@ -2,7 +2,8 @@
 Supabase client configuration for the application.
 """
 
-from supabase import create_client, Client
+from supabase import Client, create_client
+
 from config.security import security_config
 
 # Get Supabase credentials from security config
@@ -37,9 +38,7 @@ def test_connection():
     """Test the Supabase connection."""
     try:
         # Try to query a table to test connection
-        result = (
-            supabase_client.table("users").select("id").limit(1).execute()
-        )  # noqa: F841
+        supabase_client.table("users").select("id").limit(1).execute()
         print("✅ Supabase connection successful!")
         return True
     except Exception as e:

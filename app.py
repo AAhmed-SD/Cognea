@@ -1,35 +1,40 @@
-import os
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Depends, Request
-from pydantic import BaseModel, Field
-from typing import List, Optional
-from openai_integration import generate_text
-from fastapi.security.api_key import APIKeyHeader
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-from fastapi.responses import StreamingResponse, JSONResponse
+from __future__ import annotations
+
 import asyncio
 import functools
-import redis
 import json
 import logging
-from logging.handlers import RotatingFileHandler
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from datetime import datetime
-from slowapi.middleware import SlowAPIMiddleware
-from routes import generate
-from handlers import custom_rate_limit_exceeded_handler
+import os
+from collections.abc import Callable
 from contextlib import asynccontextmanager
+from datetime import datetime
+from logging.handlers import RotatingFileHandler
+from typing import Any
+
+import redis
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.security.api_key import APIKeyHeader
+from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from handlers import custom_rate_limit_exceeded_handler
+from openai_integration import generate_text
+from routes import generate
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Retrieve the OpenAI API key from environment variables
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY: str | None = os.getenv("OPENAI_API_KEY")
 
 # Ensure rate limiting is disabled during tests
 DISABLE_RATE_LIMIT = os.getenv("TEST_ENV", "false").lower() == "true"
@@ -39,7 +44,7 @@ DISABLE_RATE_LIMIT = os.getenv("TEST_ENV", "false").lower() == "true"
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> Any:
     # Startup event
     logger.info("Application startup")
     if not OPENAI_API_KEY:
@@ -69,7 +74,7 @@ app = FastAPI(
 api_key_header = APIKeyHeader(name="X-API-Key")
 
 # Initialize Redis client
-redis_client = redis.StrictRedis(
+redis_client: redis.StrictRedis = redis.StrictRedis(
     host="localhost", port=6379, db=0, decode_responses=True
 )
 
@@ -82,7 +87,7 @@ logger = logging.getLogger(__name__)
 logger.addHandler(log_handler)
 
 
-async def get_api_key(api_key: str = Depends(api_key_header)):
+async def get_api_key(api_key: str = Depends(api_key_header)) -> None:
     if api_key != "expected_api_key":
         raise HTTPException(status_code=403, detail="Could not validate credentials")
 
@@ -93,14 +98,14 @@ class TextGenerationRequest(BaseModel):
     model: str = "gpt-3.5-turbo"
     max_tokens: int = 500
     temperature: float = 0.7
-    stop: Optional[List[str]] = None
+    stop: list[str] | None = None
 
 
 class TextGenerationResponse(BaseModel):
     original_prompt: str
     model: str
     generated_text: str
-    total_tokens: Optional[int] = None
+    total_tokens: int | None = None
 
 
 # Standardized error response
@@ -110,18 +115,18 @@ class ErrorResponse(BaseModel):
 
 
 # In-memory data storage
-users = []
-tasks = [
+users: list[dict[str, Any]] = []
+tasks: list[dict[str, Any]] = [
     {"id": 1, "title": "Task 1", "completed": False},
     {"id": 2, "title": "Task 2", "completed": True},
 ]
-calendar_events = []
-notifications = []
-settings = {}
+calendar_events: list[dict[str, Any]] = []
+notifications: list[dict[str, Any]] = []
+settings: dict[str, Any] = {}
 
 
 # Function to initialize middleware
-async def initialize_middleware(app):
+async def initialize_middleware(app: FastAPI) -> None:
     if app.state.limiter is not None:
         app.add_middleware(SlowAPIMiddleware)
 
@@ -147,8 +152,8 @@ if app.state.limiter:
 
 
 # Define a decorator factory for conditional rate limiting
-def rate_limit_if_enabled(app, rate: str):
-    def decorator(func):
+def rate_limit_if_enabled(app: FastAPI, rate: str) -> Callable:
+    def decorator(func: Callable) -> Callable:
         # Check if rate limiting is disabled
         if os.getenv("DISABLE_RATE_LIMIT", "false").lower() == "true":
             return func
@@ -161,7 +166,7 @@ def rate_limit_if_enabled(app, rate: str):
 
 
 @app.get("/")
-async def read_root():
+async def read_root() -> dict[str, str]:
     return {"message": "Welcome to the FastAPI application!"}
 
 
@@ -181,8 +186,8 @@ async def read_root():
     },
 )
 @rate_limit_if_enabled(app, "30/minute")
-async def get_users():
-    cached_users = redis_client.get("users")
+async def get_users() -> list[dict[str, Any]]:
+    cached_users: str | None = redis_client.get("users")
     if cached_users:
         return json.loads(cached_users)
     if not users:
@@ -204,8 +209,10 @@ async def get_users():
         404: {"description": "User not found"},
     },
 )
-async def get_user(user_id: int):
-    user = next((user for user in users if user["id"] == user_id), None)
+async def get_user(user_id: int) -> dict[str, Any]:
+    user: dict[str, Any] | None = next(
+        (user for user in users if user["id"] == user_id), None
+    )
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
@@ -225,8 +232,10 @@ async def get_user(user_id: int):
         422: {"description": "Validation Error"},
     },
 )
-async def update_user(user_id: int, user_data: dict):
-    user = next((user for user in users if user["id"] == user_id), None)
+async def update_user(user_id: int, user_data: dict[str, Any]) -> dict[str, Any]:
+    user: dict[str, Any] | None = next(
+        (user for user in users if user["id"] == user_id), None
+    )
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     if not isinstance(user_data, dict) or not user_data.get("name"):
@@ -245,9 +254,13 @@ async def update_user(user_id: int, user_data: dict):
         404: {"description": "User not found"},
     },
 )
-async def delete_user(user_id: int, api_key: str = Depends(get_api_key)):
+async def delete_user(
+    user_id: int, api_key: str = Depends(get_api_key)
+) -> dict[str, str]:
     global users
-    user = next((user for user in users if user["id"] == user_id), None)
+    user: dict[str, Any] | None = next(
+        (user for user in users if user["id"] == user_id), None
+    )
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     users = [user for user in users if user["id"] != user_id]
@@ -255,7 +268,7 @@ async def delete_user(user_id: int, api_key: str = Depends(get_api_key)):
 
 
 @app.get("/api/calendar/events")
-async def get_calendar_events():
+async def get_calendar_events() -> list[dict[str, Any]]:
     return calendar_events
 
 
@@ -276,7 +289,7 @@ async def get_calendar_events():
         422: {"description": "Validation Error"},
     },
 )
-async def create_calendar_event(event: dict):
+async def create_calendar_event(event: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(event, dict) or not event.get("title") or not event.get("date"):
         raise HTTPException(status_code=422, detail="Invalid event data")
     event["id"] = len(calendar_events) + 1
@@ -285,8 +298,12 @@ async def create_calendar_event(event: dict):
 
 
 @app.put("/api/calendar/events/{event_id}")
-async def update_calendar_event(event_id: int, event_data: dict):
-    event = next((event for event in calendar_events if event["id"] == event_id), None)
+async def update_calendar_event(
+    event_id: int, event_data: dict[str, Any]
+) -> dict[str, Any]:
+    event: dict[str, Any] | None = next(
+        (event for event in calendar_events if event["id"] == event_id), None
+    )
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
     event.update(event_data)
@@ -294,19 +311,19 @@ async def update_calendar_event(event_id: int, event_data: dict):
 
 
 @app.delete("/api/calendar/events/{event_id}")
-async def delete_calendar_event(event_id: int):
+async def delete_calendar_event(event_id: int) -> dict[str, str]:
     global calendar_events
     calendar_events = [event for event in calendar_events if event["id"] != event_id]
     return {"message": "Event deleted"}
 
 
 @app.get("/api/notifications")
-async def get_notifications():
+async def get_notifications() -> list[dict[str, Any]]:
     return notifications
 
 
 @app.post("/api/notifications")
-async def create_notification(notification: dict):
+async def create_notification(notification: dict[str, Any]) -> dict[str, Any]:
     notifications.append(notification)
     return notification
 
@@ -319,12 +336,12 @@ async def create_notification(notification: dict):
 
 
 @app.get("/api/settings")
-async def get_settings():
+async def get_settings() -> dict[str, Any]:
     return settings
 
 
 @app.put("/api/settings")
-async def update_settings(settings_data: dict):
+async def update_settings(settings_data: dict[str, Any]) -> dict[str, Any]:
     settings.update(settings_data)
     return settings
 
@@ -336,7 +353,7 @@ async def update_settings(settings_data: dict):
     summary="List all tasks",
     description="Retrieve a list of all tasks.",
 )
-async def get_tasks():
+async def get_tasks() -> list[dict[str, Any]]:
     return tasks
 
 
@@ -356,15 +373,17 @@ async def get_tasks():
     },
 )
 @rate_limit_if_enabled(app, "20/minute")
-async def create_task(new_task: dict):
+async def create_task(new_task: dict[str, Any]) -> dict[str, Any]:
     new_task["id"] = len(tasks) + 1
     tasks.append(new_task)
     return new_task
 
 
 @app.put("/api/tasks/{task_id}")
-async def update_task(task_id: int, task_data: dict):
-    task = next((task for task in tasks if task["id"] == task_id), None)
+async def update_task(task_id: int, task_data: dict[str, Any]) -> dict[str, Any]:
+    task: dict[str, Any] | None = next(
+        (task for task in tasks if task["id"] == task_id), None
+    )
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     task.update(task_data)
@@ -372,18 +391,18 @@ async def update_task(task_id: int, task_data: dict):
 
 
 @app.delete("/api/tasks/{task_id}")
-async def delete_task(task_id: int):
+async def delete_task(task_id: int) -> dict[str, str]:
     global tasks
     tasks = [task for task in tasks if task["id"] != task_id]
     return {"message": "Task deleted"}
 
 
 # Model Validation
-supported_models = ["gpt-3.5-turbo", "gpt-4"]
+supported_models: list[str] = ["gpt-3.5-turbo", "gpt-4"]
 
 
 @app.middleware("http")
-async def lifespan_middleware(request: Request, call_next):
+async def lifespan_middleware(request: Request, call_next: Callable) -> Any:
     if request.scope["type"] == "lifespan":
         if request.scope["asgi"]["spec_version"] == "2.0":
             if request.scope["lifespan"]["type"] == "startup":
@@ -404,7 +423,9 @@ async def lifespan_middleware(request: Request, call_next):
     description="Generate text using OpenAI's GPT model based on the provided prompt.",
 )
 @rate_limit_if_enabled(app, "3/minute")
-async def generate_text_endpoint(request: Request, api_key: str = Depends(get_api_key)):
+async def generate_text_endpoint(
+    request: Request, api_key: str = Depends(get_api_key)
+) -> TextGenerationResponse:
     try:
         request_data = await request.json()  # Parse the request body
         model = request_data.get("model")
@@ -471,13 +492,13 @@ async def generate_text_endpoint(request: Request, api_key: str = Depends(get_ap
 
 
 # Streaming Response Example
-async def stream_data():
+async def stream_data() -> Any:
     # Example streaming logic
-    yield b"some data"
+    pass
 
 
 @app.get("/stream")
-async def get_stream():
+async def get_stream() -> StreamingResponse:
     return StreamingResponse(stream_data(), media_type="application/octet-stream")
 
 
@@ -504,7 +525,9 @@ class TaskUpdate(BaseModel):
 
 # Custom exception handler for HTTPException
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request, exc):
+async def http_exception_handler(
+    request: Request, exc: StarletteHTTPException
+) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
         content={"error": "HTTPException", "detail": exc.detail},
@@ -513,7 +536,9 @@ async def http_exception_handler(request, exc):
 
 # Custom exception handler for RequestValidationError
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
     return JSONResponse(
         status_code=422,
         content={"error": "Validation Error", "detail": exc.errors()},
@@ -522,7 +547,7 @@ async def validation_exception_handler(request, exc):
 
 # Custom exception handler for generic exceptions
 @app.exception_handler(Exception)
-async def custom_exception_handler(request: Request, exc: Exception):
+async def custom_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.error(f"Unexpected error: {exc}")
     return JSONResponse(
         status_code=500,
@@ -536,7 +561,7 @@ async def custom_exception_handler(request: Request, exc: Exception):
     summary="Generate a daily brief",
     description="Generate a daily summary of tasks, priorities, missed tasks, and a reflection.",
 )
-async def daily_brief():
+async def daily_brief() -> dict[str, Any]:
     try:
         today = datetime.now().date()
 
@@ -640,12 +665,12 @@ async def custom_rate_limit_exceeded_handler(
 
 
 @app.post("/simulate-openai-failure")
-async def simulate_openai_failure():
+async def simulate_openai_failure() -> dict[str, str]:
     raise HTTPException(status_code=503, detail="OpenAI is currently unavailable")
 
 
 @app.get("/force-error")
-async def force_error():
+async def force_error() -> JSONResponse:
     # Instead of raising an exception, return a 500 JSON response
     return JSONResponse(
         status_code=500,
@@ -661,7 +686,7 @@ app.include_router(generate.router)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: Callable) -> Any:
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"

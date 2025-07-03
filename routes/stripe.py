@@ -1,9 +1,11 @@
 """Stripe payment and subscription management routes."""
 
-from fastapi import APIRouter, HTTPException, Depends, Request
-from services.stripe_service import stripe_service
-from services.auth import get_current_user
 import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from services.auth import get_current_user
+from services.stripe_service import stripe_service
 
 router = APIRouter()
 

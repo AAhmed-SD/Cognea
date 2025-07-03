@@ -2,15 +2,15 @@
 Goals router for the Personal Agent application.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import List, Optional
+import logging
 from datetime import datetime
 from uuid import UUID
-import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from models.goal import Goal, GoalCreate, GoalUpdate, PriorityLevel
-from services.supabase import get_supabase_client
 from services.auth import get_current_user
+from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/goals", tags=["Goals"])
 
@@ -50,11 +50,11 @@ async def create_goal(goal: GoalCreate, current_user: dict = Depends(get_current
         raise HTTPException(status_code=500, detail="Failed to create goal")
 
 
-@router.get("/", response_model=List[Goal], summary="Get all goals for user")
+@router.get("/", response_model=list[Goal], summary="Get all goals for user")
 async def get_goals(
     current_user: dict = Depends(get_current_user),
-    priority: Optional[PriorityLevel] = Query(None, description="Filter by priority"),
-    is_starred: Optional[bool] = Query(None, description="Filter by starred status"),
+    priority: PriorityLevel | None = Query(None, description="Filter by priority"),
+    is_starred: bool | None = Query(None, description="Filter by starred status"),
     limit: int = Query(100, ge=1, le=1000, description="Number of goals to return"),
     offset: int = Query(0, ge=0, description="Number of goals to skip"),
 ):

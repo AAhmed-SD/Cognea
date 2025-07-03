@@ -2,15 +2,15 @@
 Flashcards router for the Personal Agent application.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import List, Optional
+import logging
 from datetime import datetime, timedelta
 from uuid import UUID
-import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from models.flashcard import Flashcard, FlashcardCreate, FlashcardUpdate
-from services.supabase import get_supabase_client
 from services.auth import get_current_user
+from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/flashcards", tags=["Flashcards"])
 
@@ -53,12 +53,12 @@ async def create_flashcard(
         raise HTTPException(status_code=500, detail="Failed to create flashcard")
 
 
-@router.get("/", response_model=List[Flashcard], summary="Get flashcards for user")
+@router.get("/", response_model=list[Flashcard], summary="Get flashcards for user")
 async def get_flashcards(
     current_user: dict = Depends(get_current_user),
-    deck_id: Optional[UUID] = Query(None, description="Filter by deck ID"),
-    deck_name: Optional[str] = Query(None, description="Filter by deck name"),
-    tags: Optional[List[str]] = Query(None, description="Filter by tags"),
+    deck_id: UUID | None = Query(None, description="Filter by deck ID"),
+    deck_name: str | None = Query(None, description="Filter by deck name"),
+    tags: list[str] | None = Query(None, description="Filter by tags"),
     due_for_review: bool = Query(False, description="Only return cards due for review"),
     limit: int = Query(
         100, ge=1, le=1000, description="Number of flashcards to return"
@@ -306,7 +306,7 @@ async def review_flashcard(
 
 @router.get(
     "/due/review",
-    response_model=List[Flashcard],
+    response_model=list[Flashcard],
     summary="Get flashcards due for review",
 )
 async def get_due_flashcards(

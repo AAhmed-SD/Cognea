@@ -1,11 +1,12 @@
-from fastapi import Request, Response, FastAPI
+import logging
+import time
+import uuid
+from collections.abc import Callable
+from datetime import UTC, datetime
+
+from fastapi import FastAPI, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-import time
-import logging
-from typing import Callable
-import uuid
-from datetime import datetime, UTC
 
 logger = logging.getLogger(__name__)
 
@@ -158,9 +159,9 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 def setup_logging(app: FastAPI):
     """Setup logging middleware for the FastAPI application."""
     # Add logging middleware
-    app.add_middleware(LoggingMiddleware, app)
+    app.add_middleware(LoggingMiddleware)
 
     # Add request context middleware
-    app.add_middleware(RequestContextMiddleware, app)
+    app.add_middleware(RequestContextMiddleware)
 
     logger.info("Logging middleware configured")

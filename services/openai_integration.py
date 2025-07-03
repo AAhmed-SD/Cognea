@@ -1,7 +1,9 @@
+import logging
 import os
+
 from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential
-import logging
+
 from services.rate_limited_queue import get_openai_queue
 
 logger = logging.getLogger(__name__)

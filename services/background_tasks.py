@@ -1,12 +1,14 @@
-from fastapi import BackgroundTasks
-from typing import Callable, Any, Dict
-import logging
 import asyncio
-from functools import wraps
+import logging
 import traceback
-from datetime import datetime
 import uuid
+from collections.abc import Callable
+from datetime import datetime
 from enum import Enum
+from functools import wraps
+from typing import Any
+
+from fastapi import BackgroundTasks
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ class TaskStatus(Enum):
     RETRY = "retry"
 
 
-def categorize_task_error(error: Exception) -> Dict[str, Any]:
+def categorize_task_error(error: Exception) -> dict[str, Any]:
     """Categorize background task errors for better handling."""
     error_message = str(error)
 
@@ -153,7 +155,7 @@ class TaskMetrics:
         self.tasks_retried += 1
         self.last_activity = datetime.utcnow().isoformat()
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Get metrics summary."""
         total_tasks = self.tasks_completed + self.tasks_failed
         success_rate = 0
@@ -237,7 +239,7 @@ class BackgroundTaskManager:
 
     def __init__(self, background_tasks: BackgroundTasks):
         self.background_tasks = background_tasks
-        self.active_tasks: Dict[str, Dict[str, Any]] = {}
+        self.active_tasks: dict[str, dict[str, Any]] = {}
 
     def add_task(self, func: Callable, *args: Any, **kwargs: Any) -> str:
         """Add a task to the background queue with enhanced error handling."""
@@ -334,7 +336,7 @@ class BackgroundTaskManager:
                         loop.run_in_executor(None, func, *args, **kwargs),
                         timeout=timeout,
                     )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 raise TimeoutError(f"Task {func.__name__} timed out after {timeout}s")
             except Exception:
                 raise
@@ -342,11 +344,11 @@ class BackgroundTaskManager:
         self.background_tasks.add_task(wrapped_task_with_timeout)
         return task_id
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get background task metrics."""
         return task_metrics.get_summary()
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get health status of background task system."""
         metrics = task_metrics.get_summary()
 

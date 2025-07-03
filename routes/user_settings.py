@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from typing import Optional
-from services.audit import log_audit_from_request, AuditAction
+
+from services.audit import AuditAction, log_audit_from_request
 from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/user/settings", tags=["User Settings"])
@@ -9,10 +9,10 @@ router = APIRouter(prefix="/user/settings", tags=["User Settings"])
 
 class UserSettings(BaseModel):
     user_id: int
-    focus_hours: Optional[str]
-    energy_curve: Optional[str]
-    enabled_modules: Optional[str]
-    default_views: Optional[str]
+    focus_hours: str | None
+    energy_curve: str | None
+    enabled_modules: str | None
+    default_views: str | None
 
 
 @router.get("/", response_model=UserSettings, summary="Retrieve all preferences")

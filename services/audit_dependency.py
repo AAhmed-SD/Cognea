@@ -1,6 +1,8 @@
+from typing import Any
+
 from fastapi import Request
-from typing import Optional, Dict, Any
-from services.audit import log_audit_from_request, AuditAction
+
+from services.audit import AuditAction, log_audit_from_request
 
 
 class AuditLogger:
@@ -11,9 +13,9 @@ class AuditLogger:
     async def __call__(
         self,
         request: Request,
-        user_id: Optional[str] = None,
-        resource_id: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        user_id: str | None = None,
+        resource_id: str | None = None,
+        details: dict[str, Any] | None = None,
     ):
         log_audit_from_request(
             request=request,

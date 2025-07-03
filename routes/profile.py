@@ -1,19 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Dict
 
 router = APIRouter(prefix="/user-profile", tags=["Adaptive Profile & Preferences"])
 
 
 class UserProfile(BaseModel):
     user_id: int
-    focus_hours: Optional[str]
-    energy_curve: Optional[str]
-    goal_weightings: Optional[str]
+    focus_hours: str | None
+    energy_curve: str | None
+    goal_weightings: str | None
 
 
 # In-memory storage for user profiles
-user_profiles_db: Dict[int, UserProfile] = {}
+user_profiles_db: dict[int, UserProfile] = {}
 
 
 @router.put(

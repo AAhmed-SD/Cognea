@@ -2,14 +2,16 @@
 Email service for password reset and email verification
 """
 
-import os
 import logging
+import os
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Any
+
 import jwt
+
 from services.supabase import get_supabase_client
 
 logger = logging.getLogger(__name__)
@@ -34,12 +36,12 @@ class EmailService:
 
         self.supabase = get_supabase_client()
 
-    def _create_token(self, payload: Dict[str, Any], expiry: timedelta) -> str:
+    def _create_token(self, payload: dict[str, Any], expiry: timedelta) -> str:
         """Create a JWT token with expiration"""
         payload.update({"exp": datetime.utcnow() + expiry, "iat": datetime.utcnow()})
         return jwt.encode(payload, self.jwt_secret, algorithm="HS256")
 
-    def _verify_token(self, token: str) -> Optional[Dict[str, Any]]:
+    def _verify_token(self, token: str) -> dict[str, Any] | None:
         """Verify and decode a JWT token"""
         try:
             payload = jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
@@ -271,7 +273,7 @@ class EmailService:
             logger.error(f"Failed to send email verification: {str(e)}")
             return False
 
-    def verify_password_reset_token(self, token: str) -> Optional[str]:
+    def verify_password_reset_token(self, token: str) -> str | None:
         """Verify password reset token and return user_id"""
         try:
             # Verify token
@@ -309,7 +311,7 @@ class EmailService:
             logger.error(f"Failed to verify password reset token: {str(e)}")
             return None
 
-    def verify_email_token(self, token: str) -> Optional[str]:
+    def verify_email_token(self, token: str) -> str | None:
         """Verify email verification token and return user_id"""
         try:
             # Verify token

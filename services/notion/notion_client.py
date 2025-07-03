@@ -4,9 +4,11 @@ Handles authentication, rate limiting, and basic API operations.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
 from datetime import datetime
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict
+
 from .rate_limited_queue import get_notion_queue
 
 logger = logging.getLogger(__name__)
@@ -32,12 +34,12 @@ class NotionPage(BaseModel):
     id: str
     title: str
     content: str
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
     created_time: datetime
     last_edited_time: datetime
     url: str
     parent_type: str
-    parent_id: Optional[str] = None
+    parent_id: str | None = None
 
 
 class NotionDatabase(BaseModel):
@@ -47,7 +49,7 @@ class NotionDatabase(BaseModel):
 
     id: str
     title: str
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
     created_time: datetime
     last_edited_time: datetime
     url: str
@@ -69,7 +71,7 @@ class NotionClient:
 
     async def _make_request(
         self, method: str, endpoint: str, **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Make a rate-limited request to the Notion API."""
         try:
             # Use rate-limited queue for all API calls
@@ -82,8 +84,8 @@ class NotionClient:
             raise
 
     async def search(
-        self, query: str = "", filter_params: Optional[Dict] = None
-    ) -> List[Dict[str, Any]]:
+        self, query: str = "", filter_params: dict | None = None
+    ) -> list[dict[str, Any]]:
         """Search for pages and databases."""
         data = {"query": query}
         if filter_params:
@@ -92,17 +94,17 @@ class NotionClient:
         response = await self._make_request("POST", "/search", data=data)
         return response.get("results", [])
 
-    async def get_page(self, page_id: str) -> Dict[str, Any]:
+    async def get_page(self, page_id: str) -> dict[str, Any]:
         """Get a specific page."""
         return await self._make_request("GET", f"/pages/{page_id}")
 
-    async def get_database(self, database_id: str) -> Dict[str, Any]:
+    async def get_database(self, database_id: str) -> dict[str, Any]:
         """Get a specific database."""
         return await self._make_request("GET", f"/databases/{database_id}")
 
     async def query_database(
-        self, database_id: str, filter_params: Optional[Dict] = None
-    ) -> List[Dict[str, Any]]:
+        self, database_id: str, filter_params: dict | None = None
+    ) -> list[dict[str, Any]]:
         """Query a database."""
         data = {}
         if filter_params:
@@ -114,42 +116,42 @@ class NotionClient:
         return response.get("results", [])
 
     async def create_page(
-        self, parent_id: str, properties: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, parent_id: str, properties: dict[str, Any]
+    ) -> dict[str, Any]:
         """Create a new page."""
         data = {"parent": {"database_id": parent_id}, "properties": properties}
         return await self._make_request("POST", "/pages", data=data)
 
     async def update_page(
-        self, page_id: str, properties: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, page_id: str, properties: dict[str, Any]
+    ) -> dict[str, Any]:
         """Update a page."""
         data = {"properties": properties}
         return await self._make_request("PATCH", f"/pages/{page_id}", data=data)
 
-    async def delete_page(self, page_id: str) -> Dict[str, Any]:
+    async def delete_page(self, page_id: str) -> dict[str, Any]:
         """Delete a page."""
         return await self._make_request("DELETE", f"/pages/{page_id}")
 
-    async def get_block_children(self, block_id: str) -> List[Dict[str, Any]]:
+    async def get_block_children(self, block_id: str) -> list[dict[str, Any]]:
         """Get children of a block."""
         response = await self._make_request("GET", f"/blocks/{block_id}/children")
         return response.get("results", [])
 
     async def append_block_children(
-        self, block_id: str, children: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, block_id: str, children: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Append children to a block."""
         data = {"children": children}
         return await self._make_request(
             "PATCH", f"/blocks/{block_id}/children", data=data
         )
 
-    async def get_user(self, user_id: str) -> Dict[str, Any]:
+    async def get_user(self, user_id: str) -> dict[str, Any]:
         """Get user information."""
         return await self._make_request("GET", f"/users/{user_id}")
 
-    async def list_users(self) -> List[Dict[str, Any]]:
+    async def list_users(self) -> list[dict[str, Any]]:
         """List all users."""
         response = await self._make_request("GET", "/users")
         return response.get("results", [])

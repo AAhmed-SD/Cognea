@@ -1,7 +1,8 @@
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
+
 from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/habits", tags=["Habits & Routines"])
@@ -11,23 +12,23 @@ class Habit(BaseModel):
     id: str  # UUID from Supabase
     user_id: str
     title: str
-    description: Optional[str] = None
-    frequency: Optional[str] = None
-    time: Optional[str] = None
-    energy_level: Optional[str] = None
-    reminders: Optional[list] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    description: str | None = None
+    frequency: str | None = None
+    time: str | None = None
+    energy_level: str | None = None
+    reminders: list | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class HabitCreate(BaseModel):
     user_id: str
     title: str
-    description: Optional[str] = None
-    frequency: Optional[str] = None
-    time: Optional[str] = None
-    energy_level: Optional[str] = None
-    reminders: Optional[list] = None
+    description: str | None = None
+    frequency: str | None = None
+    time: str | None = None
+    energy_level: str | None = None
+    reminders: list | None = None
 
 
 class HabitLog(BaseModel):
@@ -35,8 +36,8 @@ class HabitLog(BaseModel):
     habit_id: str
     user_id: str
     completed_at: datetime
-    mood_before: Optional[str] = None
-    notes: Optional[str] = None
+    mood_before: str | None = None
+    notes: str | None = None
 
 
 @router.post("/", response_model=Habit, summary="Create a new habit/routine")
@@ -49,7 +50,7 @@ async def create_habit(habit: HabitCreate):
 
 
 @router.get(
-    "/{user_id}", response_model=List[Habit], summary="List all habits for a user"
+    "/{user_id}", response_model=list[Habit], summary="List all habits for a user"
 )
 async def list_habits(user_id: str):
     supabase = get_supabase_client()
@@ -77,8 +78,8 @@ async def delete_habit(habit_id: str):
 async def log_habit(
     habit_id: str,
     user_id: str,
-    mood_before: Optional[str] = None,
-    notes: Optional[str] = None,
+    mood_before: str | None = None,
+    notes: str | None = None,
 ):
     supabase = get_supabase_client()
     log_data = {

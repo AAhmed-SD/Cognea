@@ -2,12 +2,12 @@
 Goal model for the Personal Agent application.
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
 from datetime import datetime
-from uuid import UUID
 from enum import Enum
-from pydantic import ConfigDict
+from typing import Any
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PriorityLevel(str, Enum):
@@ -18,8 +18,8 @@ class PriorityLevel(str, Enum):
 
 class GoalBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
-    due_date: Optional[datetime] = None
+    description: str | None = None
+    due_date: datetime | None = None
     priority: PriorityLevel = PriorityLevel.MEDIUM
     is_starred: bool = False
 
@@ -29,14 +29,14 @@ class GoalCreate(GoalBase):
 
 
 class GoalUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=200)
-    description: Optional[str] = None
-    due_date: Optional[datetime] = None
-    priority: Optional[PriorityLevel] = None
-    status: Optional[str] = None
-    progress: Optional[int] = Field(None, ge=0, le=100)
-    is_starred: Optional[bool] = None
-    analytics: Optional[Dict[str, Any]] = None
+    title: str | None = Field(None, min_length=1, max_length=200)
+    description: str | None = None
+    due_date: datetime | None = None
+    priority: PriorityLevel | None = None
+    status: str | None = None
+    progress: int | None = Field(None, ge=0, le=100)
+    is_starred: bool | None = None
+    analytics: dict[str, Any] | None = None
 
 
 class Goal(GoalBase):
@@ -44,7 +44,7 @@ class Goal(GoalBase):
     user_id: UUID
     status: str = "Not Started"
     progress: int = 0
-    analytics: Dict[str, Any] = Field(default_factory=dict)
+    analytics: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
 

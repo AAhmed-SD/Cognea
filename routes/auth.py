@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer
-from services.supabase import get_supabase_client
-from services.auth import create_access_token, get_current_user
-from pydantic import BaseModel, EmailStr
-from config.security import validate_password_strength
-from typing import Dict, Any
+from typing import Any
 
-router = APIRouter(prefix="/api/auth", tags=["authentication"])
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel, EmailStr
+
+from config.security import validate_password_strength
+from services.auth import create_access_token, get_current_user
+from services.supabase import get_supabase_client
+
+router = APIRouter(tags=["authentication"])
 
 # Security scheme for JWT tokens
 security = HTTPBearer()
@@ -31,7 +33,7 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
 
-@router.post("/signup", response_model=Dict[str, Any])
+@router.post("/signup", response_model=dict[str, Any])
 def signup(request: UserCreate):
     """Register a new user using Supabase Auth"""
     supabase = get_supabase_client()  # noqa: F841

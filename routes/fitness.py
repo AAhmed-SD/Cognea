@@ -1,12 +1,12 @@
-from fastapi import APIRouter, HTTPException
-from typing import Dict
 from datetime import datetime
+
+from fastapi import APIRouter, HTTPException
 
 router = APIRouter(prefix="/fitness", tags=["Fitness Sync"])
 
 # In-memory storage for fitness connections and data
-fitness_connections_db: Dict[int, dict] = {}
-fitness_data_db: Dict[int, dict] = {}
+fitness_connections_db: dict[int, dict] = {}
+fitness_data_db: dict[int, dict] = {}
 
 
 @router.post("/connect", summary="Connect to fitness service")

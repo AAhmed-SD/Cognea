@@ -2,10 +2,12 @@
 Comprehensive async tests for the Personal Agent API.
 """
 
+from datetime import UTC, datetime
+from uuid import uuid4
+
 import pytest
 from fastapi.testclient import TestClient
-from datetime import datetime, UTC
-from uuid import uuid4
+
 from main import app
 
 # Test data

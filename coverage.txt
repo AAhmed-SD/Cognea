@@ -1,0 +1,16 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-8.4.0, pluggy-1.6.0
+rootdir: /Users/hadiqa/personal_agent_copy_2
+configfile: pytest.ini
+plugins: anyio-4.9.0, cov-6.2.1, mock-3.14.1, asyncio-1.0.0
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 153 items
+
+test_app.py F.....                                                       [  3%]
+test_comprehensive.py .FFFFFFFFFFFFFFFFF..F...                           [ 19%]
+test_database_operations.py FF                                           [ 20%]
+test_simple_coverage.py F.F.                                             [ 23%]
+test_simple_db.py F                                                      [ 24%]
+tests/test_async_comprehensive.py ...FFFFFFFFFFFFFFFFFF...F.F.           [ 42%]
+tests/test_enhanced_error_handling.py .F....FFFFFF...FFF..FFF.F.F..      [ 61%]
+tests/test_notion_integration.py ........

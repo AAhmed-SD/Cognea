@@ -5,6 +5,7 @@ This script creates the necessary Stripe products, prices, and webhooks.
 """
 
 import os
+
 import stripe
 from dotenv import load_dotenv
 
@@ -235,7 +236,7 @@ def update_env_template():
     print("📝 Updating environment template...")
 
     try:
-        with open("env.production.template", "r") as f:
+        with open("env.production.template") as f:
             content = f.read()
 
         # Check if Stripe section already exists

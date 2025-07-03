@@ -1,6 +1,3 @@
-from typing import List
-
-
 class Flashcard:
     # Placeholder for the Flashcard model
     pass
@@ -10,7 +7,7 @@ class ReviewEngine:
     def __init__(self, user_id: str):
         self.user_id = user_id
 
-    def get_today_review_plan(self, time_available_mins: int = 30) -> List[Flashcard]:
+    def get_today_review_plan(self, time_available_mins: int = 30) -> list[Flashcard]:
         """
         Returns a personalized list of flashcards to review today.
         Factors in:

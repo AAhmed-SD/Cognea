@@ -7,16 +7,17 @@ Mood Tracking Routes with Enhanced Caching and Performance Monitoring
 """
 
 import logging
-from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from services.auth_service import get_current_user
-from services.redis_cache import enhanced_cache, enhanced_cached
-from services.background_workers import background_worker, background_task
+from services.ai.openai_service import get_openai_service
+from services.auth import get_current_user
+from services.background_workers import background_task, background_worker
 from services.performance_monitor import monitor_performance
-from services.openai_service import generate_openai_text
+from services.redis_cache import enhanced_cache, enhanced_cached
 from services.supabase import get_supabase_client
 
 logger = logging.getLogger(__name__)
@@ -25,10 +26,10 @@ router = APIRouter()
 
 class MoodEntry(BaseModel):
     mood_score: int  # 1-10 scale
-    mood_description: Optional[str] = None
-    activities: Optional[List[str]] = None
-    notes: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    mood_description: str | None = None
+    activities: list[str] | None = None
+    notes: str | None = None
+    timestamp: datetime | None = None
 
 
 class MoodAnalysisRequest(BaseModel):
@@ -41,7 +42,7 @@ class MoodAnalysisRequest(BaseModel):
 @monitor_performance("mood_tracking")
 async def track_mood(
     mood_entry: MoodEntry,
-    current_user: Dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Track a mood entry"""
     try:
@@ -92,7 +93,7 @@ async def track_mood(
 @enhanced_cached("mood", ttl=900)  # Cache for 15 minutes
 async def get_mood_entries(
     days: int = 7,
-    current_user: Dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get mood entries for a user"""
     try:
@@ -138,7 +139,7 @@ async def get_mood_entries(
 @enhanced_cached("mood", ttl=1800)  # Cache for 30 minutes
 async def get_mood_summary(
     days: int = 7,
-    current_user: Dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get mood summary and statistics"""
     try:
@@ -247,7 +248,7 @@ async def get_mood_summary(
 @enhanced_cached("mood", ttl=3600)  # Cache for 1 hour
 async def get_mood_analysis(
     request: MoodAnalysisRequest,
-    current_user: Dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get AI-powered mood analysis"""
     try:
@@ -311,7 +312,7 @@ async def get_mood_analysis(
 @monitor_performance("mood_correlations")
 @enhanced_cached("mood", ttl=7200)  # Cache for 2 hours
 async def get_mood_correlations(
-    current_user: Dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get mood correlations with activities and other factors"""
     try:
@@ -360,7 +361,7 @@ async def get_mood_correlations(
 @enhanced_cached("mood", ttl=1800)  # Cache for 30 minutes
 async def get_mood_trends(
     days: int = 30,
-    current_user: Dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get mood trends over time"""
     try:
@@ -407,7 +408,7 @@ async def get_mood_trends(
 @monitor_performance("mood_insights")
 @enhanced_cached("mood", ttl=3600)  # Cache for 1 hour
 async def get_mood_insights(
-    current_user: Dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get AI-powered mood insights and recommendations"""
     try:
@@ -459,7 +460,7 @@ async def get_mood_insights(
 
 
 @router.post("/cache/clear")
-async def clear_mood_cache(current_user: Dict = Depends(get_current_user)):
+async def clear_mood_cache(current_user: dict = Depends(get_current_user)):
     """Clear mood cache for current user"""
     try:
         user_id = current_user["id"]
@@ -477,8 +478,8 @@ async def clear_mood_cache(current_user: Dict = Depends(get_current_user)):
 
 # Helper functions
 async def _generate_mood_analysis(
-    entries: List[Dict], request: MoodAnalysisRequest
-) -> Dict[str, Any]:
+    entries: list[dict], request: MoodAnalysisRequest
+) -> dict[str, Any]:
     """Generate AI-powered mood analysis"""
     try:
         # Prepare data for analysis
@@ -510,13 +511,20 @@ async def _generate_mood_analysis(
         Format the response as JSON with sections for patterns, factors, recommendations, and observations.
         """
 
-        response = await generate_openai_text(prompt, max_tokens=800)
+        openai_service = get_openai_service()
+        response = await openai_service.chat_completion(
+            messages=[{"role": "user", "content": prompt}],
+            user_id="system",
+            use_functions=False,
+            max_tokens=800,
+        )
 
         # Parse response (simplified for now)
+        analysis = getattr(response, "content", "Mood analysis")
         return {
             "period": request.date_range,
             "total_entries": len(entries),
-            "analysis": response.get("generated_text", "Mood analysis"),
+            "analysis": analysis,
             "patterns": ["Pattern 1", "Pattern 2"],
             "factors": ["Factor 1", "Factor 2"],
             "recommendations": ["Recommendation 1", "Recommendation 2"],
@@ -536,7 +544,7 @@ async def _generate_mood_analysis(
         }
 
 
-async def _calculate_mood_correlations(entries: List[Dict]) -> Dict[str, Any]:
+async def _calculate_mood_correlations(entries: list[dict]) -> dict[str, Any]:
     """Calculate mood correlations with activities"""
     try:
         # Group entries by activity
@@ -585,7 +593,7 @@ async def _calculate_mood_correlations(entries: List[Dict]) -> Dict[str, Any]:
         return {"correlations": [], "total_activities": 0}
 
 
-async def _calculate_mood_trends(entries: List[Dict]) -> Dict[str, Any]:
+async def _calculate_mood_trends(entries: list[dict]) -> dict[str, Any]:
     """Calculate mood trends over time"""
     try:
         if not entries:
@@ -639,7 +647,7 @@ async def _calculate_mood_trends(entries: List[Dict]) -> Dict[str, Any]:
         return {"trends": [], "overall_trend": "stable"}
 
 
-async def _generate_mood_insights(entries: List[Dict]) -> Dict[str, Any]:
+async def _generate_mood_insights(entries: list[dict]) -> dict[str, Any]:
     """Generate AI-powered mood insights"""
     try:
         # Prepare data for insights
@@ -659,16 +667,23 @@ async def _generate_mood_insights(entries: List[Dict]) -> Dict[str, Any]:
         Format as JSON with sections for insights, recommendations, activities, and suggestions.
         """
 
-        response = await generate_openai_text(prompt, max_tokens=600)
+        openai_service = get_openai_service()
+        response = await openai_service.chat_completion(
+            messages=[{"role": "user", "content": prompt}],
+            user_id="system",
+            use_functions=False,
+            max_tokens=600,
+        )
 
         # Parse response (simplified for now)
+        analysis = getattr(response, "content", "Mood insights analysis")
         return {
             "insights": ["Insight 1", "Insight 2"],
             "recommendations": ["Recommendation 1", "Recommendation 2"],
             "positive_activities": ["Activity 1", "Activity 2"],
             "negative_activities": ["Activity 3"],
             "suggestions": ["Suggestion 1", "Suggestion 2"],
-            "analysis": response.get("generated_text", "Mood insights analysis"),
+            "analysis": analysis,
         }
 
     except Exception as e:
@@ -685,7 +700,7 @@ async def _generate_mood_insights(entries: List[Dict]) -> Dict[str, Any]:
 
 # Background task for mood analysis
 @background_task(name="mood_analysis", priority="low")
-async def mood_analysis_task(user_id: str, config: Dict[str, Any]):
+async def mood_analysis_task(user_id: str, config: dict[str, Any]):
     """Background task for mood analysis"""
     try:
         logger.info(f"Starting mood analysis for user {user_id}")

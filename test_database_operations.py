@@ -3,21 +3,22 @@
 Test script to verify database operations work with new models and routers.
 """
 import asyncio
-import sys
 import os
-from datetime import datetime, timezone
+import sys
+from datetime import UTC, datetime
 from uuid import uuid4
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from models.task import TaskCreate, TaskStatus, PriorityLevel
 from models.goal import GoalCreate
+from models.task import PriorityLevel, TaskCreate, TaskStatus
 
 
 def get_supabase_service_client():
     """Get Supabase client with service role key for testing."""
     import os
+
     from supabase import create_client
 
     SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -69,8 +70,8 @@ async def test_database_operations():
             "description": "This is a test task to verify database operations work",
             "priority": PriorityLevel.HIGH.value,
             "status": TaskStatus.PENDING.value,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
         }
 
         try:
@@ -98,8 +99,8 @@ async def test_database_operations():
             "progress": 0,
             "is_starred": False,
             "analytics": {},
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
         }
 
         try:
@@ -136,7 +137,7 @@ async def test_database_operations():
         print("\n5. Testing task update...")
         update_data = {
             "status": TaskStatus.COMPLETED.value,
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
         }
 
         try:

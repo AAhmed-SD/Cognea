@@ -4,12 +4,12 @@ Handles 3 requests/second limit with batching and exponential backoff.
 """
 
 import asyncio
+import heapq
 import logging
 import time
-import heapq
-from typing import Any, Dict, Optional, List, Tuple
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +20,8 @@ class NotionAPIRequest:
 
     method: str
     endpoint: str
-    data: Optional[Dict] = None
-    headers: Optional[Dict] = None
+    data: dict | None = None
+    headers: dict | None = None
     priority: int = 1  # 1 = high, 2 = medium, 3 = low
     created_at: datetime = None
 
@@ -36,8 +36,8 @@ class NotionRateLimitedQueue:
     def __init__(self, notion_client, max_requests_per_second: int = 3):
         self.notion_client = notion_client
         self.max_requests_per_second = max_requests_per_second
-        self.priority_queue: List[
-            Tuple[int, float, NotionAPIRequest, asyncio.Future]
+        self.priority_queue: list[
+            tuple[int, float, NotionAPIRequest, asyncio.Future]
         ] = []
         self.queue_lock = asyncio.Lock()
         self.worker_task = None
@@ -69,8 +69,8 @@ class NotionRateLimitedQueue:
         self,
         method: str,
         endpoint: str,
-        data: Optional[Dict] = None,
-        headers: Optional[Dict] = None,
+        data: dict | None = None,
+        headers: dict | None = None,
         priority: int = 1,
     ) -> asyncio.Future:
         """Enqueue a Notion API request with priority."""
@@ -134,7 +134,7 @@ class NotionRateLimitedQueue:
 
     async def _get_highest_priority_request(
         self,
-    ) -> Tuple[Optional[NotionAPIRequest], Optional[asyncio.Future]]:
+    ) -> tuple[NotionAPIRequest | None, asyncio.Future | None]:
         """Get the highest priority request from the queue."""
         async with self.queue_lock:
             if not self.priority_queue:
@@ -225,7 +225,7 @@ class NotionRateLimitedQueue:
         async with self.queue_lock:
             return len(self.priority_queue)
 
-    async def get_queue_stats(self) -> Dict[str, Any]:
+    async def get_queue_stats(self) -> dict[str, Any]:
         """Get statistics about the queue."""
         async with self.queue_lock:
             priorities = [item[0] for item in self.priority_queue]

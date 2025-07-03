@@ -1,17 +1,18 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
-from typing import Dict
 from datetime import datetime, timedelta
-from services.audit import log_audit_from_request, AuditAction
-from services.supabase import get_supabase_client
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from services.audit import AuditAction, log_audit_from_request
 from services.auth import get_current_user
+from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/analytics", tags=["Analytics & Trends"])
 
 # In-memory storage for analytics data
-user_analytics_db: Dict[int, dict] = {}
-user_trends_db: Dict[int, list] = {}
-user_weekly_reviews_db: Dict[int, dict] = {}
-user_productivity_patterns_db: Dict[int, dict] = {}
+user_analytics_db: dict[int, dict] = {}
+user_trends_db: dict[int, list] = {}
+user_weekly_reviews_db: dict[int, dict] = {}
+user_productivity_patterns_db: dict[int, dict] = {}
 
 
 @router.get(
@@ -272,7 +273,7 @@ def calculate_productivity_score(tasks, schedule_blocks, goals):
     if goals:
         goal_progress = sum(goal.get("progress", 0) for goal in goals) / len(goals)
 
-    return int((task_completion * 0.5 + schedule_adherence * 0.3 + goal_progress * 0.2))
+    return int(task_completion * 0.5 + schedule_adherence * 0.3 + goal_progress * 0.2)
 
 
 def calculate_streak(tasks):

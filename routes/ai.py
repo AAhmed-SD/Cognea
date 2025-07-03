@@ -1,20 +1,22 @@
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from typing import List, Optional, Dict, Any
+import json
+import logging
 from datetime import datetime, timedelta
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, confloat
-from services.supabase import get_supabase_client
+
+from services.ai_cache import ai_cache_service, ai_cached, invalidate_ai_cache_for_user
 from services.auth import get_current_user
-from services.cost_tracking import cost_tracking_service
-from services.ai_cache import ai_cached, ai_cache_service, invalidate_ai_cache_for_user
-from services.openai_integration import generate_openai_text
 from services.background_workers import (
-    background_worker,
     background_task,
+    background_worker,
     scheduled_job,
 )
+from services.cost_tracking import cost_tracking_service
+from services.openai_integration import generate_openai_text
 from services.performance_monitor import monitor_performance
-import logging
-import json
+from services.supabase import get_supabase_client
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -25,8 +27,8 @@ router = APIRouter(tags=["AI & Personalization"])
 
 
 class PlanPreferences(BaseModel):
-    focus_areas: List[str]
-    duration: Optional[str] = "8h"
+    focus_areas: list[str]
+    duration: str | None = "8h"
 
 
 class PlanDayRequest(BaseModel):
@@ -48,7 +50,7 @@ class FlashcardReviewRequest(BaseModel):
 
 class InsightRequest(BaseModel):
     date_range: str
-    categories: List[str]
+    categories: list[str]
 
 
 class GoalRequest(BaseModel):
@@ -60,8 +62,8 @@ class GoalRequest(BaseModel):
 
 
 class HabitSuggestionRequest(BaseModel):
-    user_preferences: List[str]
-    current_habits: List[str]
+    user_preferences: list[str]
+    current_habits: list[str]
     available_time: int  # minutes per day
 
 
@@ -73,30 +75,30 @@ class ProductivityAnalysisRequest(BaseModel):
 
 
 class SmartScheduleRequest(BaseModel):
-    tasks: List[dict]  # List of tasks with priority, duration, deadline
+    tasks: list[dict]  # List of tasks with priority, duration, deadline
     available_time: dict  # Available time slots
     preferences: dict  # User preferences
 
 
 class AIInsightRequest(BaseModel):
     insight_type: str
-    user_data: Optional[Dict[str, Any]] = None
-    parameters: Optional[Dict[str, Any]] = None
+    user_data: dict[str, Any] | None = None
+    parameters: dict[str, Any] | None = None
 
 
 class AIAnalysisRequest(BaseModel):
     analysis_type: str
-    data: Dict[str, Any]
-    parameters: Optional[Dict[str, Any]] = None
+    data: dict[str, Any]
+    parameters: dict[str, Any] | None = None
 
 
 class AISuggestionRequest(BaseModel):
     suggestion_type: str
-    context: Dict[str, Any]
-    parameters: Optional[Dict[str, Any]] = None
+    context: dict[str, Any]
+    parameters: dict[str, Any] | None = None
 
 
-async def _get_user_context(user_id: str) -> Dict[str, Any]:
+async def _get_user_context(user_id: str) -> dict[str, Any]:
     """Get user context data for AI operations"""
     try:
         supabase = get_supabase_client()
@@ -396,7 +398,7 @@ Make the flashcards engaging and appropriate for {request.difficulty} difficulty
 @monitor_performance("ai_insights")
 async def get_ai_insights(
     request: AIInsightRequest,
-    current_user: Dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get AI insights for user data"""
     try:
@@ -973,7 +975,7 @@ Generate summary in JSON format:
 # Cache management endpoints
 @router.post("/cache/invalidate", summary="Invalidate AI cache for user")
 async def invalidate_cache(
-    operations: List[str] = None, current_user: dict = Depends(get_current_user)
+    operations: list[str] = None, current_user: dict = Depends(get_current_user)
 ):
     """Invalidate AI cache for specific operations"""
     try:
@@ -1003,7 +1005,7 @@ async def get_cache_stats(current_user: dict = Depends(get_current_user)):
 
 # Background task for AI processing
 @background_task(name="ai_batch_processing", priority="normal")
-async def process_ai_batch(user_id: str, data: Dict[str, Any]):
+async def process_ai_batch(user_id: str, data: dict[str, Any]):
     """Background task for batch AI processing"""
     try:
         logger.info(f"Processing AI batch for user {user_id}")
@@ -1033,8 +1035,8 @@ async def process_ai_batch(user_id: str, data: Dict[str, Any]):
 
 @router.post("/batch-process")
 async def start_ai_batch_processing(
-    data: Dict[str, Any],
-    current_user: Dict = Depends(get_current_user),
+    data: dict[str, Any],
+    current_user: dict = Depends(get_current_user),
 ):
     """Start background AI batch processing"""
     try:

@@ -2,12 +2,13 @@
 Redis client service for caching, rate limiting, and token tracking.
 """
 
-import redis
+import asyncio
 import json
 import logging
-from typing import Optional, Dict, Any
 from datetime import datetime
-import asyncio
+from typing import Any
+
+import redis
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class MaxRetriesExceededError(Exception):
     """Exception raised when maximum retries are exceeded."""
 
     def __init__(
-        self, func_name: str, max_retries: int, last_error: Optional[Exception] = None
+        self, func_name: str, max_retries: int, last_error: Exception | None = None
     ):
         self.func_name = func_name
         self.max_retries = max_retries
@@ -39,7 +40,7 @@ class MaxRetriesExceededError(Exception):
 class RedisClient:
     """Redis client for caching, rate limiting, and token tracking."""
 
-    def __init__(self, redis_url: Optional[str] = None):
+    def __init__(self, redis_url: str | None = None):
         """Initialize Redis client."""
         self.redis_url = redis_url or "redis://localhost:6379"
         self.client = None
@@ -157,7 +158,7 @@ class RedisClient:
 
         return True
 
-    def get_rate_limit_info(self, key: str) -> Dict[str, Any]:
+    def get_rate_limit_info(self, key: str) -> dict[str, Any]:
         """Get rate limit information."""
         if not self.is_connected():
             return {"remaining": 999, "reset_time": None}
@@ -220,7 +221,7 @@ class RedisClient:
         self.client.incrby(model_key, tokens_used)
         self.client.expire(model_key, 30 * 24 * 3600)
 
-    def get_token_usage(self, user_id: str, period: str = "daily") -> Dict[str, Any]:
+    def get_token_usage(self, user_id: str, period: str = "daily") -> dict[str, Any]:
         """Get token usage statistics."""
         if not self.is_connected():
             return {"tokens": 0, "cost": 0.0, "models": {}}
@@ -294,7 +295,7 @@ class RedisClient:
         except Exception:
             logger.error("Error setting cache")
 
-    def get_cache(self, key: str) -> Optional[Any]:
+    def get_cache(self, key: str) -> Any | None:
         """Get a cache value."""
         if not self.is_connected():
             return None

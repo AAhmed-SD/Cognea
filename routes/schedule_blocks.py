@@ -2,19 +2,19 @@
 Schedule Blocks router for the Personal Agent application.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import List, Optional
+import logging
 from datetime import datetime, timedelta
 from uuid import UUID
-import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from models.schedule_block import (
     ScheduleBlock,
     ScheduleBlockCreate,
     ScheduleBlockUpdate,
 )
-from services.supabase import get_supabase_client
 from services.auth import get_current_user
+from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/schedule-blocks", tags=["Schedule Blocks"])
 
@@ -69,20 +69,20 @@ async def create_schedule_block(
 
 
 @router.get(
-    "/", response_model=List[ScheduleBlock], summary="Get schedule blocks for user"
+    "/", response_model=list[ScheduleBlock], summary="Get schedule blocks for user"
 )
 async def get_schedule_blocks(
     current_user: dict = Depends(get_current_user),
-    start_date: Optional[datetime] = Query(
+    start_date: datetime | None = Query(
         None, description="Filter blocks starting from this date"
     ),
-    end_date: Optional[datetime] = Query(
+    end_date: datetime | None = Query(
         None, description="Filter blocks ending before this date"
     ),
-    context: Optional[str] = Query(
+    context: str | None = Query(
         None, description="Filter by context (e.g., 'Work', 'Study')"
     ),
-    goal_id: Optional[UUID] = Query(None, description="Filter by associated goal"),
+    goal_id: UUID | None = Query(None, description="Filter by associated goal"),
     limit: int = Query(100, ge=1, le=1000, description="Number of blocks to return"),
     offset: int = Query(0, ge=0, description="Number of blocks to skip"),
 ):
@@ -117,7 +117,7 @@ async def get_schedule_blocks(
 
 
 @router.get(
-    "/today", response_model=List[ScheduleBlock], summary="Get today's schedule blocks"
+    "/today", response_model=list[ScheduleBlock], summary="Get today's schedule blocks"
 )
 async def get_today_schedule_blocks(current_user: dict = Depends(get_current_user)):
     """Get all schedule blocks for today."""

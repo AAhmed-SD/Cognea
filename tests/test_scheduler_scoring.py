@@ -2,8 +2,10 @@
 Tests for scheduler scoring functionality.
 """
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta, UTC
+
 from services.scheduler import SimpleScheduler, Task, TimeSlot
 
 

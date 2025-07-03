@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import List, Optional
 
 
 class TextGenerationRequest(BaseModel):
@@ -7,11 +6,11 @@ class TextGenerationRequest(BaseModel):
     model: str = "gpt-3.5-turbo"
     max_tokens: int = 500
     temperature: float = 0.7
-    stop: Optional[List[str]] = None
+    stop: list[str] | None = None
 
 
 class TextGenerationResponse(BaseModel):
     original_prompt: str
     model: str
     generated_text: str
-    total_tokens: Optional[int] = None
+    total_tokens: int | None = None

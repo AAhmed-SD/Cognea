@@ -2,12 +2,12 @@
 Database models for the Personal Agent application.
 """
 
-from .user import User
-from .task import Task
-from .goal import Goal
-from .schedule_block import ScheduleBlock
 from .flashcard import Flashcard
+from .goal import Goal
 from .notification import Notification
+from .schedule_block import ScheduleBlock
+from .task import Task
+from .user import User
 
 __all__ = ["User", "Task", "Goal", "ScheduleBlock", "Flashcard", "Notification"]
 

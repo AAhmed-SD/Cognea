@@ -1,17 +1,18 @@
-import pytest
-import pytest_asyncio
 import asyncio
-from typing import AsyncGenerator, Generator
-from fastapi.testclient import TestClient
-from httpx import AsyncClient, ASGITransport
 import os
 import sys
+from collections.abc import AsyncGenerator, Generator
+
+import pytest
+import pytest_asyncio
+from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from main import create_app
-from services.supabase import get_supabase_client
 from services.auth import create_access_token
+from services.supabase import get_supabase_client
 
 
 @pytest.fixture(scope="session")

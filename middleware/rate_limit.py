@@ -8,11 +8,12 @@ Rate Limiting Middleware with Enhanced Redis Cache
 
 import logging
 import time
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
+from services.performance_monitor import get_performance_monitor
 from services.redis_cache import enhanced_cache
-from services.performance_monitor import performance_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +86,7 @@ class RateLimiter:
 rate_limiter = RateLimiter()
 
 
-async def rate_limit_middleware(request: Request, call_next):
+async def rate_limit_middleware(request: Request, call_next) -> None:
     """Rate limiting middleware"""
     try:
         # Get client identifier
@@ -94,7 +95,7 @@ async def rate_limit_middleware(request: Request, call_next):
         # Check burst limit first
         burst_allowed = await rate_limiter.check_burst_limit(client_id)
         if not burst_allowed:
-            await performance_monitor.record_metric(
+            await get_performance_monitor().record_metric(
                 "rate_limit_burst_exceeded", 1, "requests", {"client_id": client_id}
             )
             return JSONResponse(
@@ -108,7 +109,7 @@ async def rate_limit_middleware(request: Request, call_next):
         # Check rate limit
         rate_allowed = await rate_limiter.check_rate_limit(client_id)
         if not rate_allowed:
-            await performance_monitor.record_metric(
+            await get_performance_monitor().record_metric(
                 "rate_limit_exceeded", 1, "requests", {"client_id": client_id}
             )
             return JSONResponse(
@@ -120,7 +121,7 @@ async def rate_limit_middleware(request: Request, call_next):
             )
 
         # Record successful request
-        await performance_monitor.record_metric(
+        await get_performance_monitor().record_metric(
             "rate_limit_allowed", 1, "requests", {"client_id": client_id}
         )
 
@@ -146,11 +147,11 @@ def _get_client_identifier(request: Request) -> str:
         return f"api_key:{api_key}"
 
     # Use IP address as fallback
-    client_ip = request.headers.get("X-Forwarded-For", request.client.host)
+    client_ip = request.headers.get("X-Forwarded-For", request.client.host)  # type: ignore
     return f"ip:{client_ip}"
 
 
-def setup_rate_limiting(app):
+def setup_rate_limiting(app) -> None:
     """Setup rate limiting middleware"""
     app.middleware("http")(rate_limit_middleware)
     logger.info("Rate limiting middleware configured")

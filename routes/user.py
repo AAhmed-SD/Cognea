@@ -1,7 +1,7 @@
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
 
 router = APIRouter()
 
@@ -11,7 +11,7 @@ class UserProfile(BaseModel):
     user_id: str
     name: str
     email: str
-    preferences: Optional[dict] = None
+    preferences: dict | None = None
 
 
 class ActivityLog(BaseModel):
@@ -46,7 +46,7 @@ async def get_user_profile(user_id: str):
 # Activity Log Endpoints
 @router.get(
     "/activity-log/{user_id}",
-    response_model=List[ActivityLog],
+    response_model=list[ActivityLog],
     tags=["Activity Log"],
     summary="Get activity log",
 )
@@ -65,7 +65,7 @@ async def submit_feedback(feedback: Feedback):
 # Help Endpoints
 @router.get(
     "/help",
-    response_model=List[HelpResource],
+    response_model=list[HelpResource],
     tags=["Help"],
     summary="Get help resources",
 )

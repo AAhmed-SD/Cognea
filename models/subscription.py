@@ -2,14 +2,16 @@
 Subscription and payment models for Stripe integration.
 """
 
-from datetime import datetime, UTC
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict
+from datetime import UTC, datetime
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SubscriptionStatus(str, Enum):
     """Subscription status enum."""
+
     ACTIVE = "active"
     CANCELED = "canceled"
     PAST_DUE = "past_due"
@@ -22,6 +24,7 @@ class SubscriptionStatus(str, Enum):
 
 class PaymentStatus(str, Enum):
     """Payment status enum."""
+
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     PENDING = "pending"
@@ -30,6 +33,7 @@ class PaymentStatus(str, Enum):
 
 class PlanType(str, Enum):
     """Plan type enum."""
+
     BASIC = "basic"
     PRO = "pro"
     ENTERPRISE = "enterprise"
@@ -37,6 +41,7 @@ class PlanType(str, Enum):
 
 class Subscription(BaseModel):
     """Subscription model."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: str
@@ -54,39 +59,43 @@ class Subscription(BaseModel):
 
 class Payment(BaseModel):
     """Payment model."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: str
     user_id: str
     stripe_invoice_id: str
-    stripe_payment_intent_id: Optional[str] = None
+    stripe_payment_intent_id: str | None = None
     amount: float
     currency: str = "usd"
     status: PaymentStatus
-    description: Optional[str] = None
+    description: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class PaymentEvent(BaseModel):
     """Payment event model for logging."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: str
     user_id: str
     event_type: str
-    event_data: Dict[str, Any]
+    event_data: dict[str, Any]
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class BillingHistory(BaseModel):
     """Billing history response model."""
-    invoices: List[Dict[str, Any]]
+
+    invoices: list[dict[str, Any]]
     total_count: int
     has_more: bool
 
 
 class SubscriptionCreate(BaseModel):
     """Create subscription request model."""
+
     price_id: str
     success_url: str
     cancel_url: str
@@ -94,18 +103,20 @@ class SubscriptionCreate(BaseModel):
 
 class SubscriptionUpdate(BaseModel):
     """Update subscription request model."""
-    cancel_at_period_end: Optional[bool] = None
-    plan_type: Optional[PlanType] = None
+
+    cancel_at_period_end: bool | None = None
+    plan_type: PlanType | None = None
 
 
 class PricingPlan(BaseModel):
     """Pricing plan model."""
+
     id: str
     name: str
     price_id: str
     price: float
     currency: str = "usd"
     billing_cycle: str = "monthly"
-    features: List[str]
+    features: list[str]
     is_popular: bool = False
-    is_enterprise: bool = False 
+    is_enterprise: bool = False

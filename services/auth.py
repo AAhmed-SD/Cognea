@@ -1,11 +1,12 @@
+from datetime import UTC, datetime, timedelta
+
 import bcrypt
 import jwt
-from datetime import datetime, timedelta, UTC
-from typing import Dict
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from services.supabase import get_supabase_client
+
 from config.security import security_config
+from services.supabase import get_supabase_client
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
@@ -23,7 +24,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     )
 
 
-def create_access_token(data: Dict) -> str:
+def create_access_token(data: dict) -> str:
     """Create a JWT access token"""
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(

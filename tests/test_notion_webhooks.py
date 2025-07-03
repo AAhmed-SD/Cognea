@@ -2,13 +2,14 @@
 Tests for Notion webhook endpoints.
 """
 
-import pytest
-import json
-import hmac
 import hashlib
-from unittest.mock import patch, AsyncMock, MagicMock
+import hmac
+import json
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
+
 from main import app
 
 client = TestClient(app)

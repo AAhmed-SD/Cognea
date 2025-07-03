@@ -9,43 +9,45 @@ Main FastAPI Application with Enhanced Features
 
 import logging
 import os
+import time
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-import time
 
-# Import enhanced services
-from services.redis_cache import enhanced_cache
-from services.background_workers import background_worker, job_scheduler
-from services.performance_monitor import performance_monitor
 from middleware.error_handler import setup_error_handlers
 from middleware.logging import setup_logging
 from middleware.rate_limit import setup_rate_limiting
 
 # Import routes
 from routes import (
-    auth,
-    user,
-    tasks,
-    goals,
-    habits,
-    schedule_blocks,
-    flashcards,
-    notifications,
     ai,
-    generate,
     analytics,
-    mood,
-    notion,
-    stripe,
-    profile,
-    user_settings,
-    privacy,
+    auth,
     calendar,
     diary,
     fitness,
+    flashcards,
+    generate,
+    goals,
+    habits,
+    mood,
+    notifications,
+    notion,
+    privacy,
+    profile,
+    schedule_blocks,
+    stripe,
+    tasks,
+    user,
+    user_settings,
 )
+from services.background_workers import background_worker, job_scheduler
+from services.performance_monitor import performance_monitor
+
+# Import enhanced services
+from services.redis_cache import enhanced_cache
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -159,6 +161,12 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+
+def create_app():
+    """Create and return the FastAPI application instance for testing."""
+    return app
+
 
 # Add middleware
 app.add_middleware(

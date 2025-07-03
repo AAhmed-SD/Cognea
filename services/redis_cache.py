@@ -9,15 +9,17 @@ Enhanced Redis Caching Service with Advanced Features
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 import time
+from collections.abc import Callable
 from datetime import timedelta
 from functools import wraps
-from typing import Any, Dict, List, Optional, Union, Callable
+from typing import Any
+
 import redis.asyncio as redis
 from redis.asyncio import ConnectionPool
-import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +176,7 @@ class EnhancedRedisCache:
 
         return key_string
 
-    async def get(self, prefix: str, *args, **kwargs) -> Optional[Any]:
+    async def get(self, prefix: str, *args, **kwargs) -> Any | None:
         """Get value from cache with circuit breaker"""
         if not self.client or not self.circuit_breaker.can_execute():
             return None
@@ -204,7 +206,7 @@ class EnhancedRedisCache:
         self,
         prefix: str,
         value: Any,
-        ttl: Union[int, timedelta] = 3600,
+        ttl: int | timedelta = 3600,
         *args,
         **kwargs,
     ) -> bool:
@@ -279,7 +281,7 @@ class EnhancedRedisCache:
         self,
         prefix: str,
         value_func: Callable,
-        ttl: Union[int, timedelta] = 3600,
+        ttl: int | timedelta = 3600,
         *args,
         **kwargs,
     ) -> Any:
@@ -306,7 +308,7 @@ class EnhancedRedisCache:
             else:
                 return value_func()
 
-    async def mget(self, keys: List[str]) -> List[Optional[Any]]:
+    async def mget(self, keys: list[str]) -> list[Any | None]:
         """Get multiple values from cache"""
         if not self.client or not self.circuit_breaker.can_execute():
             return [None] * len(keys)
@@ -333,9 +335,7 @@ class EnhancedRedisCache:
         finally:
             self.metrics["total_operations"] += 1
 
-    async def mset(
-        self, data: Dict[str, Any], ttl: Union[int, timedelta] = 3600
-    ) -> bool:
+    async def mset(self, data: dict[str, Any], ttl: int | timedelta = 3600) -> bool:
         """Set multiple values in cache"""
         if not self.client or not self.circuit_breaker.can_execute():
             return False
@@ -399,7 +399,7 @@ class EnhancedRedisCache:
             logger.error(f"Lock release error: {e}")
             return False
 
-    async def warm_cache(self, warmup_data: Dict[str, Any]) -> int:
+    async def warm_cache(self, warmup_data: dict[str, Any]) -> int:
         """Warm up cache with predefined data"""
         if not self.client:
             return 0
@@ -417,7 +417,7 @@ class EnhancedRedisCache:
             logger.error(f"Cache warmup error: {e}")
             return 0
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get cache performance metrics"""
         hit_rate = 0
         if self.metrics["total_operations"] > 0:
@@ -447,7 +447,7 @@ enhanced_cache = EnhancedRedisCache()
 
 
 # Enhanced cache decorators
-def enhanced_cached(prefix: str, ttl: Union[int, timedelta] = 3600):
+def enhanced_cached(prefix: str, ttl: int | timedelta = 3600):
     """Enhanced cache decorator for functions"""
 
     def decorator(func):
@@ -473,9 +473,7 @@ def enhanced_cached(prefix: str, ttl: Union[int, timedelta] = 3600):
     return decorator
 
 
-def cache_with_lock(
-    prefix: str, ttl: Union[int, timedelta] = 3600, lock_timeout: int = 10
-):
+def cache_with_lock(prefix: str, ttl: int | timedelta = 3600, lock_timeout: int = 10):
     """Cache decorator with distributed locking"""
 
     def decorator(func):

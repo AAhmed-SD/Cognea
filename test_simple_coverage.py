@@ -3,6 +3,7 @@ Simple test to check coverage without full app dependencies.
 """
 
 import pytest
+
 from services.redis_client import RedisClient
 
 

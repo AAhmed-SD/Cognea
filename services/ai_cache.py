@@ -6,12 +6,12 @@ AI Cache Service with Enhanced Redis Integration
 - User-specific cache management
 """
 
+import hashlib
 import json
 import logging
-import hashlib
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
 from functools import wraps
+from typing import Any
 
 from services.redis_cache import enhanced_cache
 from services.supabase import get_supabase_client
@@ -61,7 +61,7 @@ class AICacheService:
 
         return ":".join(key_parts)
 
-    def _hash_user_data(self, user_data: Dict) -> str:
+    def _hash_user_data(self, user_data: dict) -> str:
         """Create a hash of user data for cache invalidation"""
         if not user_data:
             return "empty"
@@ -71,8 +71,8 @@ class AICacheService:
         return hashlib.sha256(sorted_data.encode()).hexdigest()[:16]
 
     async def get_cached_ai_response(
-        self, operation: str, user_id: str, user_data: Dict = None, **kwargs
-    ) -> Optional[Any]:
+        self, operation: str, user_id: str, user_data: dict = None, **kwargs
+    ) -> Any | None:
         """Get cached AI response if available and valid"""
         try:
             # Create data hash for cache key
@@ -102,7 +102,7 @@ class AICacheService:
         operation: str,
         user_id: str,
         response: Any,
-        user_data: Dict = None,
+        user_data: dict = None,
         **kwargs,
     ) -> bool:
         """Cache AI response with appropriate TTL"""
@@ -141,7 +141,7 @@ class AICacheService:
             return False
 
     async def invalidate_user_ai_cache(
-        self, user_id: str, operations: List[str] = None
+        self, user_id: str, operations: list[str] = None
     ) -> int:
         """Invalidate AI cache for specific user and operations"""
         try:
@@ -165,7 +165,7 @@ class AICacheService:
             return 0
 
     async def should_use_cache(
-        self, operation: str, user_id: str, user_data: Dict = None
+        self, operation: str, user_id: str, user_data: dict = None
     ) -> bool:
         """Determine if cache should be used based on various factors"""
         try:
@@ -241,7 +241,7 @@ class AICacheService:
             logger.error(f"Error getting cache usage: {e}")
             return 0
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics"""
         try:
             if not enhanced_cache.client:
@@ -274,7 +274,7 @@ ai_cache_service = AICacheService()
 
 
 # AI cache decorator
-def ai_cached(operation: str, ttl: Optional[int] = None):
+def ai_cached(operation: str, ttl: int | None = None):
     """Decorator to cache AI function results"""
 
     def decorator(func):
@@ -329,6 +329,6 @@ def ai_cached(operation: str, ttl: Optional[int] = None):
 
 
 # Cache invalidation function
-async def invalidate_ai_cache_for_user(user_id: str, operations: List[str] = None):
+async def invalidate_ai_cache_for_user(user_id: str, operations: list[str] = None):
     """Invalidate AI cache for a specific user"""
     return await ai_cache_service.invalidate_user_ai_cache(user_id, operations)

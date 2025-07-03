@@ -3,8 +3,8 @@ Cost tracking service for OpenAI API usage
 """
 
 import logging
-from typing import Dict
 from datetime import datetime
+
 from services.supabase import supabase_client
 
 logger = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ class CostTracker:
         except Exception as e:
             logger.error(f"Error tracking API call: {str(e)}")
 
-    async def check_budget_limits(self, user_id: str) -> Dict:
+    async def check_budget_limits(self, user_id: str) -> dict:
         """Check if user has exceeded budget limits"""
         try:
             usage_summary = self.get_user_usage_summary(user_id)
@@ -214,7 +214,7 @@ class CostTracker:
         except Exception as e:
             logger.error(f"Error incrementing usage total: {str(e)}")
 
-    def get_user_usage_summary(self, user_id: str) -> Dict:
+    def get_user_usage_summary(self, user_id: str) -> dict:
         """Get usage summary for a user"""
 
         try:
@@ -267,7 +267,7 @@ class CostTracker:
                 "limits": {"daily_limit_usd": 10.0, "monthly_limit_usd": 100.0},
             }
 
-    def check_usage_limits(self, user_id: str) -> Dict:
+    def check_usage_limits(self, user_id: str) -> dict:
         """Check if user has exceeded usage limits"""
 
         try:

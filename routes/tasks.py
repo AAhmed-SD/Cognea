@@ -2,15 +2,15 @@
 Tasks router for the Personal Agent application.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import List, Optional
+import logging
 from datetime import datetime
 from uuid import UUID
-import logging
 
-from models.task import Task, TaskCreate, TaskUpdate, TaskStatus, PriorityLevel
-from services.supabase import get_supabase_client
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from models.task import PriorityLevel, Task, TaskCreate, TaskStatus, TaskUpdate
 from services.auth import get_current_user
+from services.supabase import get_supabase_client
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -47,11 +47,11 @@ async def create_task(task: TaskCreate, current_user: dict = Depends(get_current
         raise HTTPException(status_code=500, detail="Failed to create task")
 
 
-@router.get("/", response_model=List[Task], summary="Get all tasks for user")
+@router.get("/", response_model=list[Task], summary="Get all tasks for user")
 async def get_tasks(
     current_user: dict = Depends(get_current_user),
-    status: Optional[TaskStatus] = Query(None, description="Filter by task status"),
-    priority: Optional[PriorityLevel] = Query(None, description="Filter by priority"),
+    status: TaskStatus | None = Query(None, description="Filter by task status"),
+    priority: PriorityLevel | None = Query(None, description="Filter by priority"),
     limit: int = Query(100, ge=1, le=1000, description="Number of tasks to return"),
     offset: int = Query(0, ge=0, description="Number of tasks to skip"),
 ):
