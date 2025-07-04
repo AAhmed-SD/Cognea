@@ -1,18 +1,5 @@
 # Security Policy
 
-## Supported Versions
-
-We patch security issues on the following versions:
-
-| Version | Supported          |
-| ------- | ------------------ |
-| `6.x`   | ✅                  |
-| `5.x`   | ✅                  |
-| `4.x`   | ❌                  |
-| `< 4.0` | ❌                  |
-
-Only the latest major and minor releases (6.x and 5.x) receive security updates. If you are running 4.x or below, please upgrade to a supported version.
-
 ## Reporting a Vulnerability
 
 1. **Contact**  
