@@ -1,0 +1,28 @@
+[run]
+source = .
+omit = 
+    */venv/*
+    */migrations/*
+    */tests/*
+    __pycache__/*
+    */__init__.py
+    app.py
+    test_*.py
+    setup_*.py
+    conftest.py
+    main.py
+    optimize_ai_endpoints.py
+    handlers.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod 
