@@ -7,7 +7,7 @@ import pytest
 from services.redis_client import RedisClient
 
 
-def test_redis_client_basic():
+def test_redis_client_basic() -> None:
     """Test basic Redis client functionality."""
     client = RedisClient()
     assert client.redis_url == "redis://localhost:6379"
@@ -15,14 +15,14 @@ def test_redis_client_basic():
     assert not client.is_connected()
 
 
-def test_rate_limit_check():
+def test_rate_limit_check() -> None:
     """Test rate limit checking logic."""
     client = RedisClient()
     # Should return True when Redis is not connected (fallback behavior)
     assert client.check_rate_limit("test_key", 10, 60) is True
 
 
-def test_token_tracking():
+def test_token_tracking() -> None:
     """Test token tracking methods."""
     client = RedisClient()
     # Should not fail when Redis is not connected
@@ -34,7 +34,7 @@ def test_token_tracking():
     assert usage["cost"] == 0.0
 
 
-def test_budget_limit_check():
+def test_budget_limit_check() -> None:
     """Test budget limit checking."""
     client = RedisClient()
     # Should return True when Redis is not connected (allow by default)

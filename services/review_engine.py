@@ -20,7 +20,7 @@ class ReviewEngine:
         # 2. Score them by importance (due, weak, exam-proximity, confidence)
         # 3. Estimate how many can fit in `time_available_mins`
         # 4. Return sorted review list
-        pass
+        return []
 
     def update_review_result(self, flashcard_id: str, was_correct: bool):
         """
@@ -36,4 +36,4 @@ class ReviewEngine:
         Returns an overall confidence level (0-1) for this flashcard.
         Based on past correctness, ease factor, last review date, etc.
         """
-        pass
+        return 0.5

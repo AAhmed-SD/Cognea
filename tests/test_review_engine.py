@@ -4,7 +4,7 @@ from services.review_engine import Flashcard, ReviewEngine
 class TestFlashcard:
     """Test the Flashcard class"""
 
-    def test_flashcard_placeholder(self):
+    def test_flashcard_placeholder(self) -> None:
         """Test that Flashcard is a placeholder class"""
         flashcard = Flashcard()
         assert isinstance(flashcard, Flashcard)
@@ -13,37 +13,37 @@ class TestFlashcard:
 class TestReviewEngine:
     """Test the ReviewEngine class"""
 
-    def test_review_engine_initialization(self):
+    def test_review_engine_initialization(self) -> None:
         """Test ReviewEngine initialization"""
         user_id = "test_user_123"
         engine = ReviewEngine(user_id)
         assert engine.user_id == user_id
 
-    def test_get_today_review_plan_default_time(self):
+    def test_get_today_review_plan_default_time(self) -> None:
         """Test get_today_review_plan with default time"""
         engine = ReviewEngine("test_user_123")
         result = engine.get_today_review_plan()
-        assert result is None  # Currently returns None (placeholder)
+        assert result == []  # Currently returns empty list (placeholder)
 
-    def test_get_today_review_plan_custom_time(self):
+    def test_get_today_review_plan_custom_time(self) -> None:
         """Test get_today_review_plan with custom time"""
         engine = ReviewEngine("test_user_123")
         result = engine.get_today_review_plan(time_available_mins=60)
-        assert result is None  # Currently returns None (placeholder)
+        assert result == []  # Currently returns empty list (placeholder)
 
-    def test_get_today_review_plan_zero_time(self):
+    def test_get_today_review_plan_zero_time(self) -> None:
         """Test get_today_review_plan with zero time"""
         engine = ReviewEngine("test_user_123")
         result = engine.get_today_review_plan(time_available_mins=0)
-        assert result is None  # Currently returns None (placeholder)
+        assert result == []  # Currently returns empty list (placeholder)
 
-    def test_get_today_review_plan_negative_time(self):
+    def test_get_today_review_plan_negative_time(self) -> None:
         """Test get_today_review_plan with negative time"""
         engine = ReviewEngine("test_user_123")
         result = engine.get_today_review_plan(time_available_mins=-10)
-        assert result is None  # Currently returns None (placeholder)
+        assert result == []  # Currently returns empty list (placeholder)
 
-    def test_update_review_result_correct(self):
+    def test_update_review_result_correct(self) -> None:
         """Test update_review_result with correct answer"""
         engine = ReviewEngine("test_user_123")
         flashcard_id = "flashcard_123"
@@ -51,7 +51,7 @@ class TestReviewEngine:
         # Should not raise any exception (placeholder implementation)
         engine.update_review_result(flashcard_id, was_correct=True)
 
-    def test_update_review_result_incorrect(self):
+    def test_update_review_result_incorrect(self) -> None:
         """Test update_review_result with incorrect answer"""
         engine = ReviewEngine("test_user_123")
         flashcard_id = "flashcard_123"
@@ -59,27 +59,27 @@ class TestReviewEngine:
         # Should not raise any exception (placeholder implementation)
         engine.update_review_result(flashcard_id, was_correct=False)
 
-    def test_update_review_result_empty_flashcard_id(self):
+    def test_update_review_result_empty_flashcard_id(self) -> None:
         """Test update_review_result with empty flashcard ID"""
         engine = ReviewEngine("test_user_123")
 
         # Should not raise any exception (placeholder implementation)
         engine.update_review_result("", was_correct=True)
 
-    def test_get_flashcard_confidence(self):
+    def test_get_flashcard_confidence(self) -> None:
         """Test get_flashcard_confidence"""
         engine = ReviewEngine("test_user_123")
         flashcard_id = "flashcard_123"
 
         result = engine.get_flashcard_confidence(flashcard_id)
-        assert result is None  # Currently returns None (placeholder)
+        assert result == 0.5  # Currently returns 0.5 (placeholder)
 
-    def test_get_flashcard_confidence_empty_id(self):
+    def test_get_flashcard_confidence_empty_id(self) -> None:
         """Test get_flashcard_confidence with empty ID"""
         engine = ReviewEngine("test_user_123")
 
         result = engine.get_flashcard_confidence("")
-        assert result is None  # Currently returns None (placeholder)
+        assert result == 0.5  # Currently returns 0.5 (placeholder)
 
     def test_get_flashcard_confidence_none_id(self):
         """Test get_flashcard_confidence with None ID"""
