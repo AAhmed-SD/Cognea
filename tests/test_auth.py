@@ -16,7 +16,7 @@ from services.auth import (
 class TestHashPassword:
     """Test password hashing functionality"""
 
-    def test_hash_password(self):
+    def test_hash_password(self) -> None:
         """Test password hashing"""
         password = "testpassword123"
         hashed = hash_password(password)
@@ -25,7 +25,7 @@ class TestHashPassword:
         assert isinstance(hashed, str)
         assert len(hashed) > len(password)
 
-    def test_hash_password_empty(self):
+    def test_hash_password_empty(self) -> None:
         """Test hashing empty password"""
         password = ""
         hashed = hash_password(password)
@@ -37,7 +37,7 @@ class TestHashPassword:
 class TestVerifyPassword:
     """Test password verification functionality"""
 
-    def test_verify_password_correct(self):
+    def test_verify_password_correct(self) -> None:
         """Test correct password verification"""
         password = "testpassword123"
         hashed = hash_password(password)
@@ -45,7 +45,7 @@ class TestVerifyPassword:
         result = verify_password(password, hashed)
         assert result is True
 
-    def test_verify_password_incorrect(self):
+    def test_verify_password_incorrect(self) -> None:
         """Test incorrect password verification"""
         password = "testpassword123"
         wrong_password = "wrongpassword"
@@ -59,7 +59,7 @@ class TestCreateAccessToken:
     """Test JWT token creation"""
 
     @patch("services.auth.security_config")
-    def test_create_access_token(self, mock_security_config):
+    def test_create_access_token(self, mock_security_config) -> None:
         """Test creating access token"""
         mock_security_config.ACCESS_TOKEN_EXPIRE_MINUTES = 30
         mock_security_config.SECRET_KEY = "test_secret_key"
@@ -84,7 +84,7 @@ class TestGetCurrentUser:
     @patch("services.auth.security_config")
     def test_get_current_user_valid_token(
         self, mock_security_config, mock_get_supabase
-    ):
+    ) -> None:
         """Test getting current user with valid token"""
         mock_security_config.SECRET_KEY = "test_secret_key"
         mock_security_config.JWT_ALGORITHM = "HS256"
@@ -111,7 +111,7 @@ class TestGetCurrentUser:
         assert result["role"] == "user"
 
     @patch("services.auth.security_config")
-    def test_get_current_user_invalid_token(self, mock_security_config):
+    def test_get_current_user_invalid_token(self, mock_security_config) -> None:
         """Test getting current user with invalid token"""
         mock_security_config.SECRET_KEY = "test_secret_key"
         mock_security_config.JWT_ALGORITHM = "HS256"
@@ -128,7 +128,7 @@ class TestGetCurrentUser:
     @patch("services.auth.security_config")
     def test_get_current_user_user_not_found(
         self, mock_security_config, mock_get_supabase
-    ):
+    ) -> None:
         """Test getting current user when user not found in database"""
         mock_security_config.SECRET_KEY = "test_secret_key"
         mock_security_config.JWT_ALGORITHM = "HS256"
@@ -154,7 +154,7 @@ class TestGetCurrentUser:
         assert exc_info.value.detail == "Could not validate credentials"
 
     @patch("services.auth.security_config")
-    def test_get_current_user_token_without_sub(self, mock_security_config):
+    def test_get_current_user_token_without_sub(self, mock_security_config) -> None:
         """Test getting current user with token missing sub claim"""
         mock_security_config.SECRET_KEY = "test_secret_key"
         mock_security_config.JWT_ALGORITHM = "HS256"

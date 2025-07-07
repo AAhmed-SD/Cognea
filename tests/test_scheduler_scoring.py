@@ -54,7 +54,7 @@ def sample_tasks():
 class TestSchedulerScoring:
     """Test scheduler scoring algorithms."""
 
-    def test_calculate_task_score_priority(self, scheduler, sample_tasks):
+    def test_calculate_task_score_priority(self, scheduler, sample_tasks) -> None:
         """Test that task scoring considers priority."""
         now = datetime.now(UTC)
         time_slot = TimeSlot(
@@ -70,7 +70,7 @@ class TestSchedulerScoring:
 
         assert high_score > low_score
 
-    def test_calculate_task_score_length(self, scheduler):
+    def test_calculate_task_score_length(self, scheduler) -> None:
         """Test that task scoring considers task length (shorter tasks score higher)."""
         now = datetime.now(UTC)
 
@@ -109,7 +109,7 @@ class TestSchedulerScoring:
         # Shorter task should score higher
         assert short_score > long_score
 
-    def test_calculate_task_score_energy(self, scheduler):
+    def test_calculate_task_score_energy(self, scheduler) -> None:
         """Test that task scoring considers energy compatibility."""
         now = datetime.now(UTC)
 
@@ -148,7 +148,7 @@ class TestSchedulerScoring:
 
         assert high_energy_score > low_energy_score
 
-    def test_calculate_task_score_time_of_day(self, scheduler):
+    def test_calculate_task_score_time_of_day(self, scheduler) -> None:
         """Test that task scoring considers time of day."""
         now = datetime.now(UTC)
 

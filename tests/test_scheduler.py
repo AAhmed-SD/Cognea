@@ -12,7 +12,7 @@ from services.scheduler import (
 class TestTimeSlot:
     """Test TimeSlot dataclass"""
 
-    def test_time_slot_creation(self):
+    def test_time_slot_creation(self) -> None:
         """Test creating a TimeSlot with all parameters"""
         start_time = datetime(2023, 1, 1, 9, 0, 0)
         end_time = datetime(2023, 1, 1, 10, 0, 0)
@@ -31,7 +31,7 @@ class TestTimeSlot:
         assert time_slot.energy_level == 8
         assert time_slot.focus_type == "deep_work"
 
-    def test_time_slot_defaults(self):
+    def test_time_slot_defaults(self) -> None:
         """Test creating a TimeSlot with default values"""
         start_time = datetime(2023, 1, 1, 9, 0, 0)
         end_time = datetime(2023, 1, 1, 10, 0, 0)
@@ -47,7 +47,7 @@ class TestTimeSlot:
 class TestTask:
     """Test Task dataclass"""
 
-    def test_task_creation(self):
+    def test_task_creation(self) -> None:
         """Test creating a Task with all parameters"""
         due_date = datetime(2023, 1, 2, 17, 0, 0)
 
@@ -73,7 +73,7 @@ class TestTask:
         assert task.energy_requirement == 7
         assert task.focus_type == "deep_work"
 
-    def test_task_defaults(self):
+    def test_task_defaults(self) -> None:
         """Test creating a Task with default values"""
         task = Task(
             id="task1",
@@ -92,7 +92,7 @@ class TestTask:
 class TestSchedulerConfig:
     """Test SchedulerConfig class"""
 
-    def test_scheduler_config_defaults(self):
+    def test_scheduler_config_defaults(self) -> None:
         """Test SchedulerConfig with default values"""
         config = SchedulerConfig()
 
@@ -110,7 +110,7 @@ class TestSchedulerConfig:
         assert config.afternoon_energy_penalty == 0.8
         assert config.min_break_minutes == 15
 
-    def test_scheduler_config_custom_values(self):
+    def test_scheduler_config_custom_values(self) -> None:
         """Test SchedulerConfig with custom values"""
         config = SchedulerConfig(
             priority_weights={"urgent": 5.0, "high": 4.0},
@@ -131,20 +131,20 @@ class TestSchedulerConfig:
 class TestSimpleScheduler:
     """Test SimpleScheduler class"""
 
-    def test_scheduler_initialization(self):
+    def test_scheduler_initialization(self) -> None:
         """Test scheduler initialization"""
         scheduler = SimpleScheduler()
         assert scheduler.config is not None
         assert isinstance(scheduler.config, SchedulerConfig)
 
-    def test_scheduler_initialization_with_config(self):
+    def test_scheduler_initialization_with_config(self) -> None:
         """Test scheduler initialization with custom config"""
         config = SchedulerConfig(min_break_minutes=30)
         scheduler = SimpleScheduler(config)
         assert scheduler.config == config
         assert scheduler.config.min_break_minutes == 30
 
-    def test_calculate_task_score(self):
+    def test_calculate_task_score(self) -> None:
         """Test task score calculation"""
         scheduler = SimpleScheduler()
 
@@ -170,7 +170,7 @@ class TestSimpleScheduler:
         assert score > 0
         assert isinstance(score, float)
 
-    def test_calculate_availability_factor_perfect_fit(self):
+    def test_calculate_availability_factor_perfect_fit(self) -> None:
         """Test availability factor calculation for perfect fit"""
         scheduler = SimpleScheduler()
 
@@ -192,7 +192,7 @@ class TestSimpleScheduler:
         factor = scheduler._calculate_availability_factor(task, time_slot)
         assert factor == 1.0
 
-    def test_calculate_availability_factor_partial_fit(self):
+    def test_calculate_availability_factor_partial_fit(self) -> None:
         """Test availability factor calculation for partial fit"""
         scheduler = SimpleScheduler()
 
@@ -215,7 +215,7 @@ class TestSimpleScheduler:
         expected_factor = 60 / 90  # 2/3
         assert abs(factor - expected_factor) < 0.01
 
-    def test_calculate_availability_factor_poor_fit(self):
+    def test_calculate_availability_factor_poor_fit(self) -> None:
         """Test availability factor calculation for poor fit"""
         scheduler = SimpleScheduler()
 
@@ -238,7 +238,7 @@ class TestSimpleScheduler:
         expected_factor = 60 / 300  # 0.2
         assert abs(factor - expected_factor) < 0.01
 
-    def test_calculate_energy_factor(self):
+    def test_calculate_energy_factor(self) -> None:
         """Test energy factor calculation"""
         scheduler = SimpleScheduler()
 
@@ -268,7 +268,7 @@ class TestSimpleScheduler:
         assert factor > 0
         assert factor <= 1.5  # Should not exceed focus multiplier
 
-    def test_calculate_time_factor_morning(self):
+    def test_calculate_time_factor_morning(self) -> None:
         """Test time factor calculation for morning"""
         scheduler = SimpleScheduler()
 
@@ -281,7 +281,7 @@ class TestSimpleScheduler:
         factor = scheduler._calculate_time_factor(time_slot)
         assert factor == 1.2  # morning_energy_boost
 
-    def test_calculate_time_factor_afternoon(self):
+    def test_calculate_time_factor_afternoon(self) -> None:
         """Test time factor calculation for afternoon"""
         scheduler = SimpleScheduler()
 
@@ -294,7 +294,7 @@ class TestSimpleScheduler:
         factor = scheduler._calculate_time_factor(time_slot)
         assert factor == 0.8  # afternoon_energy_penalty
 
-    def test_calculate_time_factor_evening(self):
+    def test_calculate_time_factor_evening(self) -> None:
         """Test time factor calculation for evening"""
         scheduler = SimpleScheduler()
 
@@ -307,7 +307,7 @@ class TestSimpleScheduler:
         factor = scheduler._calculate_time_factor(time_slot)
         assert factor == 1.0  # neutral
 
-    def test_schedule_tasks(self):
+    def test_schedule_tasks(self) -> None:
         """Test task scheduling"""
         scheduler = SimpleScheduler()
 
@@ -351,7 +351,7 @@ class TestSimpleScheduler:
         )  # High priority should be scheduled first
         assert schedule[1]["task"].priority == "low"
 
-    def test_schedule_tasks_insufficient_slots(self):
+    def test_schedule_tasks_insufficient_slots(self) -> None:
         """Test task scheduling with insufficient time slots"""
         scheduler = SimpleScheduler()
 
@@ -398,7 +398,7 @@ class TestSimpleScheduler:
             schedule[0]["task"].priority == "high"
         )  # Highest priority should be scheduled
 
-    def test_optimize_schedule(self):
+    def test_optimize_schedule(self) -> None:
         """Test schedule optimization"""
         scheduler = SimpleScheduler()
 
@@ -436,7 +436,7 @@ class TestSimpleScheduler:
         assert len(optimized_schedule) == 1
         assert optimized_schedule[0]["task"].id == "task1"
 
-    def test_add_breaks(self):
+    def test_add_breaks(self) -> None:
         """Test adding breaks to schedule"""
         scheduler = SimpleScheduler()
 
@@ -497,7 +497,7 @@ class TestSimpleScheduler:
         assert schedule_with_breaks[1]["task"].id == "break"
         assert schedule_with_breaks[2]["task"].id == "task2"
 
-    def test_add_breaks_insufficient_time(self):
+    def test_add_breaks_insufficient_time(self) -> None:
         """Test adding breaks when there's insufficient time"""
         scheduler = SimpleScheduler()
 
@@ -559,7 +559,7 @@ class TestSimpleScheduler:
         assert schedule_with_breaks[1]["task"].id == "break"
         assert schedule_with_breaks[2]["task"].id == "task2"
 
-    def test_get_schedule_insights_empty(self):
+    def test_get_schedule_insights_empty(self) -> None:
         """Test getting insights from empty schedule"""
         scheduler = SimpleScheduler()
 
@@ -567,7 +567,7 @@ class TestSimpleScheduler:
 
         assert insights["message"] == "No tasks scheduled"
 
-    def test_get_schedule_insights_with_tasks(self):
+    def test_get_schedule_insights_with_tasks(self) -> None:
         """Test getting insights from schedule with tasks"""
         scheduler = SimpleScheduler()
 
@@ -627,14 +627,14 @@ class TestSimpleScheduler:
         assert insights["focus_type_distribution"]["meeting"] == 1
         assert insights["schedule_efficiency"] == 0.7  # (0.8 + 0.6) / 2
 
-    def test_calculate_schedule_efficiency_empty(self):
+    def test_calculate_schedule_efficiency_empty(self) -> None:
         """Test schedule efficiency calculation for empty schedule"""
         scheduler = SimpleScheduler()
 
         efficiency = scheduler._calculate_schedule_efficiency([])
         assert efficiency == 0.0
 
-    def test_calculate_schedule_efficiency_with_breaks(self):
+    def test_calculate_schedule_efficiency_with_breaks(self) -> None:
         """Test schedule efficiency calculation with breaks"""
         scheduler = SimpleScheduler()
 
@@ -688,12 +688,12 @@ class TestSimpleScheduler:
 class TestGlobalScheduler:
     """Test global scheduler instance"""
 
-    def test_global_scheduler_exists(self):
+    def test_global_scheduler_exists(self) -> None:
         """Test that global scheduler instance exists"""
         assert scheduler is not None
         assert isinstance(scheduler, SimpleScheduler)
 
-    def test_global_scheduler_config(self):
+    def test_global_scheduler_config(self) -> None:
         """Test that global scheduler has default config"""
         assert scheduler.config is not None
         assert isinstance(scheduler.config, SchedulerConfig)
@@ -703,7 +703,7 @@ class TestGlobalScheduler:
 class TestSchedulerIntegration:
     """Integration tests for scheduler functionality"""
 
-    def test_full_scheduling_workflow(self):
+    def test_full_scheduling_workflow(self) -> None:
         """Test complete scheduling workflow"""
         scheduler = SimpleScheduler()
 

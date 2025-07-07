@@ -9,7 +9,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_success(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_success(self, mock_getenv, mock_smtp) -> None:
         """Test successful password reset email sending"""
         # Mock environment variables
         mock_getenv.side_effect = lambda key, default=None: {
@@ -42,7 +42,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_no_auth(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_no_auth(self, mock_getenv, mock_smtp) -> None:
         """Test password reset email sending without authentication"""
         # Mock environment variables (no auth)
         mock_getenv.side_effect = lambda key, default=None: {
@@ -71,7 +71,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_custom_port(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_custom_port(self, mock_getenv, mock_smtp) -> None:
         """Test password reset email sending with custom port"""
         # Mock environment variables with custom port
         mock_getenv.side_effect = lambda key, default=None: {
@@ -97,7 +97,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_link_replacement(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_link_replacement(self, mock_getenv, mock_smtp) -> None:
         """Test that the reset link is properly replaced"""
         # Mock environment variables
         mock_getenv.side_effect = lambda key, default=None: {
@@ -132,7 +132,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_smtp_error(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_smtp_error(self, mock_getenv, mock_smtp) -> None:
         """Test handling of SMTP errors"""
         # Mock environment variables
         mock_getenv.side_effect = lambda key, default=None: {
@@ -155,7 +155,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_connection_error(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_connection_error(self, mock_getenv, mock_smtp) -> None:
         """Test handling of connection errors"""
         # Mock environment variables
         mock_getenv.side_effect = lambda key, default=None: {
@@ -178,7 +178,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_auth_error(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_auth_error(self, mock_getenv, mock_smtp) -> None:
         """Test handling of authentication errors"""
         # Mock environment variables with auth
         mock_getenv.side_effect = lambda key, default=None: {
@@ -203,7 +203,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_empty_credentials(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_empty_credentials(self, mock_getenv, mock_smtp) -> None:
         """Test with empty SMTP credentials"""
         # Mock environment variables with empty auth
         mock_getenv.side_effect = lambda key, default=None: {
@@ -230,7 +230,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_email_content(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_email_content(self, mock_getenv, mock_smtp) -> None:
         """Test that email content is properly formatted"""
         # Mock environment variables
         mock_getenv.side_effect = lambda key, default=None: {
@@ -264,7 +264,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_headers(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_headers(self, mock_getenv, mock_smtp) -> None:
         """Test that email headers are properly set"""
         # Mock environment variables
         mock_getenv.side_effect = lambda key, default=None: {
@@ -295,7 +295,7 @@ class TestSendPasswordResetEmail:
 
     @patch('services.email.smtplib.SMTP')
     @patch('services.email.os.getenv')
-    def test_send_password_reset_email_multiple_recipients(self, mock_getenv, mock_smtp):
+    def test_send_password_reset_email_multiple_recipients(self, mock_getenv, mock_smtp) -> None:
         """Test sending to multiple recipients"""
         # Mock environment variables
         mock_getenv.side_effect = lambda key, default=None: {

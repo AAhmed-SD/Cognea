@@ -65,7 +65,7 @@ class TestRateLimitBackoff:
         """Test safe_call with 429 back-off."""
         with patch.object(redis_client, "check_rate_limit", return_value=True):
             with patch("asyncio.sleep") as mock_sleep:
-                with pytest.raises(Exception, match="Max retries exceeded"):
+                with pytest.raises(Exception, match="Max retries .* exceeded"):
                     await redis_client.safe_call("test", mock_429_func, max_retries=2)
 
                 # Should have slept with exponential back-off (3 retries: 0, 1, 2)
@@ -114,14 +114,14 @@ class TestRateLimitBackoff:
         """Test that back-off is capped at 30 seconds."""
         with patch.object(redis_client, "check_rate_limit", return_value=True):
             with patch("asyncio.sleep") as mock_sleep:
-                with pytest.raises(Exception, match="Max retries exceeded"):
+                with pytest.raises(Exception, match="Max retries .* exceeded"):
                     await redis_client.safe_call("test", mock_429_func, max_retries=10)
 
                 # Check that back-off is capped at 30 seconds
                 for call in mock_sleep.call_args_list:
                     assert call[0][0] <= 30.0
 
-    def test_rate_limit_key_generation(self, redis_client):
+    def test_rate_limit_key_generation(self, redis_client) -> None:
         """Test that rate limit keys are generated correctly."""
         with patch.object(redis_client, "check_rate_limit") as mock_check:
             # This would be called in safe_call

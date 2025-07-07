@@ -17,25 +17,25 @@ from models.subscription import (
 )
 
 
-def test_subscription_status_enum():
+def test_subscription_status_enum() -> None:
     assert SubscriptionStatus.ACTIVE.value == "active"
     assert SubscriptionStatus.CANCELED.value == "canceled"
     assert SubscriptionStatus.TRIALING.value == "trialing"
 
 
-def test_payment_status_enum():
+def test_payment_status_enum() -> None:
     assert PaymentStatus.SUCCEEDED.value == "succeeded"
     assert PaymentStatus.FAILED.value == "failed"
     assert PaymentStatus.PENDING.value == "pending"
 
 
-def test_plan_type_enum():
+def test_plan_type_enum() -> None:
     assert PlanType.BASIC.value == "basic"
     assert PlanType.PRO.value == "pro"
     assert PlanType.ENTERPRISE.value == "enterprise"
 
 
-def test_subscription_model():
+def test_subscription_model() -> None:
     now = datetime.now(UTC)
     sub = Subscription(
         id="sub_1",
@@ -54,7 +54,7 @@ def test_subscription_model():
     assert sub.cancel_at_period_end is False
 
 
-def test_subscription_model_defaults():
+def test_subscription_model_defaults() -> None:
     now = datetime.now(UTC)
     sub = Subscription(
         id="sub_1",
@@ -71,7 +71,7 @@ def test_subscription_model_defaults():
     assert sub.updated_at is not None
 
 
-def test_payment_model():
+def test_payment_model() -> None:
     now = datetime.now(UTC)
     payment = Payment(
         id="pay_1",
@@ -89,7 +89,7 @@ def test_payment_model():
     assert payment.status == PaymentStatus.SUCCEEDED
 
 
-def test_payment_model_defaults():
+def test_payment_model_defaults() -> None:
     now = datetime.now(UTC)
     payment = Payment(
         id="pay_1",
@@ -103,7 +103,7 @@ def test_payment_model_defaults():
     assert payment.created_at is not None
 
 
-def test_payment_event_model():
+def test_payment_event_model() -> None:
     now = datetime.now(UTC)
     event = PaymentEvent(
         id="evt_1",
@@ -116,7 +116,7 @@ def test_payment_event_model():
     assert event.event_data["amount"] == 29.99
 
 
-def test_billing_history_model():
+def test_billing_history_model() -> None:
     history = BillingHistory(
         invoices=[{"id": "inv_1", "amount": 29.99}], total_count=1, has_more=False
     )
@@ -125,7 +125,7 @@ def test_billing_history_model():
     assert history.has_more is False
 
 
-def test_subscription_create_model():
+def test_subscription_create_model() -> None:
     create = SubscriptionCreate(
         price_id="price_1",
         success_url="https://success.com",
@@ -135,7 +135,7 @@ def test_subscription_create_model():
     assert create.success_url == "https://success.com"
 
 
-def test_subscription_update_model():
+def test_subscription_update_model() -> None:
     update = SubscriptionUpdate(
         cancel_at_period_end=True, plan_type=PlanType.ENTERPRISE
     )
@@ -143,13 +143,13 @@ def test_subscription_update_model():
     assert update.plan_type == PlanType.ENTERPRISE
 
 
-def test_subscription_update_model_partial():
+def test_subscription_update_model_partial() -> None:
     update = SubscriptionUpdate(cancel_at_period_end=True)
     assert update.cancel_at_period_end is True
     assert update.plan_type is None
 
 
-def test_pricing_plan_model():
+def test_pricing_plan_model() -> None:
     plan = PricingPlan(
         id="plan_1",
         name="Pro Plan",
@@ -167,7 +167,7 @@ def test_pricing_plan_model():
     assert plan.is_popular is True
 
 
-def test_pricing_plan_model_defaults():
+def test_pricing_plan_model_defaults() -> None:
     plan = PricingPlan(
         id="plan_1",
         name="Basic Plan",
@@ -181,7 +181,7 @@ def test_pricing_plan_model_defaults():
     assert plan.is_enterprise is False
 
 
-def test_model_config_from_attributes():
+def test_model_config_from_attributes() -> None:
     # Test that models can be created from ORM objects
     class MockORM:
         def __init__(self):
@@ -203,7 +203,7 @@ def test_model_config_from_attributes():
     assert sub.status == SubscriptionStatus.ACTIVE
 
 
-def test_enum_validation():
+def test_enum_validation() -> None:
     # Test that invalid enum values raise validation errors
     with pytest.raises(ValidationError):
         Subscription(
@@ -218,7 +218,7 @@ def test_enum_validation():
         )
 
 
-def test_required_fields():
+def test_required_fields() -> None:
     # Test that required fields are enforced
     with pytest.raises(ValidationError):
         Subscription(
@@ -228,7 +228,7 @@ def test_required_fields():
         )
 
 
-def test_field_types():
+def test_field_types() -> None:
     # Test field type validation
     with pytest.raises(ValidationError):
         Payment(

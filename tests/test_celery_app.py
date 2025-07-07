@@ -9,27 +9,27 @@ from services.celery_app import celery_app, setup_loggers
 class TestCeleryApp:
     """Test the Celery app configuration"""
 
-    def test_celery_app_initialization(self):
+    def test_celery_app_initialization(self) -> None:
         """Test that Celery app is properly initialized"""
         assert celery_app is not None
         assert celery_app.main == "personal_agent"
 
-    def test_celery_app_broker_configuration(self):
+    def test_celery_app_broker_configuration(self) -> None:
         """Test Celery broker configuration"""
         # Test that the app has the expected configuration
         assert celery_app.conf.broker_url == "redis://localhost:6379/0"
 
-    def test_celery_app_result_backend(self):
+    def test_celery_app_result_backend(self) -> None:
         """Test Celery result backend configuration"""
         assert celery_app.conf.result_backend == "redis://localhost:6379/0"
 
-    def test_celery_app_include_tasks(self):
+    def test_celery_app_include_tasks(self) -> None:
         """Test that tasks are included in Celery app"""
         # The include is set during app creation, not as an attribute
         # We can test that the app was created with the right parameters
         assert celery_app.main == "personal_agent"
 
-    def test_celery_app_configuration(self):
+    def test_celery_app_configuration(self) -> None:
         """Test Celery app configuration settings"""
         config = celery_app.conf
 
@@ -48,7 +48,7 @@ class TestCeleryApp:
         assert config.task_reject_on_worker_lost is True
         assert config.task_default_queue == "default"
 
-    def test_celery_app_task_queues(self):
+    def test_celery_app_task_queues(self) -> None:
         """Test Celery task queues configuration"""
         queues = celery_app.conf.task_queues
 
@@ -72,7 +72,7 @@ class TestCeleryApp:
         assert queues["email"]["exchange"] == "email"
         assert queues["email"]["routing_key"] == "email"
 
-    def test_celery_app_task_routes(self):
+    def test_celery_app_task_routes(self) -> None:
         """Test Celery task routing configuration"""
         routes = celery_app.conf.task_routes
 
@@ -88,7 +88,7 @@ class TestCeleryApp:
         assert "services.tasks.email.*" in routes
         assert routes["services.tasks.email.*"]["queue"] == "email"
 
-    def test_celery_app_beat_schedule(self):
+    def test_celery_app_beat_schedule(self) -> None:
         """Test Celery beat schedule configuration"""
         schedule = celery_app.conf.beat_schedule
 
@@ -111,7 +111,7 @@ class TestSetupLoggers:
     @patch('services.celery_app.logging.FileHandler')
     @patch('services.celery_app.logging.StreamHandler')
     @patch('services.celery_app.logging.Formatter')
-    def test_setup_loggers_success(self, mock_formatter, mock_stream_handler, mock_file_handler):
+    def test_setup_loggers_success(self, mock_formatter, mock_stream_handler, mock_file_handler) -> None:
         """Test successful logger setup"""
         # Mock the handlers
         mock_file_handler_instance = MagicMock()
@@ -147,7 +147,7 @@ class TestSetupLoggers:
     @patch('services.celery_app.logging.FileHandler')
     @patch('services.celery_app.logging.StreamHandler')
     @patch('services.celery_app.logging.Formatter')
-    def test_setup_loggers_with_existing_handlers(self, mock_formatter, mock_stream_handler, mock_file_handler):
+    def test_setup_loggers_with_existing_handlers(self, mock_formatter, mock_stream_handler, mock_file_handler) -> None:
         """Test logger setup with existing handlers"""
         # Mock the handlers
         mock_file_handler_instance = MagicMock()
@@ -172,7 +172,7 @@ class TestSetupLoggers:
     @patch('services.celery_app.logging.FileHandler')
     @patch('services.celery_app.logging.StreamHandler')
     @patch('services.celery_app.logging.Formatter')
-    def test_setup_loggers_file_handler_error(self, mock_formatter, mock_stream_handler, mock_file_handler):
+    def test_setup_loggers_file_handler_error(self, mock_formatter, mock_stream_handler, mock_file_handler) -> None:
         """Test logger setup when file handler creation fails"""
         # Mock file handler to raise an exception
         mock_file_handler.side_effect = OSError("Permission denied")
@@ -197,7 +197,7 @@ class TestSetupLoggers:
     @patch('services.celery_app.logging.FileHandler')
     @patch('services.celery_app.logging.StreamHandler')
     @patch('services.celery_app.logging.Formatter')
-    def test_setup_loggers_stream_handler_error(self, mock_formatter, mock_stream_handler, mock_file_handler):
+    def test_setup_loggers_stream_handler_error(self, mock_formatter, mock_stream_handler, mock_file_handler) -> None:
         """Test logger setup when stream handler creation fails"""
         # Mock stream handler to raise an exception
         mock_stream_handler.side_effect = OSError("Stream error")
@@ -223,7 +223,7 @@ class TestSetupLoggers:
 class TestCeleryAppIntegration:
     """Test Celery app integration scenarios"""
 
-    def test_celery_app_importable(self):
+    def test_celery_app_importable(self) -> None:
         """Test that Celery app can be imported and used"""
         from services.celery_app import celery_app
 
@@ -231,12 +231,12 @@ class TestCeleryAppIntegration:
         assert hasattr(celery_app, 'conf')
         assert hasattr(celery_app, 'main')
 
-    def test_celery_app_task_registration(self):
+    def test_celery_app_task_registration(self) -> None:
         """Test that tasks can be registered with the app"""
         # This is a basic test - in a real scenario, tasks would be imported
         assert celery_app.main == "personal_agent"
 
-    def test_celery_app_configuration_consistency(self):
+    def test_celery_app_configuration_consistency(self) -> None:
         """Test that Celery configuration is consistent"""
         config = celery_app.conf
 
@@ -253,7 +253,7 @@ class TestCeleryAppIntegration:
             assert "queue" in route_config
             assert route_config["queue"] in config.task_queues
 
-    def test_celery_app_beat_schedule_consistency(self):
+    def test_celery_app_beat_schedule_consistency(self) -> None:
         """Test that beat schedule configuration is consistent"""
         schedule = celery_app.conf.beat_schedule
 
@@ -267,11 +267,11 @@ class TestCeleryAppIntegration:
 class TestLogsDirectory:
     """Test logs directory creation"""
 
-    def test_logs_directory_exists(self):
+    def test_logs_directory_exists(self) -> None:
         """Test that logs directory exists after import"""
         assert os.path.exists("logs") or os.path.isdir("logs")
 
-    def test_logs_directory_creation(self):
+    def test_logs_directory_creation(self) -> None:
         """Test that logs directory can be created"""
         # The directory should already exist from the import
         # We can test that it's accessible

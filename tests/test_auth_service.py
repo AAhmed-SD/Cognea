@@ -14,7 +14,7 @@ def auth_service():
 
 @patch("services.auth_service.get_supabase_client")
 @patch("services.auth_service.email_service")
-def test_register_user_success(mock_email_service, mock_supabase_client, auth_service):
+def test_register_user_success(mock_email_service, mock_supabase_client, auth_service) -> None:
     user_data = UserCreate(
         email="test@example.com",
         password="Abcdefg1",
@@ -58,7 +58,7 @@ def test_register_user_success(mock_email_service, mock_supabase_client, auth_se
 @patch("services.auth_service.email_service")
 def test_register_user_existing_email(
     mock_email_service, mock_supabase_client, auth_service
-):
+) -> None:
     user_data = UserCreate(
         email="test@example.com",
         password="Abcdefg1",
@@ -83,7 +83,7 @@ def test_register_user_existing_email(
 
 
 @patch("services.auth_service.get_supabase_client")
-def test_hash_and_verify_password(mock_supabase_client, auth_service):
+def test_hash_and_verify_password(mock_supabase_client, auth_service) -> None:
     pw = "Abcdefg1"
     hashed = auth_service._hash_password(pw)
     assert auth_service._verify_password(pw, hashed)
@@ -91,7 +91,7 @@ def test_hash_and_verify_password(mock_supabase_client, auth_service):
 
 
 @patch("services.auth_service.get_supabase_client")
-def test_create_and_verify_tokens(mock_supabase_client, auth_service):
+def test_create_and_verify_tokens(mock_supabase_client, auth_service) -> None:
     tokens = auth_service._create_tokens("u1", UserRole.ADMIN)
     assert "access_token" in tokens and "refresh_token" in tokens
     payload = auth_service._verify_token(tokens["access_token"], token_type="access")

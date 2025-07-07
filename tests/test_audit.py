@@ -14,7 +14,7 @@ from services.audit import (
 class TestAuditAction:
     """Test AuditAction enum"""
 
-    def test_audit_action_values(self):
+    def test_audit_action_values(self) -> None:
         """Test that all AuditAction values are correct"""
         assert AuditAction.CREATE.value == "create"
         assert AuditAction.READ.value == "read"
@@ -24,7 +24,7 @@ class TestAuditAction:
         assert AuditAction.LOGOUT.value == "logout"
         assert AuditAction.SIGNUP.value == "signup"
 
-    def test_audit_action_enumeration(self):
+    def test_audit_action_enumeration(self) -> None:
         """Test that all audit actions are properly enumerated"""
         actions = list(AuditAction)
         assert len(actions) == 7
@@ -42,7 +42,7 @@ class TestLogAuditEvent:
 
     @patch("services.audit.get_supabase_client")
     @patch("services.audit.logger")
-    def test_log_audit_event_success(self, mock_logger, mock_get_supabase):
+    def test_log_audit_event_success(self, mock_logger, mock_get_supabase) -> None:
         """Test successful audit event logging"""
         # Mock Supabase client
         mock_supabase = MagicMock()
@@ -102,7 +102,7 @@ class TestLogAuditEvent:
 
     @patch("services.audit.get_supabase_client")
     @patch("services.audit.logger")
-    def test_log_audit_event_minimal_data(self, mock_logger, mock_get_supabase):
+    def test_log_audit_event_minimal_data(self, mock_logger, mock_get_supabase) -> None:
         """Test audit event logging with minimal data"""
         # Mock Supabase client
         mock_supabase = MagicMock()
@@ -150,7 +150,7 @@ class TestLogAuditEvent:
 
     @patch("services.audit.get_supabase_client")
     @patch("services.audit.logger")
-    def test_log_audit_event_supabase_error(self, mock_logger, mock_get_supabase):
+    def test_log_audit_event_supabase_error(self, mock_logger, mock_get_supabase) -> None:
         """Test audit event logging when Supabase fails"""
         # Mock Supabase client to raise an exception
         mock_supabase = MagicMock()
@@ -175,7 +175,7 @@ class TestLogAuditEvent:
 
     @patch("services.audit.get_supabase_client")
     @patch("services.audit.logger")
-    def test_log_audit_event_all_actions(self, mock_logger, mock_get_supabase):
+    def test_log_audit_event_all_actions(self, mock_logger, mock_get_supabase) -> None:
         """Test audit event logging for all action types"""
         # Mock Supabase client
         mock_supabase = MagicMock()
@@ -224,7 +224,7 @@ class TestLogAuditEvent:
 class TestExtractRequestContext:
     """Test extract_request_context function"""
 
-    def test_extract_request_context_with_client(self):
+    def test_extract_request_context_with_client(self) -> None:
         """Test extracting context from request with client"""
         # Mock request
         mock_request = MagicMock(spec=Request)
@@ -237,7 +237,7 @@ class TestExtractRequestContext:
         assert context["user_agent"] == "Mozilla/5.0 (Test Browser)"
         mock_request.headers.get.assert_called_once_with("user-agent")
 
-    def test_extract_request_context_without_client(self):
+    def test_extract_request_context_without_client(self) -> None:
         """Test extracting context from request without client"""
         # Mock request without client
         mock_request = MagicMock(spec=Request)
@@ -249,7 +249,7 @@ class TestExtractRequestContext:
         assert context["ip_address"] is None
         assert context["user_agent"] == "Mozilla/5.0 (Test Browser)"
 
-    def test_extract_request_context_without_user_agent(self):
+    def test_extract_request_context_without_user_agent(self) -> None:
         """Test extracting context from request without user agent"""
         # Mock request without user agent
         mock_request = MagicMock(spec=Request)
@@ -261,7 +261,7 @@ class TestExtractRequestContext:
         assert context["ip_address"] == "192.168.1.100"
         assert context["user_agent"] is None
 
-    def test_extract_request_context_empty_request(self):
+    def test_extract_request_context_empty_request(self) -> None:
         """Test extracting context from empty request"""
         # Mock request with no client and no user agent
         mock_request = MagicMock(spec=Request)
@@ -278,7 +278,7 @@ class TestLogAuditFromRequest:
     """Test log_audit_from_request function"""
 
     @patch("services.audit.log_audit_event")
-    def test_log_audit_from_request_success(self, mock_log_audit_event):
+    def test_log_audit_from_request_success(self, mock_log_audit_event) -> None:
         """Test successful audit logging from request"""
         # Mock request
         mock_request = MagicMock(spec=Request)
@@ -314,7 +314,7 @@ class TestLogAuditFromRequest:
         )
 
     @patch("services.audit.log_audit_event")
-    def test_log_audit_from_request_minimal_data(self, mock_log_audit_event):
+    def test_log_audit_from_request_minimal_data(self, mock_log_audit_event) -> None:
         """Test audit logging from request with minimal data"""
         # Mock request
         mock_request = MagicMock(spec=Request)
@@ -346,7 +346,7 @@ class TestLogAuditFromRequest:
         )
 
     @patch("services.audit.log_audit_event")
-    def test_log_audit_from_request_with_db(self, mock_log_audit_event):
+    def test_log_audit_from_request_with_db(self, mock_log_audit_event) -> None:
         """Test audit logging from request with db parameter"""
         # Mock request
         mock_request = MagicMock(spec=Request)
@@ -387,7 +387,7 @@ class TestAuditIntegration:
 
     @patch("services.audit.get_supabase_client")
     @patch("services.audit.logger")
-    def test_full_audit_flow(self, mock_logger, mock_get_supabase):
+    def test_full_audit_flow(self, mock_logger, mock_get_supabase) -> None:
         """Test complete audit flow from request to database"""
         # Mock Supabase client
         mock_supabase = MagicMock()
@@ -441,7 +441,7 @@ class TestAuditIntegration:
                 f"Audit log: {action} {resource} None by {user_id}"
             )
 
-    def test_audit_action_string_representation(self):
+    def test_audit_action_string_representation(self) -> None:
         """Test that audit actions have proper string representation"""
         actions = [
             (AuditAction.CREATE, "create"),
