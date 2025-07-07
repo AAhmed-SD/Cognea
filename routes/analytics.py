@@ -255,6 +255,7 @@ async def productivity_patterns(
 
 # Helper functions
 def calculate_productivity_score(tasks, schedule_blocks, goals):
+    pass
     """Calculate overall productivity score."""
     if not tasks:
         return 0
@@ -277,6 +278,7 @@ def calculate_productivity_score(tasks, schedule_blocks, goals):
 
 
 def calculate_streak(tasks):
+    pass
     """Calculate consecutive days with completed tasks."""
     if not tasks:
         return 0
@@ -308,6 +310,7 @@ def calculate_streak(tasks):
 
 
 def generate_weekly_summary(completed_tasks, missed_tasks, streak):
+    pass
     """Generate AI-like weekly summary."""
     if len(completed_tasks) > len(missed_tasks):
         return f"Great week! You completed {len(completed_tasks)} tasks and maintained a {streak}-day streak."
@@ -318,6 +321,7 @@ def generate_weekly_summary(completed_tasks, missed_tasks, streak):
 
 
 def analyze_productivity_patterns(schedule_blocks):
+    pass
     """Analyze productivity patterns from schedule blocks."""
     if not schedule_blocks:
         return {"best_time": "morning", "best_day": "Monday", "focus_blocks": []}

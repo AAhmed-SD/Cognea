@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 """
 Tests for Notion webhook endpoints.
 """
@@ -16,7 +17,7 @@ client = TestClient(app)
 
 
 @pytest.fixture
-def mock_supabase():
+def mock_supabase() -> None:
     """Mock Supabase client."""
     with patch("routes.notion.get_supabase_client") as mock:
         mock_client = MagicMock()
@@ -25,7 +26,7 @@ def mock_supabase():
 
 
 @pytest.fixture
-def mock_notion_client():
+def mock_notion_client() -> None:
     """Mock Notion client."""
     with patch("routes.notion.NotionClient") as mock:
         mock_client = AsyncMock()
@@ -34,7 +35,7 @@ def mock_notion_client():
 
 
 @pytest.fixture
-def mock_ai_service():
+def mock_ai_service() -> None:
     """Mock AI service."""
     with patch("routes.notion.get_openai_service") as mock:
         mock_service = AsyncMock()
@@ -43,7 +44,7 @@ def mock_ai_service():
 
 
 @pytest.fixture
-def mock_notion_queue():
+def mock_notion_queue() -> None:
     """Mock Notion queue."""
     with patch("routes.notion.get_notion_queue") as mock:
         mock_queue = AsyncMock()
@@ -52,12 +53,12 @@ def mock_notion_queue():
 
 
 @pytest.fixture
-def notion_webhook_secret():
+def notion_webhook_secret() -> None:
     return "test_webhook_secret_123"
 
 
 @pytest.fixture
-def notion_webhook_payload():
+def notion_webhook_payload() -> None:
     return {
         "type": "page.updated",
         "workspace_id": "test_workspace_123",
@@ -66,7 +67,7 @@ def notion_webhook_payload():
 
 
 @pytest.fixture
-def notion_webhook_signature(notion_webhook_payload, notion_webhook_secret):
+def notion_webhook_signature(notion_webhook_payload, notion_webhook_secret) -> None:
     """Generate a valid webhook signature for testing."""
     body = json.dumps(notion_webhook_payload).encode("utf-8")
     signature = hmac.new(
@@ -87,7 +88,7 @@ class TestNotionWebhooks:
         notion_webhook_payload,
         notion_webhook_signature,
         notion_webhook_secret,
-    ):
+    ) -> None:
         """Test successful webhook verification and processing."""
         # Mock Supabase responses
         mock_supabase_instance = MagicMock()
@@ -132,7 +133,7 @@ class TestNotionWebhooks:
     @patch("routes.notion.get_supabase_client")
     def test_webhook_invalid_signature(
         self, mock_supabase, notion_webhook_payload, notion_webhook_secret
-    ):
+    ) -> None:
         """Test webhook rejection with invalid signature."""
         with patch.dict("os.environ", {"NOTION_WEBHOOK_SECRET": notion_webhook_secret}):
             response = client.post(
@@ -152,7 +153,7 @@ class TestNotionWebhooks:
     @patch("routes.notion.get_supabase_client")
     def test_webhook_no_signature_development(
         self, mock_supabase, notion_webhook_payload
-    ):
+    ) -> None:
         """Test webhook processing without signature in development."""
         # Mock Supabase responses
         mock_supabase_instance = MagicMock()
@@ -189,7 +190,7 @@ class TestNotionWebhooks:
         notion_webhook_payload,
         notion_webhook_signature,
         notion_webhook_secret,
-    ):
+    ) -> None:
         """Test echo prevention by checking last_synced_ts."""
         # Mock Supabase responses
         mock_supabase_instance = MagicMock()
@@ -236,7 +237,7 @@ class TestNotionWebhooks:
         notion_webhook_payload,
         notion_webhook_signature,
         notion_webhook_secret,
-    ):
+    ) -> None:
         """Test webhook handling when no user is found for workspace."""
         # Mock Supabase responses - no user found
         mock_supabase_instance = MagicMock()
@@ -265,7 +266,7 @@ class TestNotionWebhooks:
         assert data["status"] == "success"
         assert "no user found" in data["message"]
 
-    def test_webhook_invalid_json(self, notion_webhook_secret):
+    def test_webhook_invalid_json(self, notion_webhook_secret) -> None:
         """Test webhook rejection with invalid JSON."""
         with patch.dict("os.environ", {"NOTION_WEBHOOK_SECRET": notion_webhook_secret}):
             response = client.post(
@@ -282,7 +283,7 @@ class TestNotionWebhooks:
         assert response.json()["status"] == "error"
         assert "Invalid webhook signature" in response.json()["message"]
 
-    def test_webhook_missing_workspace_id(self, notion_webhook_secret):
+    def test_webhook_missing_workspace_id(self, notion_webhook_secret) -> None:
         """Test webhook rejection with missing workspace_id."""
         invalid_payload = {
             "type": "page.updated",
@@ -305,7 +306,7 @@ class TestNotionWebhooks:
         assert response.json()["status"] == "error"
         assert "Invalid webhook signature" in response.json()["message"]
 
-    def test_webhook_verification_endpoint(self):
+    def test_webhook_verification_endpoint(self) -> None:
         """Test webhook verification endpoint."""
         challenge = "test_challenge_123"
         response = client.get(
@@ -320,7 +321,7 @@ class TestNotionWebhooks:
     @patch("routes.notion.queue_notion_sync")
     def test_webhook_database_updated(
         self, mock_queue_sync, mock_supabase, notion_webhook_secret
-    ):
+    ) -> None:
         """Test webhook processing for database.updated events."""
         database_payload = {
             "type": "database.updated",
@@ -380,7 +381,7 @@ class TestNotionWebhooks:
     @patch("routes.notion.queue_notion_sync")
     def test_webhook_page_created(
         self, mock_queue_sync, mock_supabase, notion_webhook_secret
-    ):
+    ) -> None:
         """Test webhook processing for page.created events."""
         page_created_payload = {
             "type": "page.created",
@@ -444,7 +445,7 @@ class TestNotionWebhooks:
         notion_webhook_payload,
         notion_webhook_signature,
         notion_webhook_secret,
-    ):
+    ) -> None:
         """Test webhook error handling returns 200 to prevent retries."""
         # Mock Supabase to raise an exception
         mock_supabase_instance = MagicMock()
@@ -474,7 +475,7 @@ class TestNotionAuthentication:
     @pytest.mark.skip(
         reason="FastAPI dependency injection issue - OAuth2PasswordBearer expects valid JWT and user in DB"
     )
-    def test_authenticate_notion_success(self, mock_notion_client, mock_supabase):
+    def test_authenticate_notion_success(self, mock_notion_client, mock_supabase) -> None:
         """Test successful Notion authentication."""
         # Mock successful API test
         mock_notion_client.return_value.search.return_value = []
@@ -497,7 +498,7 @@ class TestNotionAuthentication:
     @pytest.mark.skip(
         reason="Requires proper JWT authentication setup - FastAPI dependency injection issue"
     )
-    def test_authenticate_notion_invalid_key(self, mock_notion_client):
+    def test_authenticate_notion_invalid_key(self, mock_notion_client) -> None:
         """Test Notion authentication with invalid API key."""
         # Mock API test failure
         mock_notion_client.return_value.search.side_effect = Exception(
@@ -520,7 +521,7 @@ class TestNotionPages:
     @pytest.mark.skip(
         reason="Requires proper JWT authentication setup - FastAPI dependency injection issue"
     )
-    def test_get_notion_pages(self, mock_notion_client, mock_supabase):
+    def test_get_notion_pages(self, mock_notion_client, mock_supabase) -> None:
         """Test getting user's Notion pages."""
         # Mock user settings
         mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
@@ -561,7 +562,7 @@ class TestNotionPages:
     @pytest.mark.skip(
         reason="Requires proper JWT authentication setup - FastAPI dependency injection issue"
     )
-    def test_get_notion_pages_no_api_key(self, mock_supabase):
+    def test_get_notion_pages_no_api_key(self, mock_supabase) -> None:
         """Test getting pages when user has no API key."""
         # Mock empty user settings
         mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = (

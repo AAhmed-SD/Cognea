@@ -8,11 +8,13 @@ from openai_integration import generate_text
 
 # Helper to return a coroutine that yields the response
 async def return_response(resp):
+    pass
     return resp
 
 
 @pytest.mark.asyncio
 async def test_generate_text_success():
+    pass
     mock_response = {
         "choices": [{"message": {"content": "The weather is sunny today."}}],
         "usage": {"total_tokens": 15},
@@ -31,6 +33,7 @@ async def test_generate_text_success():
 
 @pytest.mark.asyncio
 async def test_generate_text_with_custom_parameters():
+    pass
     mock_response = {
         "choices": [{"message": {"content": "Custom response."}}],
         "usage": {"total_tokens": 10},
@@ -55,6 +58,7 @@ async def test_generate_text_with_custom_parameters():
 
 @pytest.mark.asyncio
 async def test_generate_text_missing_api_key():
+    pass
     with patch.dict(os.environ, {}, clear=True):
         with pytest.raises(ValueError, match="OpenAI API key is required"):
             await generate_text("Test prompt")
@@ -62,7 +66,9 @@ async def test_generate_text_missing_api_key():
 
 @pytest.mark.asyncio
 async def test_generate_text_queue_error():
+    pass
     async def raise_error(*a, **k):
+    pass
         raise Exception("Queue error")
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test_key"}):
@@ -76,6 +82,7 @@ async def test_generate_text_queue_error():
 
 @pytest.mark.asyncio
 async def test_generate_text_invalid_response_format():
+    pass
     mock_response = {"invalid": "response"}
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test_key"}):
         with patch("openai_integration.get_openai_queue") as mock_get_queue:
@@ -90,6 +97,7 @@ async def test_generate_text_invalid_response_format():
 
 @pytest.mark.asyncio
 async def test_generate_text_empty_choices():
+    pass
     mock_response = {"choices": [], "usage": {"total_tokens": 0}}
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test_key"}):
         with patch("openai_integration.get_openai_queue") as mock_get_queue:
@@ -104,6 +112,7 @@ async def test_generate_text_empty_choices():
 
 @pytest.mark.asyncio
 async def test_generate_text_default_parameters():
+    pass
     mock_response = {
         "choices": [{"message": {"content": "Default response."}}],
         "usage": {"total_tokens": 12},
@@ -122,6 +131,7 @@ async def test_generate_text_default_parameters():
 
 @pytest.mark.asyncio
 async def test_generate_text_with_stop_sequences():
+    pass
     mock_response = {
         "choices": [{"message": {"content": "Response with stop."}}],
         "usage": {"total_tokens": 8},
@@ -140,6 +150,7 @@ async def test_generate_text_with_stop_sequences():
 
 @pytest.mark.asyncio
 async def test_generate_text_system_message_included():
+    pass
     mock_response = {
         "choices": [{"message": {"content": "System response."}}],
         "usage": {"total_tokens": 14},

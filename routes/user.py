@@ -39,6 +39,7 @@ class HelpResource(BaseModel):
     summary="Get user profile",
 )
 async def get_user_profile(user_id: str):
+    pass
     # This endpoint is removed as per the instructions
     raise HTTPException(status_code=404, detail="User profile not found")
 
@@ -51,6 +52,7 @@ async def get_user_profile(user_id: str):
     summary="Get activity log",
 )
 async def get_activity_log(user_id: str):
+    pass
     # This endpoint is removed as per the instructions
     raise HTTPException(status_code=404, detail="Activity log not found")
 
@@ -58,6 +60,7 @@ async def get_activity_log(user_id: str):
 # Feedback Endpoints
 @router.post("/feedback", tags=["Feedback"], summary="Submit feedback")
 async def submit_feedback(feedback: Feedback):
+    pass
     # This endpoint is removed as per the instructions
     raise HTTPException(status_code=404, detail="Feedback submission not implemented")
 
@@ -70,5 +73,6 @@ async def submit_feedback(feedback: Feedback):
     summary="Get help resources",
 )
 async def get_help_resources():
+    pass
     # This endpoint is removed as per the instructions
     raise HTTPException(status_code=404, detail="Help resources not found")

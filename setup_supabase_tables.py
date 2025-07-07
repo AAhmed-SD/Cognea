@@ -5,7 +5,7 @@ Setup Supabase tables for the Personal Agent application.
 from services.supabase import supabase
 
 
-def create_audit_logs_table():
+def create_audit_logs_table() -> None:
     """Create the audit_logs table in Supabase."""
     try:
         sql = """
@@ -44,7 +44,7 @@ def create_audit_logs_table():
             return False
 
 
-def create_diary_entries_table():
+def create_diary_entries_table() -> None:
     """Create the diary_entries table in Supabase."""
     try:
         # SQL to create the diary_entries table
@@ -84,7 +84,7 @@ def create_diary_entries_table():
             return False
 
 
-def create_users_table():
+def create_users_table() -> None:
     """Create the users table in Supabase."""
     try:
         sql = """
@@ -108,7 +108,7 @@ def create_users_table():
         return False
 
 
-def setup_row_level_security():
+def setup_row_level_security() -> None:
     """Setup Row Level Security (RLS) for data protection."""
     try:
         sql = """
@@ -138,7 +138,7 @@ def setup_row_level_security():
         return False
 
 
-def main():
+def main() -> None:
     """Main setup function."""
     print("🚀 Setting up Supabase tables...")
     print("=" * 40)

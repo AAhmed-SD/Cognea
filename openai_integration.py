@@ -16,6 +16,7 @@ logger.info("OpenAI integration initialized successfully")
 async def generate_text(
     prompt, model="gpt-3.5-turbo", max_tokens=500, temperature=0.7, stop=None
 ):
+    pass
     """
     Generate text using OpenAI's GPT model, using the rate-limited queue.
 
@@ -72,5 +73,6 @@ if __name__ == "__main__":
 
 # Placeholder for OpenAI API integration logic
 # def generate_text(prompt):
+    pass
 #     # Implement the function to call OpenAI API
 #     pass

@@ -330,6 +330,7 @@ async def create_notification(notification: dict[str, Any]) -> dict[str, Any]:
 
 # @app.delete("/api/notifications/{notification_id}")
 # async def delete_notification(notification_id: int):
+    pass
 #     global notifications
 #     notifications = [notification for notification in notifications if notification['id'] != notification_id]
 #     return {"message": "Notification deleted"}
@@ -504,6 +505,7 @@ async def get_stream() -> StreamingResponse:
 
 # @app.post("/generate-flashcards", tags=["AI"], summary="Generate flashcards from notes", description="Turn raw notes or textbook content into flashcards.")
 # async def generate_flashcards(notes: str, topic_tags: Optional[List[str]] = None):
+    pass
 #     try:
 #         flashcards = []
 #         for note in notes.split("\n"):

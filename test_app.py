@@ -5,19 +5,19 @@ from main import create_app
 
 
 @pytest.fixture(scope="module")
-def client():
+def client() -> None:
     app = create_app()
     with TestClient(app) as c:
         yield c
 
 
-def test_root(client):
+def test_root(client) -> None:
     response = client.get("/")
     assert response.status_code == 200
     assert "Welcome" in response.json().get("message", "")
 
 
-def test_signup_and_login(client):
+def test_signup_and_login(client) -> None:
     # Test with a more realistic email format
     signup_data = {
         "email": "test.user@example.com",
@@ -45,7 +45,7 @@ def test_signup_and_login(client):
         assert login_resp.json()["access_token"]
 
 
-def test_plan_day(client):
+def test_plan_day(client) -> None:
     # Sign up and get token
     signup_data = {
         "email": "planuser@example.com",
@@ -73,7 +73,7 @@ def test_plan_day(client):
     assert "plan_id" in resp.json() or "plan" in resp.json()
 
 
-def test_generate_flashcards_and_review(client):
+def test_generate_flashcards_and_review(client) -> None:
     # Sign up and get token
     signup_data = {
         "email": "flashuser@example.com",
@@ -106,7 +106,7 @@ def test_generate_flashcards_and_review(client):
     assert review_resp.status_code == 200
 
 
-def test_get_latest_insights(client):
+def test_get_latest_insights(client) -> None:
     signup_data = {
         "email": "insightsuser@example.com",
         "password": "TestPassword123!",
@@ -129,7 +129,7 @@ def test_get_latest_insights(client):
     assert "insights" in resp.json()
 
 
-def test_notion_status(client):
+def test_notion_status(client) -> None:
     signup_data = {
         "email": "notionuser@example.com",
         "password": "TestPassword123!",

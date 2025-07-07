@@ -21,6 +21,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         log_response_body: bool = False,
         max_body_size: int = 1024 * 1024,  # 1MB
     ):
+    pass
         super().__init__(app)
         self.exclude_paths = exclude_paths or set()
         self.exclude_methods = exclude_methods or set()
@@ -125,6 +126,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     """Middleware to add request context to logging."""
 
     def __init__(self, app: ASGIApp):
+    pass
         super().__init__(app)
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
@@ -139,6 +141,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         # Create a context filter
         class ContextFilter(logging.Filter):
             def filter(self, record):
+    pass
                 record.request_id = context["request_id"]
                 record.path = context["path"]
                 record.method = context["method"]
@@ -157,6 +160,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
 
 def setup_logging(app: FastAPI):
+    pass
     """Setup logging middleware for the FastAPI application."""
     # Add logging middleware
     app.add_middleware(LoggingMiddleware)

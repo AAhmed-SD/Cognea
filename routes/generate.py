@@ -39,6 +39,7 @@ async def api_key_auth(api_key: str = Header(...)):
 
 # Initialize Redis client for caching
 async def get_redis_client():
+    pass
     return await aioredis.create_redis_pool("redis://localhost")
 
 
@@ -153,6 +154,7 @@ class DailyBriefRequest(BaseModel):
 
 # Function to process the daily brief
 async def process_daily_brief(date: str, user_id: int):
+    pass
     """Process daily brief in background"""
     try:
         logging.info(f"Processing daily brief for user {user_id} on {date}")
@@ -243,6 +245,7 @@ class QuizMeRequest(BaseModel):
 
 # Function to generate quiz questions
 async def generate_quiz_questions(deck_id: int, user_id: str):
+    pass
     """Generate AI-powered quiz questions"""
     try:
         logging.info(f"Generating quiz for deck {deck_id}")
@@ -1040,6 +1043,7 @@ async def flashcard_exists(flashcard_id: str) -> bool:
 
 # Function to update flashcard review
 async def update_flashcard_review(flashcard_id: str, was_correct: bool):
+    pass
     supabase = get_supabase_client()
     # TODO: Implement SM-2 algorithm for spaced repetition
     # For now, just update the last_reviewed_at timestamp

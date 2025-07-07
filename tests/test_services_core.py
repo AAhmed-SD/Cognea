@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 """
 Core service tests for high coverage.
 Focuses on the most critical services: AI, Auth, Cache, Background Workers.

@@ -1,5 +1,6 @@
+from typing import Any, Dict, List, Optional
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi import Request
 

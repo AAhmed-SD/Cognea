@@ -13,10 +13,13 @@ from typing import Any
 # Minimal in-memory async cache for testing
 class InMemoryAsyncCache:
     def __init__(self):
+    pass
         self._store = {}
     async def get(self, key):
+    pass
         return self._store.get(key)
     async def set(self, key, value, ttl=None):
+    pass
         self._store[key] = value
         # TTL is ignored for in-memory test cache
 
@@ -60,6 +63,7 @@ class AdvancedContextManager:
     """Advanced context manager with personalization and learning"""
 
     def __init__(self):
+    pass
         self.supabase = get_supabase_client()
         self.context_cache = {}
         self.learning_weights = {
@@ -582,6 +586,7 @@ class AdvancedContextManager:
     async def update_user_learning(
         self, user_id: str, interaction_data: dict[str, Any]
     ):
+    pass
         """Update user learning based on AI interactions"""
         try:
             # Store interaction data for future learning
@@ -604,6 +609,7 @@ class AdvancedContextManager:
             logger.error(f"Error updating user learning: {e}")
 
     async def _adjust_learning_weights(self, user_id: str, feedback_type: str):
+    pass
         """Adjust learning weights based on user feedback"""
         # This would implement adaptive learning
         # For now, just log the feedback

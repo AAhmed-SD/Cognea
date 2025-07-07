@@ -5,6 +5,7 @@ class Flashcard:
 
 class ReviewEngine:
     def __init__(self, user_id: str):
+    pass
         self.user_id = user_id
 
     def get_today_review_plan(self, time_available_mins: int = 30) -> list[Flashcard]:
@@ -23,6 +24,7 @@ class ReviewEngine:
         return []
 
     def update_review_result(self, flashcard_id: str, was_correct: bool):
+    pass
         """
         Logs a review attempt and updates the spaced repetition logic
         (e.g. ease factor, next due date).

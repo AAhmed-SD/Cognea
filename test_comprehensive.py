@@ -46,7 +46,7 @@ test_flashcard = {
 class TestAuthentication:
     """Test authentication endpoints"""
 
-    def test_root_endpoint(self):
+    def test_root_endpoint(self) -> None:
         """Test the root endpoint"""
         response = client.get("/")
         assert response.status_code == 200
@@ -54,7 +54,7 @@ class TestAuthentication:
         assert "message" in data
         assert "meta" in data
 
-    def test_health_check(self):
+    def test_health_check(self) -> None:
         """Test health check endpoint"""
         response = client.get("/health")
         assert response.status_code == 200
@@ -63,13 +63,13 @@ class TestAuthentication:
         assert "version" in data
         assert "timestamp" in data
 
-    def test_api_docs_accessible(self):
+    def test_api_docs_accessible(self) -> None:
         """Test that API documentation is accessible"""
         response = client.get("/api/docs")
         assert response.status_code == 200
         assert "swagger-ui" in response.text
 
-    def test_openapi_json_accessible(self):
+    def test_openapi_json_accessible(self) -> None:
         """Test that OpenAPI JSON is accessible"""
         response = client.get("/api/openapi.json")
         assert response.status_code == 200
@@ -81,17 +81,17 @@ class TestAuthentication:
 class TestTasks:
     """Test task-related endpoints"""
 
-    def test_get_tasks_unauthorized(self):
+    def test_get_tasks_unauthorized(self) -> None:
         """Test getting tasks without authentication"""
         response = client.get("/api/tasks")
         assert response.status_code in [401, 403]  # Should require authentication
 
-    def test_create_task_unauthorized(self):
+    def test_create_task_unauthorized(self) -> None:
         """Test creating task without authentication"""
         response = client.post("/api/tasks", json=test_task)
         assert response.status_code in [401, 403]  # Should require authentication
 
-    def test_get_tasks_statistics_unauthorized(self):
+    def test_get_tasks_statistics_unauthorized(self) -> None:
         """Test getting task statistics without authentication"""
         response = client.get("/api/tasks/statistics")
         assert response.status_code in [401, 403]  # Should require authentication
@@ -100,12 +100,12 @@ class TestTasks:
 class TestGoals:
     """Test goal-related endpoints"""
 
-    def test_get_goals_unauthorized(self):
+    def test_get_goals_unauthorized(self) -> None:
         """Test getting goals without authentication"""
         response = client.get("/api/goals")
         assert response.status_code in [401, 403]  # Should require authentication
 
-    def test_create_goal_unauthorized(self):
+    def test_create_goal_unauthorized(self) -> None:
         """Test creating goal without authentication"""
         response = client.post("/api/goals", json=test_goal)
         assert response.status_code in [401, 403]  # Should require authentication
@@ -114,12 +114,12 @@ class TestGoals:
 class TestScheduleBlocks:
     """Test schedule block endpoints"""
 
-    def test_get_schedule_blocks_unauthorized(self):
+    def test_get_schedule_blocks_unauthorized(self) -> None:
         """Test getting schedule blocks without authentication"""
         response = client.get("/api/schedule-blocks")
         assert response.status_code in [401, 403]  # Should require authentication
 
-    def test_create_schedule_block_unauthorized(self):
+    def test_create_schedule_block_unauthorized(self) -> None:
         """Test creating schedule block without authentication"""
         response = client.post("/api/schedule-blocks", json=test_schedule_block)
         assert response.status_code in [401, 403]  # Should require authentication
@@ -128,12 +128,12 @@ class TestScheduleBlocks:
 class TestFlashcards:
     """Test flashcard endpoints"""
 
-    def test_get_flashcards_unauthorized(self):
+    def test_get_flashcards_unauthorized(self) -> None:
         """Test getting flashcards without authentication"""
         response = client.get("/api/flashcards")
         assert response.status_code in [401, 403]  # Should require authentication
 
-    def test_create_flashcard_unauthorized(self):
+    def test_create_flashcard_unauthorized(self) -> None:
         """Test creating flashcard without authentication"""
         response = client.post("/api/flashcards", json=test_flashcard)
         assert response.status_code in [401, 403]  # Should require authentication
@@ -142,7 +142,7 @@ class TestFlashcards:
 class TestNotifications:
     """Test notification endpoints"""
 
-    def test_get_notifications_unauthorized(self):
+    def test_get_notifications_unauthorized(self) -> None:
         """Test getting notifications without authentication"""
         response = client.get("/api/notifications")
         assert response.status_code in [401, 403]  # Should require authentication
@@ -151,7 +151,7 @@ class TestNotifications:
 class TestAIEndpoints:
     """Test AI-related endpoints"""
 
-    def test_extract_tasks_unauthorized(self):
+    def test_extract_tasks_unauthorized(self) -> None:
         """Test task extraction without authentication"""
         response = client.post(
             "/api/plan-day",
@@ -162,7 +162,7 @@ class TestAIEndpoints:
         )
         assert response.status_code in [401, 403]  # Should require authentication
 
-    def test_plan_day_unauthorized(self):
+    def test_plan_day_unauthorized(self) -> None:
         """Test daily planning without authentication"""
         response = client.post(
             "/api/plan-day",
@@ -173,7 +173,7 @@ class TestAIEndpoints:
         )
         assert response.status_code in [401, 403]  # Should require authentication
 
-    def test_generate_insights_unauthorized(self):
+    def test_generate_insights_unauthorized(self) -> None:
         """Test insights generation without authentication"""
         response = client.get("/api/insights/latest")
         assert response.status_code in [401, 403]  # Should require authentication
@@ -182,7 +182,7 @@ class TestAIEndpoints:
 class TestSecurity:
     """Test security features"""
 
-    def test_security_headers(self):
+    def test_security_headers(self) -> None:
         """Test that security headers are present"""
         response = client.get("/")
         headers = response.headers
@@ -194,7 +194,7 @@ class TestSecurity:
         assert headers["X-Content-Type-Options"] == "nosniff"
         assert headers["X-Frame-Options"] == "DENY"
 
-    def test_cors_headers(self):
+    def test_cors_headers(self) -> None:
         """Test CORS headers"""
         response = client.options("/")
         # CORS headers should be present for OPTIONS requests
@@ -204,12 +204,12 @@ class TestSecurity:
 class TestErrorHandling:
     """Test error handling"""
 
-    def test_404_endpoint(self):
+    def test_404_endpoint(self) -> None:
         """Test 404 handling"""
         response = client.get("/nonexistent-endpoint")
         assert response.status_code == 404
 
-    def test_invalid_json(self):
+    def test_invalid_json(self) -> None:
         """Test invalid JSON handling"""
         response = client.post(
             "/api/tasks",
@@ -222,13 +222,13 @@ class TestErrorHandling:
 class TestDataValidation:
     """Test data validation"""
 
-    def test_invalid_email_format(self):
+    def test_invalid_email_format(self) -> None:
         """Test invalid email validation"""
         invalid_user = {"email": "invalid-email", "password": "TestPassword123!"}
         response = client.post("/api/auth/signup", json=invalid_user)
         assert response.status_code == 422  # Validation error
 
-    def test_weak_password(self):
+    def test_weak_password(self) -> None:
         """Test weak password validation"""
         weak_password_user = {"email": "test@example.com", "password": "123"}
         response = client.post("/api/auth/signup", json=weak_password_user)
@@ -238,7 +238,7 @@ class TestDataValidation:
 class TestRateLimiting:
     """Test rate limiting (if enabled)"""
 
-    def test_multiple_requests(self):
+    def test_multiple_requests(self) -> None:
         """Test multiple rapid requests"""
         responses = []
         for _ in range(5):

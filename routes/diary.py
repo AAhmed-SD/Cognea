@@ -36,6 +36,7 @@ class DiaryEntryOut(DiaryEntryBase):
     "/entry", response_model=DiaryEntryOut, summary="Create a new diary/journal entry"
 )
 def create_diary_entry(entry: DiaryEntryCreate, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=str(entry.user_id),
@@ -73,6 +74,7 @@ def create_diary_entry(entry: DiaryEntryCreate, request: Request):
     summary="List all diary entries for a user",
 )
 def list_diary_entries(user_id: int, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=str(user_id),
@@ -103,6 +105,7 @@ def list_diary_entries(user_id: int, request: Request):
     summary="Retrieve a single diary entry",
 )
 def get_diary_entry(entry_id: int, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=None,
@@ -132,6 +135,7 @@ def get_diary_entry(entry_id: int, request: Request):
     "/entry/{entry_id}", response_model=DiaryEntryOut, summary="Update a diary entry"
 )
 def update_diary_entry(entry_id: int, entry: DiaryEntryUpdate, request: Request):
+    pass
     supabase = get_supabase_client()
 
     # First check if entry exists and get user_id
@@ -185,6 +189,7 @@ def update_diary_entry(entry_id: int, entry: DiaryEntryUpdate, request: Request)
 
 @router.delete("/entry/{entry_id}", summary="Delete a diary entry")
 def delete_diary_entry(entry_id: int, request: Request):
+    pass
     supabase = get_supabase_client()
 
     # First check if entry exists and get user_id
@@ -222,6 +227,7 @@ def delete_diary_entry(entry_id: int, request: Request):
 
 @router.get("/stats/{user_id}", summary="Get mood/sentiment trends over diary entries")
 async def diary_stats(user_id: int):
+    pass
     return {"user_id": user_id, "trend": "happy"}
 
 
@@ -229,11 +235,13 @@ async def diary_stats(user_id: int):
     "/entry/reflect", summary="AI-generated reflection prompt based on past week"
 )
 async def diary_reflect():
+    pass
     return {"prompt": "What was the highlight of your week?"}
 
 
 @router.post("/diary-entry", summary="Create a new diary/journal entry (checklist)")
 async def create_diary_entry_checklist(request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=None,
@@ -247,6 +255,7 @@ async def create_diary_entry_checklist(request: Request):
     "/diary-entries/{user_id}", summary="List all diary entries for a user (checklist)"
 )
 async def list_diary_entries_checklist(user_id: int, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=str(user_id),
@@ -260,6 +269,7 @@ async def list_diary_entries_checklist(user_id: int, request: Request):
     "/diary-entry/{entry_id}", summary="Retrieve a single diary entry (checklist)"
 )
 async def get_diary_entry_checklist(entry_id: int, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=None,
@@ -272,6 +282,7 @@ async def get_diary_entry_checklist(entry_id: int, request: Request):
 
 @router.put("/diary-entry/{entry_id}", summary="Update a diary entry (checklist)")
 async def update_diary_entry_checklist(entry_id: int, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=None,
@@ -284,6 +295,7 @@ async def update_diary_entry_checklist(entry_id: int, request: Request):
 
 @router.delete("/diary-entry/{entry_id}", summary="Delete a diary entry (checklist)")
 async def delete_diary_entry_checklist(entry_id: int, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=None,
@@ -299,6 +311,7 @@ async def delete_diary_entry_checklist(entry_id: int, request: Request):
     summary="Get mood/sentiment trends over diary entries (checklist)",
 )
 async def diary_stats_checklist(user_id: int):
+    pass
     return {"user_id": user_id, "trend": "happy"}
 
 
@@ -307,4 +320,5 @@ async def diary_stats_checklist(user_id: int):
     summary="AI-generated reflection prompt based on past week (checklist)",
 )
 async def diary_reflect_checklist():
+    pass
     return {"prompt": "What was the highlight of your week? (checklist)"}

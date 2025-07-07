@@ -15,6 +15,7 @@ class CalendarPushRequest(BaseModel):
 
 @router.post("/connect", summary="Start Google/Apple Calendar sync via OAuth")
 async def calendar_connect(user_id: str):
+    pass
     supabase = get_supabase_client()
     data = {
         "user_id": user_id,
@@ -35,6 +36,7 @@ async def calendar_connect(user_id: str):
 
 @router.get("/sync", summary="Fetch user events")
 async def calendar_sync(user_id: str):
+    pass
     supabase = get_supabase_client()
     result = (
         supabase.table("calendar_events").select("*").eq("user_id", user_id).execute()
@@ -44,6 +46,7 @@ async def calendar_sync(user_id: str):
 
 @router.post("/push", summary="Push Cognie tasks into calendar")
 async def calendar_push(request: CalendarPushRequest):
+    pass
     supabase = get_supabase_client()
     events = []
     for task in request.tasks:
@@ -65,6 +68,7 @@ async def calendar_push(request: CalendarPushRequest):
 
 @router.get("/events", summary="Get all calendar events for user")
 async def get_calendar_events(user_id: str):
+    pass
     supabase = get_supabase_client()
     result = (
         supabase.table("calendar_events").select("*").eq("user_id", user_id).execute()

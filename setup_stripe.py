@@ -20,7 +20,7 @@ if not stripe.api_key:
     exit(1)
 
 
-def create_products():
+def create_products() -> None:
     """Create Stripe products for Cognie plans."""
     print("🛍️  Creating Stripe products...")
 
@@ -89,7 +89,7 @@ def create_products():
     return created_products
 
 
-def create_prices(products):
+def create_prices(products) -> None:
     """Create Stripe prices for the products."""
     print("💰 Creating Stripe prices...")
 
@@ -137,7 +137,7 @@ def create_prices(products):
     return created_prices
 
 
-def create_webhook():
+def create_webhook() -> None:
     """Create Stripe webhook endpoint."""
     print("🔗 Creating Stripe webhook...")
 
@@ -191,7 +191,7 @@ def create_webhook():
         return None
 
 
-def create_customer_portal():
+def create_customer_portal() -> None:
     """Configure Stripe customer portal."""
     print("🏪 Configuring customer portal...")
 
@@ -231,7 +231,7 @@ def create_customer_portal():
         return None
 
 
-def update_env_template():
+def update_env_template() -> None:
     """Update the environment template with Stripe configuration."""
     print("📝 Updating environment template...")
 
@@ -273,7 +273,7 @@ STRIPE_WEBHOOK_URL=https://yourdomain.com/api/stripe/webhook
         print(f"❌ Failed to update environment template: {e}")
 
 
-def main():
+def main() -> None:
     """Main setup function."""
     print("🚀 Setting up Stripe for Cognie...")
     print("=" * 50)

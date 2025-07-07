@@ -15,7 +15,7 @@ from models.goal import GoalCreate
 from models.task import PriorityLevel, TaskCreate, TaskStatus
 
 
-def get_supabase_service_client():
+def get_supabase_service_client() -> None:
     """Get Supabase client with service role key for testing."""
     import os
 
@@ -33,6 +33,7 @@ def get_supabase_service_client():
 
 
 async def test_database_operations():
+    pass
     """Test basic database operations."""
     print("🧪 Testing Database Operations")
     print("=" * 40)
@@ -176,6 +177,7 @@ async def test_database_operations():
 
 
 async def test_model_validation():
+    pass
     """Test Pydantic model validation."""
     print("\n🧪 Testing Model Validation")
     print("=" * 40)
@@ -214,6 +216,7 @@ async def test_model_validation():
 
 
 async def main():
+    pass
     """Run all tests."""
     print("🚀 Starting Database and Model Tests")
     print("=" * 50)

@@ -11,7 +11,7 @@ from services.notion import NotionClient, NotionFlashcardGenerator, NotionSyncMa
 
 
 @pytest.fixture
-def mock_notion_client():
+def mock_notion_client() -> None:
     """Mock Notion client for testing."""
     client = Mock(spec=NotionClient)
     client.get_page = AsyncMock()
@@ -21,7 +21,7 @@ def mock_notion_client():
 
 
 @pytest.fixture
-def mock_openai_service():
+def mock_openai_service() -> None:
     """Mock OpenAI service for testing."""
     service = Mock()
     service.generate_content = AsyncMock()
@@ -29,7 +29,7 @@ def mock_openai_service():
 
 
 @pytest.fixture
-def mock_supabase():
+def mock_supabase() -> None:
     """Mock Supabase client for testing."""
     supabase = Mock()
     supabase.table = Mock()
@@ -41,6 +41,7 @@ class TestNotionClient:
 
     @pytest.mark.asyncio
     async def test_notion_client_initialization(self):
+    pass
         """Test Notion client initialization."""
         client = NotionClient(api_key="test_key")
         assert client.api_key == "test_key"
@@ -48,6 +49,7 @@ class TestNotionClient:
 
     @pytest.mark.asyncio
     async def test_notion_client_missing_api_key(self):
+    pass
         """Test Notion client initialization without API key."""
         with pytest.raises(TypeError, match="missing 1 required positional argument"):
             NotionClient()
@@ -60,6 +62,7 @@ class TestNotionFlashcardGenerator:
     async def test_flashcard_generator_initialization(
         self, mock_notion_client, mock_openai_service
     ):
+    pass
         """Test flashcard generator initialization."""
         generator = NotionFlashcardGenerator(mock_notion_client, mock_openai_service)
         assert generator.notion_client == mock_notion_client
@@ -69,6 +72,7 @@ class TestNotionFlashcardGenerator:
     async def test_create_flashcard_prompt(
         self, mock_notion_client, mock_openai_service
     ):
+    pass
         """Test flashcard prompt creation."""
         generator = NotionFlashcardGenerator(mock_notion_client, mock_openai_service)
 
@@ -88,6 +92,7 @@ class TestNotionFlashcardGenerator:
 
     @pytest.mark.asyncio
     async def test_parse_ai_response(self, mock_notion_client, mock_openai_service):
+    pass
         """Test parsing AI response into flashcards."""
         generator = NotionFlashcardGenerator(mock_notion_client, mock_openai_service)
 
@@ -109,6 +114,7 @@ class TestNotionFlashcardGenerator:
 
     @pytest.mark.asyncio
     async def test_extract_key_concepts(self, mock_notion_client, mock_openai_service):
+    pass
         """Test key concept extraction from content."""
         generator = NotionFlashcardGenerator(mock_notion_client, mock_openai_service)
 
@@ -127,6 +133,7 @@ class TestNotionSyncManager:
     async def test_sync_manager_initialization(
         self, mock_notion_client, mock_openai_service, mock_supabase
     ):
+    pass
         """Test sync manager initialization."""
         with patch(
             "services.notion.sync_manager.get_supabase_client",
@@ -144,6 +151,7 @@ class TestNotionSyncManager:
     async def test_create_notion_content_from_flashcards(
         self, mock_notion_client, mock_openai_service, mock_supabase
     ):
+    pass
         """Test creating Notion content from flashcards."""
         with patch(
             "services.notion.sync_manager.get_supabase_client",
@@ -183,6 +191,7 @@ class TestNotionSyncManager:
 async def test_notion_integration_end_to_end(
     mock_notion_client, mock_openai_service, mock_supabase
 ):
+    pass
     """Test end-to-end Notion integration workflow."""
     # Add api_key attribute to mock
     mock_notion_client.api_key = "test_api_key"

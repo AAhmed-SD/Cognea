@@ -701,6 +701,7 @@ async def _generate_mood_insights(entries: list[dict]) -> dict[str, Any]:
 # Background task for mood analysis
 @background_task(name="mood_analysis", priority="low")
 async def mood_analysis_task(user_id: str, config: dict[str, Any]):
+    pass
     """Background task for mood analysis"""
     try:
         logger.info(f"Starting mood analysis for user {user_id}")

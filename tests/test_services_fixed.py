@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 """
 Fixed comprehensive tests for services with proper async mocking
 """

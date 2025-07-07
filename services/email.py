@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_password_reset_email(to_email: str, reset_link: str):
+    pass
     try:
         smtp_host = os.getenv("SMTP_HOST", "localhost")
         smtp_port = int(os.getenv("SMTP_PORT", 1025))

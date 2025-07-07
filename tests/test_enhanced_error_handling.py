@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 """
 Comprehensive tests for enhanced error handling and monitoring systems.
 """
@@ -39,7 +40,7 @@ from services.notion.sync_manager import (
 class TestErrorCategorization:
     """Test error categorization functionality."""
 
-    def test_network_error_categorization(self):
+    def test_network_error_categorization(self) -> None:
         """Test network error categorization."""
         error = ConnectionError("Connection failed")
         task_error = categorize_task_error(error)
@@ -49,7 +50,7 @@ class TestErrorCategorization:
         assert task_error.retry_delay_multiplier == 2.0
         assert task_error.max_retries == 5
 
-    def test_timeout_error_categorization(self):
+    def test_timeout_error_categorization(self) -> None:
         """Test timeout error categorization."""
         error = TimeoutError()
         task_error = categorize_task_error(error)
@@ -59,7 +60,7 @@ class TestErrorCategorization:
         assert task_error.retry_delay_multiplier == 1.5
         assert task_error.max_retries == 3
 
-    def test_validation_error_categorization(self):
+    def test_validation_error_categorization(self) -> None:
         """Test validation error categorization."""
         error = ValueError("Invalid input")
         task_error = categorize_task_error(error)
@@ -68,7 +69,7 @@ class TestErrorCategorization:
         assert task_error.retryable is False
         assert task_error.max_retries == 0
 
-    def test_permission_error_categorization(self):
+    def test_permission_error_categorization(self) -> None:
         """Test permission error categorization."""
         error = Exception("Permission denied")
         task_error = categorize_task_error(error)
@@ -77,7 +78,7 @@ class TestErrorCategorization:
         assert task_error.retryable is False
         assert task_error.max_retries == 0
 
-    def test_resource_error_categorization(self):
+    def test_resource_error_categorization(self) -> None:
         """Test resource error categorization."""
         error = Exception("Memory limit exceeded")
         task_error = categorize_task_error(error)
@@ -87,7 +88,7 @@ class TestErrorCategorization:
         assert task_error.retry_delay_multiplier == 3.0
         assert task_error.max_retries == 2
 
-    def test_external_service_error_categorization(self):
+    def test_external_service_error_categorization(self) -> None:
         """Test external service error categorization."""
         error = Exception("API service unavailable")
         task_error = categorize_task_error(error)
@@ -103,6 +104,7 @@ class TestBackgroundWorkers:
 
     @pytest.fixture
     async def worker(self):
+    pass
         """Create a test worker instance."""
         worker = BackgroundWorker(
             redis_url="redis://localhost:6379",
@@ -125,7 +127,7 @@ class TestBackgroundWorkers:
         return worker
 
     @pytest.fixture
-    def sample_task(self):
+    def sample_task(self) -> None:
         """Create a sample task."""
         return Task(
             id="test-task-1",
@@ -141,6 +143,7 @@ class TestBackgroundWorkers:
         )
 
     async def test_worker_initialization(self, worker):
+    pass
         """Test worker initialization."""
         assert worker.max_workers == 2
         assert worker.task_timeout == 30
@@ -149,10 +152,12 @@ class TestBackgroundWorkers:
         assert len(worker.metrics["error_counts"]) == len(TaskErrorType)
 
     async def test_task_enqueue(self, worker, sample_task):
+    pass
         """Test task enqueueing."""
 
         # Register a test task
         async def test_task_func():
+    pass
             return "success"
 
         worker.register_task("test_task", test_task_func)
@@ -168,10 +173,12 @@ class TestBackgroundWorkers:
         assert worker.redis.zadd.called
 
     async def test_task_processing_success(self, worker, sample_task):
+    pass
         """Test successful task processing."""
 
         # Register a test task
         async def test_task_func():
+    pass
             return "success"
 
         worker.register_task("test_task", test_task_func)
@@ -188,10 +195,12 @@ class TestBackgroundWorkers:
         assert worker.metrics["tasks_failed"] == 0
 
     async def test_task_processing_failure(self, worker, sample_task):
+    pass
         """Test task processing failure with retry logic."""
 
         # Register a failing task
         async def failing_task_func():
+    pass
             raise ConnectionError("Network error")
 
         worker.register_task("test_task", failing_task_func)
@@ -208,6 +217,7 @@ class TestBackgroundWorkers:
         assert worker.metrics["error_counts"]["network_error"] == 1
 
     async def test_worker_health_check(self, worker):
+    pass
         """Test worker health check."""
         # Mock workers
         worker.workers = [Mock(), Mock()]
@@ -223,6 +233,7 @@ class TestBackgroundWorkers:
         assert "queue" in health["checks"]
 
     async def test_worker_metrics(self, worker):
+    pass
         """Test worker metrics collection."""
         # Add some test data
         worker.metrics["tasks_processed"] = 10
@@ -240,12 +251,12 @@ class TestBackgroundTaskManager:
     """Test enhanced background task manager."""
 
     @pytest.fixture
-    def task_manager(self):
+    def task_manager(self) -> None:
         """Create a test task manager."""
         background_tasks = Mock()
         return BackgroundTaskManager(background_tasks)
 
-    def test_task_metrics_initialization(self):
+    def test_task_metrics_initialization(self) -> None:
         """Test task metrics initialization."""
         metrics = TaskMetrics()
 
@@ -254,7 +265,7 @@ class TestBackgroundTaskManager:
         assert metrics.tasks_failed == 0
         assert len(metrics.error_counts) == 8  # Number of error types
 
-    def test_task_metrics_recording(self):
+    def test_task_metrics_recording(self) -> None:
         """Test task metrics recording."""
         metrics = TaskMetrics()
 
@@ -274,7 +285,7 @@ class TestBackgroundTaskManager:
         assert metrics.error_counts["network_error"] == 1
         assert metrics.total_processing_time == 8.0
 
-    def test_task_metrics_summary(self):
+    def test_task_metrics_summary(self) -> None:
         """Test task metrics summary calculation."""
         metrics = TaskMetrics()
 
@@ -293,10 +304,12 @@ class TestBackgroundTaskManager:
         assert summary["avg_processing_time"] == 7.5
 
     async def test_background_task_decorator(self):
+    pass
         """Test background task decorator."""
 
         @log_background_task
         async def test_task():
+    pass
             return "success"
 
         result = await test_task()
@@ -309,10 +322,12 @@ class TestBackgroundTaskManager:
         assert task_metrics.tasks_completed == 1
 
     async def test_background_task_decorator_with_error(self):
+    pass
         """Test background task decorator with error handling."""
 
         @log_background_task
         async def failing_task():
+    pass
             raise ConnectionError("Network error")
 
         with pytest.raises(ConnectionError):
@@ -325,7 +340,7 @@ class TestBackgroundTaskManager:
         assert task_metrics.tasks_failed == 1
         assert task_metrics.error_counts["network_error"] == 1
 
-    def test_task_manager_health_status(self, task_manager):
+    def test_task_manager_health_status(self, task_manager) -> None:
         """Test task manager health status."""
         # Mock metrics
         with patch("services.background_tasks.task_metrics") as mock_metrics:
@@ -346,19 +361,19 @@ class TestNotionSyncManager:
     """Test enhanced Notion sync manager."""
 
     @pytest.fixture
-    def sync_manager(self):
+    def sync_manager(self) -> None:
         """Create a test sync manager."""
         notion_client = Mock()
         flashcard_generator = Mock()
         return NotionSyncManager(notion_client, flashcard_generator)
 
-    def test_sync_direction_enum(self):
+    def test_sync_direction_enum(self) -> None:
         """Test sync direction enumeration."""
         assert SyncDirection.NOTION_TO_COGNIE.value == "notion_to_cognie"
         assert SyncDirection.COGNIE_TO_NOTION.value == "cognie_to_notion"
         assert SyncDirection.BIDIRECTIONAL.value == "bidirectional"
 
-    def test_conflict_resolution_model(self):
+    def test_conflict_resolution_model(self) -> None:
         """Test conflict resolution model."""
         resolution = ConflictResolution(
             strategy="notion_wins",
@@ -371,7 +386,7 @@ class TestNotionSyncManager:
         assert resolution.resolved_by == "system"
         assert resolution.details["test"] == "data"
 
-    def test_recoverable_error_detection(self, sync_manager):
+    def test_recoverable_error_detection(self, sync_manager) -> None:
         """Test recoverable error detection."""
         # Test recoverable errors
         assert sync_manager._is_recoverable_error(Exception("Connection timeout"))
@@ -385,6 +400,7 @@ class TestNotionSyncManager:
         assert not sync_manager._is_recoverable_error(Exception("Permission denied"))
 
     async def test_content_merging(self, sync_manager):
+    pass
         """Test content merging functionality."""
         local_content = "Line 1\nLine 2\nLine 3"
         notion_content = "Line 2\nLine 3\nLine 4"
@@ -398,6 +414,7 @@ class TestNotionSyncManager:
         assert "Line 4" in merged
 
     async def test_sync_health_status(self, sync_manager):
+    pass
         """Test sync health status calculation."""
         # Mock user sync history
         with patch.object(sync_manager, "get_user_sync_history") as mock_history:
@@ -436,7 +453,7 @@ class TestNotionSyncManager:
 class TestErrorHandler:
     """Test enhanced error handler middleware."""
 
-    def test_api_error_classes(self):
+    def test_api_error_classes(self) -> None:
         """Test API error classes."""
         # Test ValidationError
         val_error = ValidationError("Invalid input", {"field": "value"})
@@ -455,7 +472,7 @@ class TestErrorHandler:
         assert rate_error.error_code == "RATE_LIMIT_EXCEEDED"
         assert rate_error.retry_after == 60
 
-    def test_error_categorization(self):
+    def test_error_categorization(self) -> None:
         """Test error categorization."""
         # Test API error
         api_error = APIError("Test error", 500)
@@ -471,7 +488,7 @@ class TestErrorHandler:
         assert error_info["severity"] == "low"
         assert error_info["retryable"] is False
 
-    def test_error_tracker(self):
+    def test_error_tracker(self) -> None:
         """Test error tracker functionality."""
         tracker = ErrorTracker()
 
@@ -490,6 +507,7 @@ class TestRateLimitingScenarios:
 
     @pytest.mark.asyncio
     async def test_rate_limit_error_handling(self):
+    pass
         """Test rate limit error handling."""
         # Simulate rate limit error
         error = RateLimitError("Rate limit exceeded", 60)
@@ -511,6 +529,7 @@ class TestNetworkFailureRecovery:
 
     @pytest.mark.asyncio
     async def test_network_error_recovery(self):
+    pass
         """Test network error recovery strategies."""
         # Test different network errors
         network_errors = [
@@ -528,6 +547,7 @@ class TestNetworkFailureRecovery:
 
     @pytest.mark.asyncio
     async def test_exponential_backoff(self):
+    pass
         """Test exponential backoff calculation."""
         base_delay = 60
         delay_multiplier = 2.0

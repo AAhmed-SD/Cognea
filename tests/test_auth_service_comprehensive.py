@@ -1,9 +1,10 @@
+from typing import Any, Dict, List, Optional
 """
 Comprehensive tests for Auth Service to achieve 95% coverage
 """
 
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -23,7 +24,7 @@ from services.auth_service import AuthService
 
 
 @pytest.fixture
-def auth_service(mock_supabase):
+def auth_service(mock_supabase) -> None:
     """Create AuthService instance for testing"""
     with (
         patch("services.auth_service.get_supabase_client", return_value=mock_supabase),
@@ -33,7 +34,7 @@ def auth_service(mock_supabase):
 
 
 @pytest.fixture
-def mock_supabase():
+def mock_supabase() -> None:
     with patch("services.auth_service.get_supabase_client") as mock:
         mock_client = Mock()
         mock.return_value = mock_client
@@ -41,13 +42,13 @@ def mock_supabase():
 
 
 @pytest.fixture
-def mock_email_service():
+def mock_email_service() -> None:
     with patch("services.auth_service.email_service") as mock:
         yield mock
 
 
 @pytest.fixture
-def patch_token_email_logic():
+def patch_token_email_logic() -> None:
     """Patch token and email logic for tests"""
     with (
         patch(
@@ -71,7 +72,7 @@ def patch_token_email_logic():
 
 
 @pytest.fixture
-def sample_user_data():
+def sample_user_data() -> None:
     """Sample user data for testing"""
     return {
         "id": "user123",
@@ -89,7 +90,7 @@ def sample_user_data():
 class TestAuthServiceInitialization:
     """Test AuthService initialization and configuration"""
 
-    def test_init_default_values(self):
+    def test_init_default_values(self) -> None:
         """Test AuthService initialization with default values"""
         with patch("services.auth_service.get_supabase_client") as mock_supabase:
             with patch("services.auth_service.os.getenv", return_value="test-secret"):
@@ -98,7 +99,7 @@ class TestAuthServiceInitialization:
                 assert service.access_token_expiry == timedelta(hours=1)
                 assert service.refresh_token_expiry == timedelta(days=30)
 
-    def test_init_custom_jwt_secret(self):
+    def test_init_custom_jwt_secret(self) -> None:
         """Test AuthService initialization with custom JWT secret"""
         with patch("services.auth_service.get_supabase_client"):
             with patch("services.auth_service.os.getenv", return_value="custom-secret"):
@@ -109,20 +110,20 @@ class TestAuthServiceInitialization:
 class TestPasswordHashing:
     """Test password hashing and verification methods"""
 
-    def test_hash_password(self, auth_service):
+    def test_hash_password(self, auth_service) -> None:
         """Test password hashing"""
         password = "testpassword123"
         hashed = auth_service._hash_password(password)
         assert hashed != password
         assert len(hashed) > len(password)
 
-    def test_verify_password_correct(self, auth_service):
+    def test_verify_password_correct(self, auth_service) -> None:
         """Test password verification with correct password"""
         password = "testpassword123"
         hashed = auth_service._hash_password(password)
         assert auth_service._verify_password(password, hashed) is True
 
-    def test_verify_password_incorrect(self, auth_service):
+    def test_verify_password_incorrect(self, auth_service) -> None:
         """Test password verification with incorrect password"""
         password = "testpassword123"
         wrong_password = "wrongpassword"
@@ -133,7 +134,7 @@ class TestPasswordHashing:
 class TestTokenManagement:
     """Test JWT token creation and verification"""
 
-    def test_create_tokens(self, auth_service):
+    def test_create_tokens(self, auth_service) -> None:
         """Test token creation"""
         user_id = "user123"
         role = UserRole.FREE_USER
@@ -143,7 +144,7 @@ class TestTokenManagement:
         assert "refresh_token" in tokens
         assert tokens["access_token"] != tokens["refresh_token"]
 
-    def test_verify_token_valid_access(self, auth_service):
+    def test_verify_token_valid_access(self, auth_service) -> None:
         """Test valid access token verification"""
         user_id = "user123"
         role = UserRole.FREE_USER
@@ -155,7 +156,7 @@ class TestTokenManagement:
         assert payload["role"] == role
         assert payload["type"] == "access"
 
-    def test_verify_token_valid_refresh(self, auth_service):
+    def test_verify_token_valid_refresh(self, auth_service) -> None:
         """Test valid refresh token verification"""
         user_id = "user123"
         role = UserRole.FREE_USER
@@ -166,7 +167,7 @@ class TestTokenManagement:
         assert payload["user_id"] == user_id
         assert payload["type"] == "refresh"
 
-    def test_verify_token_wrong_type(self, auth_service):
+    def test_verify_token_wrong_type(self, auth_service) -> None:
         """Test token verification with wrong token type"""
         user_id = "user123"
         role = UserRole.FREE_USER
@@ -176,12 +177,12 @@ class TestTokenManagement:
         payload = auth_service._verify_token(tokens["access_token"], "refresh")
         assert payload is None
 
-    def test_verify_token_invalid(self, auth_service):
+    def test_verify_token_invalid(self, auth_service) -> None:
         """Test invalid token verification"""
         payload = auth_service._verify_token("invalid.token.here")
         assert payload is None
 
-    def test_verify_token_expired(self, auth_service):
+    def test_verify_token_expired(self, auth_service) -> None:
         """Test expired token verification"""
         # Create a token with very short expiry
         auth_service.access_token_expiry = timedelta(seconds=0)
@@ -205,6 +206,7 @@ class TestUserRegistration:
     async def test_register_user_success(
         self, auth_service, mock_supabase, mock_email_service, patch_token_email_logic
     ):
+    pass
         """Test successful user registration"""
         # Mock existing user check - no existing user
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
@@ -243,6 +245,7 @@ class TestUserRegistration:
     async def test_register_user_already_exists(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test registration with existing email"""
         # Mock existing user check - user exists
         mock_supabase.table().select().eq().execute.return_value = Mock(
@@ -264,6 +267,7 @@ class TestUserRegistration:
     async def test_register_user_creation_failed(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test registration when user creation fails"""
         # Mock existing user check - no existing user
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
@@ -290,6 +294,7 @@ class TestUserLogin:
     async def test_login_user_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful user login"""
         user_data = {
             "id": "user123",
@@ -317,6 +322,7 @@ class TestUserLogin:
     async def test_login_user_not_found(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test login with non-existent user"""
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
 
@@ -329,6 +335,7 @@ class TestUserLogin:
     async def test_login_user_wrong_password(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test login with wrong password"""
         user_data = {
             "id": "user123",
@@ -354,6 +361,7 @@ class TestUserLogin:
     async def test_login_user_inactive(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test login with inactive user"""
         user_data = {
             "id": "user123",
@@ -385,6 +393,7 @@ class TestTokenRefresh:
     async def test_refresh_token_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful token refresh"""
         user_data = {
             "id": "user123",
@@ -408,6 +417,7 @@ class TestTokenRefresh:
 
     @pytest.mark.asyncio
     async def test_refresh_token_invalid(self, auth_service):
+    pass
         """Test token refresh with invalid token"""
         with pytest.raises(ValueError, match="Invalid refresh token"):
             await auth_service.refresh_token("invalid.token.here")
@@ -416,6 +426,7 @@ class TestTokenRefresh:
     async def test_refresh_token_user_not_found(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test token refresh with non-existent user"""
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
 
@@ -433,6 +444,7 @@ class TestPasswordManagement:
     async def test_change_password_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful password change"""
         user_data = {
             "id": "user123",
@@ -458,6 +470,7 @@ class TestPasswordManagement:
     async def test_change_password_wrong_current(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test password change with wrong current password"""
         user_data = {
             "id": "user123",
@@ -480,6 +493,7 @@ class TestPasswordManagement:
     async def test_request_password_reset_success(
         self, auth_service, mock_supabase, mock_email_service, patch_token_email_logic
     ):
+    pass
         """Test successful password reset request"""
         user_data = {"id": "user123", "email": "test@example.com", "is_active": True}
 
@@ -500,6 +514,7 @@ class TestPasswordManagement:
     async def test_reset_password_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful password reset"""
         user_data = {
             "id": "user123",
@@ -529,6 +544,7 @@ class TestPasswordManagement:
     async def test_reset_password_invalid_token(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test password reset with invalid token"""
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
 
@@ -550,6 +566,7 @@ class TestEmailVerification:
     async def test_request_email_verification_success(
         self, auth_service, mock_supabase, mock_email_service, patch_token_email_logic
     ):
+    pass
         """Test successful email verification request"""
         user_data = {
             "id": "user123",
@@ -575,6 +592,7 @@ class TestEmailVerification:
     async def test_verify_email_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful email verification"""
         user_data = {
             "id": "user123",
@@ -600,6 +618,7 @@ class TestEmailVerification:
 
     @pytest.mark.asyncio
     async def test_verify_email_invalid_token(self, auth_service, mock_supabase):
+    pass
         """Test email verification with invalid token"""
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
 
@@ -619,6 +638,7 @@ class TestUserManagement:
     async def test_get_user_by_id_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful user retrieval by ID"""
         user_data = {
             "id": "user123",
@@ -639,6 +659,7 @@ class TestUserManagement:
     async def test_get_user_by_id_not_found(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test user retrieval with non-existent ID"""
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
 
@@ -649,6 +670,7 @@ class TestUserManagement:
     async def test_update_user_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful user update"""
         user_data = {
             "id": "user123",
@@ -674,6 +696,7 @@ class TestUserManagement:
     async def test_update_user_not_found(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test user update with non-existent user"""
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
 
@@ -690,6 +713,7 @@ class TestPermissionsAndRoles:
     async def test_check_permission_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful permission check"""
         user_data = {"id": "user123", "role": UserRole.FREE_USER}
 
@@ -704,6 +728,7 @@ class TestPermissionsAndRoles:
     async def test_get_user_permissions(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test getting user permissions"""
         user_data = {"id": "user123", "role": UserRole.FREE_USER}
 
@@ -718,6 +743,7 @@ class TestPermissionsAndRoles:
     async def test_assign_role_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful role assignment"""
         user_data = {"id": "user123", "role": UserRole.FREE_USER}
 
@@ -735,6 +761,7 @@ class TestPermissionsAndRoles:
 
     @pytest.mark.asyncio
     async def test_assign_role_user_not_found(self, auth_service, mock_supabase):
+    pass
         """Test role assignment with non-existent user"""
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
 
@@ -751,6 +778,7 @@ class TestUserListing:
     async def test_get_users_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful user listing"""
         users_data = [
             {"id": "user1", "email": "user1@example.com", "role": UserRole.FREE_USER},
@@ -768,6 +796,7 @@ class TestUserListing:
     async def test_get_users_no_permission(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test user listing without permission"""
         user_data = {"id": "user123", "role": UserRole.FREE_USER}
 
@@ -786,6 +815,7 @@ class TestUserDeactivation:
     async def test_deactivate_user_success(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test successful user deactivation"""
         user_data = {"id": "user123", "is_active": True}
 
@@ -803,6 +833,7 @@ class TestUserDeactivation:
 
     @pytest.mark.asyncio
     async def test_deactivate_user_not_found(self, auth_service, mock_supabase):
+    pass
         """Test user deactivation with non-existent user"""
         mock_supabase.table().select().eq().execute.return_value = Mock(data=[])
 
@@ -819,6 +850,7 @@ class TestTokenCleanup:
     async def test_cleanup_expired_tokens(
         self, auth_service, mock_supabase, patch_token_email_logic
     ):
+    pass
         """Test cleanup of expired tokens"""
         mock_supabase.table().delete().lt().execute.return_value = Mock(
             data=[], count=5

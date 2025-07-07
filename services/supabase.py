@@ -35,6 +35,7 @@ def get_supabase_service_client() -> Client:
 
 
 def test_connection():
+    pass
     """Test the Supabase connection."""
     try:
         # Try to query a table to test connection

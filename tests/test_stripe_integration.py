@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 """
 Tests for Stripe payment and subscription integration.
 """
@@ -14,21 +15,21 @@ client = TestClient(app)
 
 
 @pytest.fixture
-def mock_stripe():
+def mock_stripe() -> None:
     """Mock Stripe API calls."""
     with patch("routes.stripe.stripe") as mock_stripe:
         yield mock_stripe
 
 
 @pytest.fixture
-def mock_supabase():
+def mock_supabase() -> None:
     """Mock Supabase client."""
     with patch("routes.stripe.get_supabase_client") as mock_supabase:
         yield mock_supabase
 
 
 @pytest.fixture
-def mock_stripe_queue():
+def mock_stripe_queue() -> None:
     """Mock Stripe rate-limited queue."""
     with patch("routes.stripe.stripe_queue") as mock_queue:
         mock_queue.safe_call = AsyncMock()
@@ -38,7 +39,7 @@ def mock_stripe_queue():
 class TestStripePricing:
     """Test pricing plans endpoint."""
 
-    def test_get_pricing_plans(self):
+    def test_get_pricing_plans(self) -> None:
         """Test getting available pricing plans."""
         response = client.get("/api/stripe/pricing")
 
@@ -68,7 +69,7 @@ class TestStripeCheckout:
     @patch("routes.stripe.get_current_user")
     def test_create_checkout_session_success(
         self, mock_get_user, mock_stripe_queue, mock_supabase
-    ):
+    ) -> None:
         """Test successful checkout session creation."""
         # Mock user
         mock_user = Mock()
@@ -106,7 +107,7 @@ class TestStripeCheckout:
         assert data["status"] == "created"
 
     @patch("routes.stripe.get_current_user")
-    def test_create_checkout_session_invalid_price(self, mock_get_user):
+    def test_create_checkout_session_invalid_price(self, mock_get_user) -> None:
         """Test checkout session with invalid price ID."""
         # Mock user
         mock_user = Mock()
@@ -134,7 +135,7 @@ class TestStripePortal:
     @patch("routes.stripe.get_current_user")
     def test_create_portal_session_success(
         self, mock_get_user, mock_stripe_queue, mock_supabase
-    ):
+    ) -> None:
         """Test successful portal session creation."""
         # Mock user
         mock_user = Mock()
@@ -167,7 +168,7 @@ class TestStripePortal:
         assert data["status"] == "created"
 
     @patch("routes.stripe.get_current_user")
-    def test_create_portal_session_no_subscription(self, mock_get_user, mock_supabase):
+    def test_create_portal_session_no_subscription(self, mock_get_user, mock_supabase) -> None:
         """Test portal session when user has no subscription."""
         # Mock user
         mock_user = Mock()
@@ -197,7 +198,7 @@ class TestStripeSubscriptionStatus:
     @patch("routes.stripe.get_current_user")
     def test_get_subscription_status_active(
         self, mock_get_user, mock_stripe_queue, mock_supabase
-    ):
+    ) -> None:
         """Test getting active subscription status."""
         # Mock user
         mock_user = Mock()
@@ -243,7 +244,7 @@ class TestStripeSubscriptionStatus:
     @patch("routes.stripe.get_current_user")
     def test_get_subscription_status_no_subscription(
         self, mock_get_user, mock_supabase
-    ):
+    ) -> None:
         """Test getting status when user has no subscription."""
         # Mock user
         mock_user = Mock()
@@ -272,7 +273,7 @@ class TestStripeSubscriptionStatus:
 class TestStripeWebhook:
     """Test Stripe webhook handling."""
 
-    def test_webhook_missing_signature(self):
+    def test_webhook_missing_signature(self) -> None:
         """Test webhook without signature header."""
         response = client.post("/api/stripe/webhook", json={})
 
@@ -280,7 +281,7 @@ class TestStripeWebhook:
         assert "Missing stripe-signature header" in response.json()["detail"]
 
     @patch("routes.stripe.os.getenv")
-    def test_webhook_missing_secret(self, mock_getenv):
+    def test_webhook_missing_secret(self, mock_getenv) -> None:
         """Test webhook without webhook secret configured."""
         mock_getenv.return_value = None
 
@@ -295,7 +296,7 @@ class TestStripeWebhook:
 
     @patch("routes.stripe.stripe.Webhook.construct_event")
     @patch("routes.stripe.os.getenv")
-    def test_webhook_success(self, mock_getenv, mock_construct_event):
+    def test_webhook_success(self, mock_getenv, mock_construct_event) -> None:
         """Test successful webhook processing."""
         mock_getenv.return_value = "whsec_test_secret"
 
@@ -329,7 +330,7 @@ class TestStripeBillingHistory:
     @patch("routes.stripe.get_current_user")
     def test_get_billing_history_success(
         self, mock_get_user, mock_stripe_queue, mock_supabase
-    ):
+    ) -> None:
         """Test getting billing history."""
         # Mock user
         mock_user = Mock()
@@ -376,7 +377,7 @@ class TestStripeBillingHistory:
         assert invoice["status"] == "paid"
 
     @patch("routes.stripe.get_current_user")
-    def test_get_billing_history_no_subscription(self, mock_get_user, mock_supabase):
+    def test_get_billing_history_no_subscription(self, mock_get_user, mock_supabase) -> None:
         """Test getting billing history when user has no subscription."""
         # Mock user
         mock_user = Mock()
@@ -406,7 +407,7 @@ class TestStripeErrorHandling:
     """Test Stripe error handling."""
 
     @patch("routes.stripe.get_current_user")
-    def test_stripe_api_error(self, mock_get_user, mock_stripe_queue):
+    def test_stripe_api_error(self, mock_get_user, mock_stripe_queue) -> None:
         """Test handling of Stripe API errors."""
         # Mock user
         mock_user = Mock()

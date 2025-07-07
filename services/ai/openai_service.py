@@ -42,6 +42,7 @@ class EnhancedOpenAIService:
     """Enhanced OpenAI service with advanced features"""
 
     def __init__(self):
+    pass
         self.client = AsyncOpenAI(api_key=security_config.OPENAI_API_KEY)
         self.cost_tracker = cost_tracking_service
         self.model = "gpt-4-turbo-preview"

@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 import asyncio
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
@@ -20,7 +21,7 @@ from services.background_workers import (
 
 
 class TestBackgroundWorkerModels:
-    def test_task_to_dict_and_from_dict(self):
+    def test_task_to_dict_and_from_dict(self) -> None:
         now = datetime.utcnow()
         task = Task(
             id="1",
@@ -39,7 +40,7 @@ class TestBackgroundWorkerModels:
         assert t2.status == TaskStatus.PENDING
         assert t2.created_at == now
 
-    def test_scheduled_job_to_dict_and_from_dict(self):
+    def test_scheduled_job_to_dict_and_from_dict(self) -> None:
         now = datetime.utcnow()
         job = ScheduledJob(
             id="j1",
@@ -58,50 +59,50 @@ class TestBackgroundWorkerModels:
 
 
 class TestTaskErrorCategorization:
-    def test_timeout_error(self):
+    def test_timeout_error(self) -> None:
         e = TimeoutError("timeout!")
         err = categorize_task_error(e)
         assert err.type == TaskErrorType.TIMEOUT_ERROR
         assert err.retryable
 
-    def test_rate_limit_error(self):
+    def test_rate_limit_error(self) -> None:
         e = RateLimitError("rate limit!")
         err = categorize_task_error(e)
         assert err.type == TaskErrorType.EXTERNAL_SERVICE_ERROR
 
-    def test_network_error(self):
+    def test_network_error(self) -> None:
         e = ConnectionError("conn fail")
         err = categorize_task_error(e)
         assert err.type == TaskErrorType.NETWORK_ERROR
 
-    def test_validation_error(self):
+    def test_validation_error(self) -> None:
         e = ValueError("validation failed")
         err = categorize_task_error(e)
         assert err.type == TaskErrorType.VALIDATION_ERROR
         assert not err.retryable
 
-    def test_permission_error(self):
+    def test_permission_error(self) -> None:
         e = Exception("permission denied")
         err = categorize_task_error(e)
         assert err.type == TaskErrorType.PERMISSION_ERROR
 
-    def test_resource_error(self):
+    def test_resource_error(self) -> None:
         e = Exception("memory error")
         err = categorize_task_error(e)
         assert err.type == TaskErrorType.RESOURCE_ERROR
 
-    def test_external_service_error(self):
+    def test_external_service_error(self) -> None:
         e = Exception("api error")
         err = categorize_task_error(e)
         assert err.type == TaskErrorType.EXTERNAL_SERVICE_ERROR
 
-    def test_programming_error(self):
+    def test_programming_error(self) -> None:
         e = KeyError("bad key")
         err = categorize_task_error(e)
         assert err.type == TaskErrorType.PROGRAMMING_ERROR
         assert not err.retryable
 
-    def test_unknown_error(self):
+    def test_unknown_error(self) -> None:
         e = Exception("something else")
         err = categorize_task_error(e)
         assert err.type == TaskErrorType.UNKNOWN_ERROR
@@ -109,12 +110,14 @@ class TestTaskErrorCategorization:
 
 class TestBackgroundWorkerCore:
     @pytest.fixture
-    def worker(self):
+    def worker(self) -> None:
         return BackgroundWorker(redis_url="redis://localhost:6379", max_workers=2)
 
     @pytest.mark.asyncio
     async def test_register_and_enqueue_task(self, worker):
+    pass
         async def dummy(*args, **kwargs):
+    pass
             return "ok"
 
         worker.register_task("dummy", dummy)
@@ -126,12 +129,14 @@ class TestBackgroundWorkerCore:
 
     @pytest.mark.asyncio
     async def test_start_and_stop(self, worker):
+    pass
         with patch.object(worker, "redis", new=AsyncMock()):
             await worker.start()
             await worker.stop()
 
     @pytest.mark.asyncio
     async def test_get_task_status_and_cancel(self, worker):
+    pass
         with patch.object(worker, "redis", new=AsyncMock()):
             # Simulate no task found
             status = await worker.get_task_status("notask")
@@ -141,7 +146,9 @@ class TestBackgroundWorkerCore:
 
     @pytest.mark.asyncio
     async def test_worker_process_and_failure(self, worker):
+    pass
         async def fail(*a, **k):
+    pass
             raise ValueError("fail")
 
         worker.register_task("fail", fail)
@@ -155,7 +162,7 @@ class TestBackgroundWorkerCore:
                 processing_time=0.1,
             )
 
-    def test_metrics_and_health(self, worker):
+    def test_metrics_and_health(self, worker) -> None:
         with patch("asyncio.create_task") as mock_create_task:
             m = worker.get_metrics()
             assert "uptime" in m
@@ -171,6 +178,7 @@ class TestBackgroundWorkerCore:
 class TestJobScheduler:
     @pytest.mark.asyncio
     async def test_add_and_remove_job(self):
+    pass
         worker = BackgroundWorker()
         scheduler = JobScheduler(worker)
         with patch.object(scheduler, "jobs", new={}):
@@ -182,6 +190,7 @@ class TestJobScheduler:
 
     @pytest.mark.asyncio
     async def test_scheduler_loop_and_execute_job(self):
+    pass
         worker = BackgroundWorker()
         scheduler = JobScheduler(worker)
         job = ScheduledJob(
@@ -196,6 +205,7 @@ class TestJobScheduler:
             with patch.object(scheduler, "_execute_job", new=AsyncMock()):
                 # Run one iteration of the scheduler loop
                 async def stop_after_one():
+    pass
                     await asyncio.sleep(0.01)
                     scheduler.running = False
 
@@ -204,6 +214,7 @@ class TestJobScheduler:
 
     @pytest.mark.asyncio
     async def test_execute_job(self):
+    pass
         worker = BackgroundWorker()
         scheduler = JobScheduler(worker)
         job = ScheduledJob(
@@ -220,12 +231,12 @@ class TestJobScheduler:
 
 class TestDecorators:
     @patch("services.background_workers.background_worker")
-    def test_background_task_decorator(self, mock_worker):
+    def test_background_task_decorator(self, mock_worker) -> None:
         # Mock the global background_worker instance
         mock_worker.enqueue_task = AsyncMock(return_value="task_id_123")
 
         @background_task(name="test", priority=TaskPriority.HIGH)
-        def f(x):
+        def f(x) -> None:
             return x + 1
 
         assert callable(f)
@@ -236,12 +247,12 @@ class TestDecorators:
         assert result == "task_id_123"  # The task ID, not the function result
 
     @patch("services.background_workers.job_scheduler")
-    def test_scheduled_job_decorator(self, mock_scheduler):
+    def test_scheduled_job_decorator(self, mock_scheduler) -> None:
         # Mock the global job_scheduler instance
         mock_scheduler.add_job = AsyncMock(return_value="job_id_456")
 
         @scheduled_job(cron_expression="* * * * *", name="sched")
-        def f(x):
+        def f(x) -> None:
             return x * 2
 
         assert callable(f)

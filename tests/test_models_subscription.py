@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 from datetime import UTC, datetime
 
 import pytest
@@ -185,6 +186,7 @@ def test_model_config_from_attributes() -> None:
     # Test that models can be created from ORM objects
     class MockORM:
         def __init__(self):
+    pass
             self.id = "test_id"
             self.user_id = "user_1"
             self.stripe_subscription_id = "stripe_sub_1"

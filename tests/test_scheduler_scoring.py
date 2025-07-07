@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 """
 Tests for scheduler scoring functionality.
 """
@@ -10,12 +11,12 @@ from services.scheduler import SimpleScheduler, Task, TimeSlot
 
 
 @pytest.fixture
-def scheduler():
+def scheduler() -> None:
     return SimpleScheduler()
 
 
 @pytest.fixture
-def sample_tasks():
+def sample_tasks() -> None:
     now = datetime.now(UTC)
     return [
         Task(

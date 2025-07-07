@@ -28,6 +28,7 @@ class RateLimiter:
         burst_limit: int = 10,
         window_size: int = 60,
     ):
+    pass
         self.requests_per_minute = requests_per_minute
         self.requests_per_hour = requests_per_hour
         self.burst_limit = burst_limit

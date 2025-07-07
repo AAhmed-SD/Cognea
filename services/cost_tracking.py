@@ -14,6 +14,7 @@ class CostTracker:
     """Track OpenAI API usage and costs"""
 
     def __init__(self):
+    pass
         # OpenAI pricing per 1K tokens (as of 2024)
         self.pricing = {
             "gpt-4-turbo-preview": {
@@ -35,6 +36,7 @@ class CostTracker:
         output_tokens: int,
         total_tokens: int,
     ):
+    pass
         """Track OpenAI API usage and calculate costs"""
 
         try:
@@ -82,6 +84,7 @@ class CostTracker:
         output_tokens: int,
         cost_usd: float,
     ):
+    pass
         """Track API call with detailed information"""
         try:
             total_tokens = input_tokens + output_tokens
@@ -156,6 +159,7 @@ class CostTracker:
             }
 
     def _update_usage_totals(self, user_id: str, cost: float):
+    pass
         """Update daily and monthly usage totals"""
 
         try:
@@ -175,6 +179,7 @@ class CostTracker:
             logger.error(f"Error updating usage totals: {str(e)}")
 
     def _increment_usage_total(self, key: str, cost: float):
+    pass
         """Increment usage total in database"""
 
         try:

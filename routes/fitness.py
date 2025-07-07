@@ -11,6 +11,7 @@ fitness_data_db: dict[int, dict] = {}
 
 @router.post("/connect", summary="Connect to fitness service")
 async def fitness_connect(user_id: int):
+    pass
     fitness_connections_db[user_id] = {
         "connected": True,
         "connected_at": datetime.now().isoformat(),
@@ -24,6 +25,7 @@ async def fitness_connect(user_id: int):
 
 @router.post("/disconnect", summary="Disconnect integration")
 async def fitness_disconnect(user_id: int):
+    pass
     if user_id in fitness_connections_db:
         fitness_connections_db[user_id]["connected"] = False
         fitness_connections_db[user_id]["disconnected_at"] = datetime.now().isoformat()
@@ -39,6 +41,7 @@ async def fitness_disconnect(user_id: int):
 
 @router.get("/data", summary="Fetch recent fitness data")
 async def fitness_data(user_id: int):
+    pass
     # Simulate fitness data
     data = fitness_data_db.get(
         user_id,

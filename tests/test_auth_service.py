@@ -1,4 +1,5 @@
-from unittest.mock import MagicMock, patch
+from typing import Any, Dict, List, Optional
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import jwt
 import pytest
@@ -8,7 +9,7 @@ from services.auth_service import AuthService
 
 
 @pytest.fixture
-def auth_service():
+def auth_service() -> None:
     return AuthService()
 
 

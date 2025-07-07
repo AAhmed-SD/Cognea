@@ -629,6 +629,7 @@ async def get_notion_client(
 
 # Dependency to get AI service
 async def get_ai_service():
+    pass
     """Get OpenAI service."""
     return get_openai_service()
 
@@ -933,6 +934,7 @@ async def queue_notion_sync(
     database_id: str | None,
     last_edited_time: str | None,
 ):
+    pass
     """Queue a Notion sync operation using the rate-limited queue."""
     try:
         # Get user's Notion client
@@ -975,6 +977,7 @@ async def internal_sync(
     database_id: str | None = None,
     last_edited_time: str | None = None,
 ):
+    pass
     """Internal endpoint for processing queued sync operations from webhooks."""
     try:
         # Get user's Notion client
@@ -1086,5 +1089,6 @@ async def authenticate_notion(
 
 @router.get("/webhook/notion/verify", summary="Verify Notion webhook")
 async def verify_notion_webhook(challenge: str):
+    pass
     """Handle Notion webhook verification challenge."""
     return {"challenge": challenge}

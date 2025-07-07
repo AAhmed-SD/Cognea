@@ -1,7 +1,8 @@
+from typing import Any, Dict, List, Optional
 import logging
 import os
 from datetime import timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from services.celery_app import celery_app, setup_loggers
 

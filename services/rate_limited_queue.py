@@ -18,6 +18,7 @@ class RateLimitedQueue:
     """Rate-limited queue for API calls with exponential back-off."""
 
     def __init__(self, service_name: str, rate_limit: int = 3):
+    pass
         """
         Initialize rate-limited queue.
 
@@ -60,6 +61,7 @@ class RateLimitedQueue:
         return future
 
     async def _process_queue(self):
+    pass
         """Process the request queue with rate limiting."""
         while self._running:
             try:
@@ -185,12 +187,14 @@ class RateLimitedQueue:
             raise
 
     async def start(self):
+    pass
         """Start the queue processor."""
         self._running = True
         asyncio.create_task(self._process_queue())
         logger.info(f"Started rate-limited queue for {self.service_name}")
 
     async def stop(self):
+    pass
         """Stop the queue processor."""
         self._running = False
         logger.info(f"Stopped rate-limited queue for {self.service_name}")

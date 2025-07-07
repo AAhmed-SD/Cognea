@@ -31,6 +31,7 @@ class MaxRetriesExceededError(Exception):
     def __init__(
         self, func_name: str, max_retries: int, last_error: Exception | None = None
     ):
+    pass
         self.func_name = func_name
         self.max_retries = max_retries
         self.last_error = last_error
@@ -41,12 +42,14 @@ class RedisClient:
     """Redis client for caching, rate limiting, and token tracking."""
 
     def __init__(self, redis_url: str | None = None):
+    pass
         """Initialize Redis client."""
         self.redis_url = redis_url or "redis://localhost:6379"
         self.client = None
         self._connect()
 
     def _connect(self):
+    pass
         """Connect to Redis."""
         try:
             self.client = redis.from_url(self.redis_url, decode_responses=True)
@@ -68,6 +71,7 @@ class RedisClient:
             return False
 
     async def safe_call(self, key: str, func, *args, max_retries=5, rate=3, **kwargs):
+    pass
         """
         Rate-limited async call queue with exponential back-off on 429 errors.
         Args:
@@ -191,6 +195,7 @@ class RedisClient:
     def track_token_usage(
         self, user_id: str, tokens_used: int, cost_usd: float, model: str
     ):
+    pass
         """Track token usage and cost for a user."""
         if not self.is_connected():
             return
@@ -285,6 +290,7 @@ class RedisClient:
 
     # Caching Methods
     def set_cache(self, key: str, value: Any, expire_seconds: int = 3600):
+    pass
         """Set a cache value."""
         if not self.is_connected():
             return
@@ -310,6 +316,7 @@ class RedisClient:
             return None
 
     def delete_cache(self, key: str):
+    pass
         """Delete a cache value."""
         if not self.is_connected():
             return
@@ -320,6 +327,7 @@ class RedisClient:
             logger.error("Error deleting cache")
 
     def clear_user_cache(self, user_id: str):
+    pass
         """Clear all cache entries for a user."""
         if not self.is_connected():
             return

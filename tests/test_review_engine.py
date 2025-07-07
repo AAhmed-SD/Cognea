@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 from services.review_engine import Flashcard, ReviewEngine
 
 
@@ -81,14 +82,14 @@ class TestReviewEngine:
         result = engine.get_flashcard_confidence("")
         assert result == 0.5  # Currently returns 0.5 (placeholder)
 
-    def test_get_flashcard_confidence_none_id(self):
+    def test_get_flashcard_confidence_none_id(self) -> None:
         """Test get_flashcard_confidence with None ID"""
         engine = ReviewEngine("test_user_123")
 
         result = engine.get_flashcard_confidence(None)
         assert result is None  # Currently returns None (placeholder)
 
-    def test_multiple_instances(self):
+    def test_multiple_instances(self) -> None:
         """Test that multiple ReviewEngine instances work independently"""
         engine1 = ReviewEngine("user1")
         engine2 = ReviewEngine("user2")
@@ -97,7 +98,7 @@ class TestReviewEngine:
         assert engine2.user_id == "user2"
         assert engine1.user_id != engine2.user_id
 
-    def test_review_engine_repr(self):
+    def test_review_engine_repr(self) -> None:
         """Test string representation of ReviewEngine"""
         engine = ReviewEngine("test_user_123")
         # Should not raise any exception when converting to string
@@ -108,7 +109,7 @@ class TestReviewEngine:
 class TestReviewEngineIntegration:
     """Test ReviewEngine integration scenarios"""
 
-    def test_full_review_workflow(self):
+    def test_full_review_workflow(self) -> None:
         """Test a complete review workflow"""
         engine = ReviewEngine("test_user_123")
         flashcard_id = "flashcard_123"
@@ -124,7 +125,7 @@ class TestReviewEngineIntegration:
         confidence = engine.get_flashcard_confidence(flashcard_id)
         assert confidence is None  # Currently None (placeholder)
 
-    def test_review_engine_with_different_user_ids(self):
+    def test_review_engine_with_different_user_ids(self) -> None:
         """Test ReviewEngine with various user ID formats"""
         user_ids = [
             "user123",

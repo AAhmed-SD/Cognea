@@ -1,3 +1,4 @@
+from typing import Any, Dict, List, Optional
 """
 Comprehensive tests for all model modules.
 Aims to achieve >90% coverage across all models.
@@ -27,7 +28,7 @@ from models.user import User, UserCreate
 class TestUserModels:
     """Test user-related models."""
 
-    def test_user_create_valid(self):
+    def test_user_create_valid(self) -> None:
         """Test valid user creation."""
         user_data = {"email": "test@example.com", "password": "securepassword123"}
 
@@ -36,7 +37,7 @@ class TestUserModels:
         assert user.email == "test@example.com"
         assert user.password == "securepassword123"
 
-    def test_user_create_invalid_email(self):
+    def test_user_create_invalid_email(self) -> None:
         """Test user creation with invalid email."""
         user_data = {
             "email": "invalid-email",
@@ -47,7 +48,7 @@ class TestUserModels:
         with pytest.raises(ValidationError):
             UserCreate(**user_data)
 
-    def test_user_create_short_password(self):
+    def test_user_create_short_password(self) -> None:
         """Test user creation with short password."""
         user_data = {
             "email": "test@example.com",
@@ -58,7 +59,7 @@ class TestUserModels:
         with pytest.raises(ValidationError):
             UserCreate(**user_data)
 
-    def test_user_login_valid(self):
+    def test_user_login_valid(self) -> None:
         """Test valid user login."""
         login_data = {"email": "test@example.com", "password": "securepassword123"}
 
@@ -67,7 +68,7 @@ class TestUserModels:
         assert login.email == "test@example.com"
         assert login.password == "securepassword123"
 
-    def test_user_update_valid(self):
+    def test_user_update_valid(self) -> None:
         """Test valid user update."""
         update_data = {"email": "updated@example.com", "role": "premium_user"}
 
@@ -76,7 +77,7 @@ class TestUserModels:
         assert update.email == "updated@example.com"
         assert update.role == "premium_user"
 
-    def test_user_update_partial(self):
+    def test_user_update_partial(self) -> None:
         """Test partial user update."""
         update_data = {"email": "updated@example.com"}
 
@@ -85,7 +86,7 @@ class TestUserModels:
         assert update.email == "updated@example.com"
         assert update.role is None
 
-    def test_user_model_valid(self):
+    def test_user_model_valid(self) -> None:
         """Test valid user model."""
         user_data = {
             "id": str(uuid4()),
@@ -97,7 +98,7 @@ class TestUserModels:
         user = User(**user_data)
         assert user.email == "test@example.com"
 
-    def test_user_model_serialization(self):
+    def test_user_model_serialization(self) -> None:
         """Test user model serialization."""
         user_data = {
             "id": str(uuid4()),
@@ -114,7 +115,7 @@ class TestUserModels:
 class TestTaskModels:
     """Test task-related models."""
 
-    def test_task_create_valid(self):
+    def test_task_create_valid(self) -> None:
         """Test valid task creation."""
         task_data = {
             "title": "Test Task",
@@ -127,14 +128,14 @@ class TestTaskModels:
         task = TaskCreate(**task_data)
         assert task.title == "Test Task"
 
-    def test_task_create_minimal(self):
+    def test_task_create_minimal(self) -> None:
         """Test minimal task creation."""
         task_data = {"title": "Test Task", "user_id": uuid4()}
 
         task = TaskCreate(**task_data)
         assert task.title == "Test Task"
 
-    def test_task_create_invalid_priority(self):
+    def test_task_create_invalid_priority(self) -> None:
         """Test task creation with invalid priority."""
         task_data = {
             "title": "Test Task",
@@ -145,7 +146,7 @@ class TestTaskModels:
         with pytest.raises(ValidationError):
             TaskCreate(**task_data)
 
-    def test_task_update_valid(self):
+    def test_task_update_valid(self) -> None:
         """Test valid task update."""
         update_data = {
             "title": "Updated Task",
@@ -159,7 +160,7 @@ class TestTaskModels:
         assert update.status == TaskStatus.COMPLETED
         assert update.priority == PriorityLevel.HIGH
 
-    def test_task_model_valid(self):
+    def test_task_model_valid(self) -> None:
         """Test valid task model."""
         task_data = {
             "id": str(uuid4()),
@@ -175,14 +176,14 @@ class TestTaskModels:
         task = Task(**task_data)
         assert task.title == "Test Task"
 
-    def test_task_status_enum(self):
+    def test_task_status_enum(self) -> None:
         """Test task status enum values."""
         assert TaskStatus.PENDING.value == "pending"
         assert TaskStatus.IN_PROGRESS.value == "in_progress"
         assert TaskStatus.COMPLETED.value == "completed"
         assert TaskStatus.CANCELLED.value == "cancelled"
 
-    def test_priority_level_enum(self):
+    def test_priority_level_enum(self) -> None:
         """Test priority level enum values."""
         assert PriorityLevel.LOW.value == "low"
         assert PriorityLevel.MEDIUM.value == "medium"
@@ -193,7 +194,7 @@ class TestTaskModels:
 class TestGoalModels:
     """Test goal-related models."""
 
-    def test_goal_create_valid(self):
+    def test_goal_create_valid(self) -> None:
         """Test valid goal creation."""
         goal_data = {
             "title": "Test Goal",
@@ -206,21 +207,21 @@ class TestGoalModels:
         goal = GoalCreate(**goal_data)
         assert goal.title == "Test Goal"
 
-    def test_goal_create_minimal(self):
+    def test_goal_create_minimal(self) -> None:
         """Test minimal goal creation."""
         goal_data = {"title": "Test Goal", "user_id": uuid4()}
 
         goal = GoalCreate(**goal_data)
         assert goal.title == "Test Goal"
 
-    def test_goal_update_valid(self):
+    def test_goal_update_valid(self) -> None:
         """Test valid goal update."""
         update_data = {"title": "Updated Goal", "progress": 50}
 
         update = GoalUpdate(**update_data)
         assert update.title == "Updated Goal"
 
-    def test_goal_model_valid(self):
+    def test_goal_model_valid(self) -> None:
         """Test valid goal model."""
         goal_data = {
             "id": str(uuid4()),
@@ -235,7 +236,7 @@ class TestGoalModels:
         goal = Goal(**goal_data)
         assert goal.title == "Test Goal"
 
-    def test_goal_status_enum(self):
+    def test_goal_status_enum(self) -> None:
         """Test goal status values."""
         # Goals use string status, not enum
         assert "Not Started" == "Not Started"
@@ -252,7 +253,7 @@ class TestGoalModels:
 class TestScheduleBlockModels:
     """Test schedule block models."""
 
-    def test_schedule_block_create_valid(self):
+    def test_schedule_block_create_valid(self) -> None:
         """Test valid schedule block creation."""
         block_data = {
             "title": "Work Session",
@@ -266,7 +267,7 @@ class TestScheduleBlockModels:
         block = ScheduleBlockCreate(**block_data)
         assert block.title == "Work Session"
 
-    def test_schedule_block_create_minimal(self):
+    def test_schedule_block_create_minimal(self) -> None:
         """Test minimal schedule block creation."""
         block_data = {
             "title": "Work Session",
@@ -278,7 +279,7 @@ class TestScheduleBlockModels:
         block = ScheduleBlockCreate(**block_data)
         assert block.title == "Work Session"
 
-    def test_schedule_block_update_valid(self):
+    def test_schedule_block_update_valid(self) -> None:
         """Test valid schedule block update."""
         update_data = {"title": "Updated Session", "description": "Updated description"}
 
@@ -287,7 +288,7 @@ class TestScheduleBlockModels:
         assert update.title == "Updated Session"
         assert update.description == "Updated description"
 
-    def test_schedule_block_model_valid(self):
+    def test_schedule_block_model_valid(self) -> None:
         """Test valid schedule block model."""
         block_data = {
             "id": str(uuid4()),
@@ -307,7 +308,7 @@ class TestScheduleBlockModels:
 class TestNotificationModels:
     """Test notification models."""
 
-    def test_notification_create_valid(self):
+    def test_notification_create_valid(self) -> None:
         """Test valid notification creation."""
         notification_data = {
             "user_id": uuid4(),
@@ -320,7 +321,7 @@ class TestNotificationModels:
         notification = NotificationCreate(**notification_data)
         assert notification.title == "Task Reminder"
 
-    def test_notification_create_minimal(self):
+    def test_notification_create_minimal(self) -> None:
         """Test minimal notification creation."""
         notification_data = {
             "user_id": uuid4(),
@@ -332,7 +333,7 @@ class TestNotificationModels:
         notification = NotificationCreate(**notification_data)
         assert notification.title == "Test Notification"
 
-    def test_notification_model_valid(self):
+    def test_notification_model_valid(self) -> None:
         """Test valid notification model."""
         notification_data = {
             "id": str(uuid4()),
@@ -349,7 +350,7 @@ class TestNotificationModels:
         notification = Notification(**notification_data)
         assert notification.title == "Test Notification"
 
-    def test_notification_type_enum(self):
+    def test_notification_type_enum(self) -> None:
         """Test notification type enum values."""
         assert NotificationType.REMINDER.value == "reminder"
         assert NotificationType.ALERT.value == "alert"
@@ -359,7 +360,7 @@ class TestNotificationModels:
 class TestSubscriptionModels:
     """Test subscription models."""
 
-    def test_subscription_create_valid(self):
+    def test_subscription_create_valid(self) -> None:
         """Test valid subscription creation."""
         subscription_data = {
             "price_id": "price_123456",
@@ -370,7 +371,7 @@ class TestSubscriptionModels:
         subscription = SubscriptionCreate(**subscription_data)
         assert subscription.price_id == "price_123456"
 
-    def test_subscription_model_valid(self):
+    def test_subscription_model_valid(self) -> None:
         """Test valid subscription model."""
         subscription_data = {
             "id": str(uuid4()),
@@ -387,7 +388,7 @@ class TestSubscriptionModels:
         subscription = Subscription(**subscription_data)
         assert subscription.stripe_subscription_id == "sub_123"
 
-    def test_subscription_status_enum(self):
+    def test_subscription_status_enum(self) -> None:
         """Test subscription status enum values."""
         assert SubscriptionStatus.ACTIVE.value == "active"
         assert SubscriptionStatus.CANCELED.value == "canceled"
@@ -397,7 +398,7 @@ class TestSubscriptionModels:
 class TestTextModels:
     """Test text generation models."""
 
-    def test_text_generation_request_valid(self):
+    def test_text_generation_request_valid(self) -> None:
         """Test valid text generation request."""
         request_data = {
             "prompt": "Write a story about a cat",
@@ -413,7 +414,7 @@ class TestTextModels:
         assert request.temperature == 0.7
         assert request.model == "gpt-4"
 
-    def test_text_generation_request_defaults(self):
+    def test_text_generation_request_defaults(self) -> None:
         """Test text generation request with defaults."""
         request_data = {"prompt": "Write a story"}
 
@@ -422,7 +423,7 @@ class TestTextModels:
         assert request.prompt == "Write a story"
         assert request.max_tokens == 500  # Use actual default value
 
-    def test_text_generation_response_valid(self):
+    def test_text_generation_response_valid(self) -> None:
         """Test valid text generation response."""
         response_data = {
             "generated_text": "Once upon a time, there was a cat...",
@@ -438,7 +439,7 @@ class TestTextModels:
 class TestModelEdgeCases:
     """Edge case tests for models."""
 
-    def test_user_empty_name(self):
+    def test_user_empty_name(self) -> None:
         """Test user with empty name."""
         user_data = {
             "id": uuid4(),
@@ -451,7 +452,7 @@ class TestModelEdgeCases:
         user = User(**user_data)
         assert user.email == "test@example.com"
 
-    def test_task_long_title(self):
+    def test_task_long_title(self) -> None:
         """Test task with very long title."""
         task_data = {"title": "A" * 1000, "user_id": uuid4()}  # Very long title
 
@@ -459,11 +460,12 @@ class TestModelEdgeCases:
             TaskCreate(**task_data)
 
     # def test_mood_negative_score(self):
+    pass
     #     """Test mood with negative score."""
     #     # Mood models not implemented yet
     #     pass
 
-    def test_schedule_block_invalid_times(self):
+    def test_schedule_block_invalid_times(self) -> None:
         """Test schedule block with end time before start time."""
         block_data = {
             "title": "Test Block",
@@ -477,14 +479,14 @@ class TestModelEdgeCases:
         assert block.title == "Test Block"
         assert block.start_time > block.end_time  # Verify the invalid condition
 
-    def test_text_generation_high_temperature(self):
+    def test_text_generation_high_temperature(self) -> None:
         """Test text generation with very high temperature."""
         request_data = {"prompt": "Test prompt", "temperature": 1.0}  # Use valid range
 
         request = TextGenerationRequest(**request_data)
         assert request.temperature == 1.0
 
-    def test_text_generation_negative_tokens(self):
+    def test_text_generation_negative_tokens(self) -> None:
         """Test text generation with negative max tokens."""
         request_data = {
             "prompt": "Test prompt",
@@ -499,7 +501,7 @@ class TestModelEdgeCases:
 class TestModelSerialization:
     """Serialization tests for models."""
 
-    def test_user_serialization(self):
+    def test_user_serialization(self) -> None:
         """Test user model serialization."""
         user_data = {
             "id": str(uuid4()),
@@ -512,7 +514,7 @@ class TestModelSerialization:
         user_dict = user.model_dump()
         assert user_dict["email"] == "test@example.com"
 
-    def test_task_serialization(self):
+    def test_task_serialization(self) -> None:
         """Test task model serialization."""
         task_data = {
             "id": uuid4(),
@@ -533,7 +535,7 @@ class TestModelSerialization:
         assert "status" in task_dict
         assert "priority" in task_dict
 
-    def test_goal_serialization(self):
+    def test_goal_serialization(self) -> None:
         """Test goal model serialization."""
         goal_data = {
             "id": uuid4(),
@@ -555,6 +557,7 @@ class TestModelSerialization:
         assert "progress" in goal_dict
 
     # def test_mood_serialization(self):
+    pass
     #     """Test mood model serialization."""
     #     # Mood models not implemented yet
     #     pass
@@ -564,7 +567,7 @@ class TestModelSerialization:
 class TestModelJSONSerialization:
     """JSON serialization tests for models."""
 
-    def test_user_json_serialization(self):
+    def test_user_json_serialization(self) -> None:
         """Test user model JSON serialization."""
         user_data = {
             "id": uuid4(),
@@ -581,7 +584,7 @@ class TestModelJSONSerialization:
         assert "id" in user_dict
         assert "email" in user_dict
 
-    def test_task_json_serialization(self):
+    def test_task_json_serialization(self) -> None:
         """Test task model JSON serialization."""
         task_data = {
             "id": uuid4(),
@@ -602,7 +605,7 @@ class TestModelJSONSerialization:
         assert "id" in task_dict
         assert "title" in task_dict
 
-    def test_goal_json_serialization(self):
+    def test_goal_json_serialization(self) -> None:
         """Test goal model JSON serialization."""
         goal_data = {
             "id": uuid4(),

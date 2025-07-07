@@ -12,7 +12,7 @@ from services.supabase import get_supabase_client
 load_dotenv()
 
 
-def test_basic_connectivity():
+def test_basic_connectivity() -> None:
     """Test basic Supabase connectivity."""
     print("🧪 Testing Basic Database Connectivity")
     print("=" * 40)

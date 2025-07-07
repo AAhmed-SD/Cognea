@@ -42,6 +42,7 @@ class HabitLog(BaseModel):
 
 @router.post("/", response_model=Habit, summary="Create a new habit/routine")
 async def create_habit(habit: HabitCreate):
+    pass
     supabase = get_supabase_client()
     result = supabase.table("habits").insert(habit.dict()).execute()
     if not result.data:
@@ -53,6 +54,7 @@ async def create_habit(habit: HabitCreate):
     "/{user_id}", response_model=list[Habit], summary="List all habits for a user"
 )
 async def list_habits(user_id: str):
+    pass
     supabase = get_supabase_client()
     result = supabase.table("habits").select("*").eq("user_id", user_id).execute()
     return result.data
@@ -60,6 +62,7 @@ async def list_habits(user_id: str):
 
 @router.put("/{habit_id}", response_model=Habit, summary="Update a habit")
 async def update_habit(habit_id: str, habit: HabitCreate):
+    pass
     supabase = get_supabase_client()
     result = supabase.table("habits").update(habit.dict()).eq("id", habit_id).execute()
     if not result.data:
@@ -69,6 +72,7 @@ async def update_habit(habit_id: str, habit: HabitCreate):
 
 @router.delete("/{habit_id}", summary="Delete a habit")
 async def delete_habit(habit_id: str):
+    pass
     supabase = get_supabase_client()
     supabase.table("habits").delete().eq("id", habit_id).execute()
     return {"message": f"Habit {habit_id} deleted"}
@@ -81,6 +85,7 @@ async def log_habit(
     mood_before: str | None = None,
     notes: str | None = None,
 ):
+    pass
     supabase = get_supabase_client()
     log_data = {
         "habit_id": habit_id,
@@ -97,6 +102,7 @@ async def log_habit(
 
 @router.get("/streaks/{user_id}", summary="View active and historical streaks")
 async def habit_streaks(user_id: str):
+    pass
     supabase = get_supabase_client()
     # Get all habit logs for user
     logs = (
@@ -131,6 +137,7 @@ async def habit_streaks(user_id: str):
 
 @router.get("/calendar/{user_id}", summary="Return heatmap view of completions")
 async def habit_calendar(user_id: str):
+    pass
     supabase = get_supabase_client()
     logs = (
         supabase.table("habit_logs")
@@ -147,5 +154,6 @@ async def habit_calendar(user_id: str):
 
 @router.post("/suggest", summary="AI suggestion for new habits based on user behavior")
 async def habit_suggest(user_id: str):
+    pass
     # Placeholder AI logic
     return {"suggestion": f"User {user_id}, try a 10-minute walk after lunch."}

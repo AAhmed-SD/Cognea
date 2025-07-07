@@ -56,6 +56,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    pass
     """
     Application lifespan manager for Cognie AI Personal Assistant.
 
@@ -111,7 +112,7 @@ async def lifespan(app: FastAPI):
 
         # Set up alert handler for performance notifications
         # Logs alerts and can be extended to send notifications
-        def alert_handler(alert):
+        def alert_handler(alert) -> None:
             logger.warning(
                 f"Performance Alert: {alert.severity.upper()} - {alert.message}"
             )
@@ -164,7 +165,7 @@ app = FastAPI(
 )
 
 
-def create_app():
+def create_app() -> None:
     """Create and return the FastAPI application instance for testing."""
     return app
 
@@ -189,6 +190,7 @@ setup_rate_limiting(app)
 # Performance monitoring middleware
 @app.middleware("http")
 async def performance_middleware(request: Request, call_next):
+    pass
     """
     Middleware to monitor request performance and add performance headers.
 
@@ -232,6 +234,7 @@ async def performance_middleware(request: Request, call_next):
 # Health check endpoint
 @app.get("/health")
 async def health_check():
+    pass
     """
     Health check endpoint for monitoring system status.
 
@@ -305,6 +308,7 @@ async def health_check():
 # Metrics endpoint
 @app.get("/metrics")
 async def get_metrics():
+    pass
     """Get performance metrics"""
     try:
         # Get recent metrics
@@ -334,6 +338,7 @@ async def get_metrics():
 # Alerts endpoint
 @app.get("/alerts")
 async def get_alerts(resolved: bool = None, limit: int = 50):
+    pass
     """Get performance alerts"""
     try:
         alerts = await get_performance_monitor().get_alerts(resolved=resolved, limit=limit)
@@ -346,6 +351,7 @@ async def get_alerts(resolved: bool = None, limit: int = 50):
 # Cache management endpoints
 @app.get("/cache/stats")
 async def get_cache_stats():
+    pass
     """Get cache statistics"""
     try:
         return enhanced_cache.get_metrics()
@@ -356,6 +362,7 @@ async def get_cache_stats():
 
 @app.post("/cache/clear")
 async def clear_cache(pattern: str = "*"):
+    pass
     """Clear cache entries"""
     try:
         deleted = await enhanced_cache.clear_pattern(pattern)
@@ -368,6 +375,7 @@ async def clear_cache(pattern: str = "*"):
 # Background task management endpoints
 @app.get("/tasks/status/{task_id}")
 async def get_task_status(task_id: str):
+    pass
     """Get background task status"""
     try:
         task = await background_worker.get_task_status(task_id)
@@ -381,6 +389,7 @@ async def get_task_status(task_id: str):
 
 @app.post("/tasks/cancel/{task_id}")
 async def cancel_task(task_id: str):
+    pass
     """Cancel a background task"""
     try:
         cancelled = await background_worker.cancel_task(task_id)
@@ -418,6 +427,7 @@ app.include_router(fitness.router, prefix="/api/fitness", tags=["Fitness"])
 # Root endpoint
 @app.get("/")
 async def root():
+    pass
     """Root endpoint with API information"""
     return {
         "message": "Cognie AI Personal Assistant API",

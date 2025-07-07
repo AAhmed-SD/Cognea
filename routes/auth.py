@@ -35,6 +35,7 @@ class ResetPasswordRequest(BaseModel):
 
 @router.post("/signup", response_model=dict[str, Any])
 def signup(request: UserCreate):
+    pass
     """Register a new user using Supabase Auth"""
     supabase = get_supabase_client()  # noqa: F841
 
@@ -77,6 +78,7 @@ def signup(request: UserCreate):
 
 @router.post("/login", response_model=dict)
 def login(request: UserLogin):
+    pass
     """Login user using Supabase Auth"""
     supabase = get_supabase_client()
 
@@ -157,6 +159,7 @@ def get_current_user_info(current_user=Depends(get_current_user)):
 
 @router.post("/forgot-password", response_model=dict)
 def forgot_password(request: ForgotPasswordRequest):
+    pass
     """Send password reset email using Supabase Auth"""
     supabase = get_supabase_client()
 
@@ -175,6 +178,7 @@ def forgot_password(request: ForgotPasswordRequest):
 
 @router.post("/reset-password", response_model=dict)
 def reset_password(request: ResetPasswordRequest):
+    pass
     """Reset password using Supabase Auth"""
     supabase = get_supabase_client()  # noqa: F841
 

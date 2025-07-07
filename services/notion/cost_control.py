@@ -19,6 +19,7 @@ class CostControlService:
     """Cost control service for flashcard generation."""
 
     def __init__(self):
+    pass
         self.supabase = get_supabase_client()
         self.max_chunk_tokens = 1500
         self.cache_ttl_hours = 24  # Cache for 24 hours
@@ -156,6 +157,7 @@ class CostControlService:
             return None
 
     async def cache_flashcards(self, cache_key: str, flashcards: list[dict]):
+    pass
         """Cache flashcards for future use."""
         try:
             cache_data = {
@@ -212,6 +214,7 @@ class CostControlService:
         }
 
     async def save_flashcards_to_cache(self, cache_key: str, flashcards: list[dict]):
+    pass
         """Save generated flashcards to cache."""
         await self.cache_flashcards(cache_key, flashcards)
 

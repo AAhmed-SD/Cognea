@@ -60,6 +60,7 @@ class NotionSyncManager:
     def __init__(
         self, notion_client: NotionClient, flashcard_generator: NotionFlashcardGenerator
     ):
+    pass
         """Initialize the sync manager."""
         self.notion_client = notion_client
         self.flashcard_generator = flashcard_generator
@@ -308,6 +309,7 @@ class NotionSyncManager:
         return "\n".join(merged_lines)
 
     async def _update_flashcard_content(self, flashcard_id: str, new_content: str):
+    pass
         """Update flashcard content in database."""
         self.supabase.table("flashcards").update(
             {
@@ -381,6 +383,7 @@ class NotionSyncManager:
     async def _schedule_retry(
         self, user_id: str, notion_page_id: str, sync_direction: str
     ):
+    pass
         """Schedule a retry for failed sync."""
         try:
             # Add to retry queue with exponential backoff
@@ -639,6 +642,7 @@ class NotionSyncManager:
         return "\n".join(content_lines)
 
     async def _save_sync_status(self, sync_status: SyncStatus):
+    pass
         """Save sync status to database."""
         try:
             sync_data = {

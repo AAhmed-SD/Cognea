@@ -1,8 +1,9 @@
+from typing import Any, Dict, List, Optional
 """
 Basic tests for route modules to achieve coverage.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -11,24 +12,24 @@ from main import create_app
 
 
 @pytest.fixture
-def app():
+def app() -> None:
     return create_app()
 
 
 @pytest.fixture
-def client(app):
+def client(app) -> None:
     return TestClient(app)
 
 
 @pytest.fixture
-def mock_user():
+def mock_user() -> None:
     return {"id": "user-123", "email": "test@example.com", "name": "Test User"}
 
 
 class TestAIRoutes:
     """Test AI routes."""
 
-    def test_plan_day_success(self, client, mock_user):
+    def test_plan_day_success(self, client, mock_user) -> None:
         """Test successful daily plan generation."""
         with patch("routes.ai.get_current_user", return_value=mock_user):
             with patch(
@@ -61,7 +62,7 @@ class TestAIRoutes:
                     data = response.json()
                     assert data["success"] is True
 
-    def test_plan_day_budget_exceeded(self, client, mock_user):
+    def test_plan_day_budget_exceeded(self, client, mock_user) -> None:
         """Test daily plan with budget exceeded."""
         with patch("routes.ai.get_current_user", return_value=mock_user):
             with patch(
@@ -82,7 +83,7 @@ class TestAIRoutes:
 
                 assert response.status_code == 429
 
-    def test_generate_flashcards_success(self, client, mock_user):
+    def test_generate_flashcards_success(self, client, mock_user) -> None:
         """Test successful flashcard generation."""
         with patch("routes.ai.get_current_user", return_value=mock_user):
             with patch(
@@ -117,7 +118,7 @@ class TestAIRoutes:
 class TestAuthRoutes:
     """Test authentication routes."""
 
-    def test_register_success(self, client):
+    def test_register_success(self, client) -> None:
         """Test successful user registration."""
         with patch("services.auth_service.AuthService.register_user") as mock_register:
             mock_register.return_value = {
@@ -139,7 +140,7 @@ class TestAuthRoutes:
             data = response.json()
             assert "access_token" in data
 
-    def test_login_success(self, client):
+    def test_login_success(self, client) -> None:
         """Test successful user login."""
         with patch("services.auth_service.AuthService.authenticate_user") as mock_auth:
             mock_auth.return_value = {
@@ -161,7 +162,7 @@ class TestAuthRoutes:
 class TestTasksRoutes:
     """Test tasks routes."""
 
-    def test_create_task_success(self, client, mock_user):
+    def test_create_task_success(self, client, mock_user) -> None:
         """Test successful task creation."""
         with patch("routes.tasks.get_current_user", return_value=mock_user):
             with patch("services.supabase.get_supabase_client") as mock_supabase:
@@ -193,7 +194,7 @@ class TestTasksRoutes:
                 data = response.json()
                 assert data["title"] == "Test Task"
 
-    def test_get_tasks_success(self, client, mock_user):
+    def test_get_tasks_success(self, client, mock_user) -> None:
         """Test successful tasks retrieval."""
         with patch("routes.tasks.get_current_user", return_value=mock_user):
             with patch("services.supabase.get_supabase_client") as mock_supabase:
@@ -220,7 +221,7 @@ class TestTasksRoutes:
 class TestMoodRoutes:
     """Test mood tracking routes."""
 
-    def test_track_mood_success(self, client, mock_user):
+    def test_track_mood_success(self, client, mock_user) -> None:
         """Test successful mood tracking."""
         with patch("routes.mood.get_current_user", return_value=mock_user):
             with patch("services.supabase.get_supabase_client") as mock_supabase:
@@ -252,7 +253,7 @@ class TestMoodRoutes:
 class TestGenerateRoutes:
     """Test content generation routes."""
 
-    def test_generate_daily_brief_success(self, client, mock_user):
+    def test_generate_daily_brief_success(self, client, mock_user) -> None:
         """Test successful daily brief generation."""
         with patch("routes.generate.get_current_user", return_value=mock_user):
             with patch(
@@ -268,7 +269,7 @@ class TestGenerateRoutes:
                 data = response.json()
                 assert "message" in data
 
-    def test_extract_tasks_from_text_success(self, client, mock_user):
+    def test_extract_tasks_from_text_success(self, client, mock_user) -> None:
         """Test successful task extraction from text."""
         with patch("routes.generate.get_current_user", return_value=mock_user):
             with patch(
@@ -294,7 +295,7 @@ class TestGenerateRoutes:
 class TestNotionRoutes:
     """Test Notion integration routes."""
 
-    def test_get_notion_auth_url_success(self, client, mock_user):
+    def test_get_notion_auth_url_success(self, client, mock_user) -> None:
         """Test successful Notion auth URL generation."""
         with patch("routes.notion.get_current_user", return_value=mock_user):
             with patch.dict("os.environ", {"NOTION_CLIENT_ID": "test-client-id"}):
@@ -305,7 +306,7 @@ class TestNotionRoutes:
                 assert "auth_url" in data
                 assert "state" in data
 
-    def test_list_notion_databases_success(self, client, mock_user):
+    def test_list_notion_databases_success(self, client, mock_user) -> None:
         """Test successful Notion databases listing."""
         with patch("routes.notion.get_current_user", return_value=mock_user):
             with patch("services.notion.NotionClient") as mock_notion_client:
@@ -327,7 +328,7 @@ class TestNotionRoutes:
 class TestRouteErrorHandling:
     """Error handling tests for routes."""
 
-    def test_ai_route_openai_error(self, client, mock_user):
+    def test_ai_route_openai_error(self, client, mock_user) -> None:
         """Test AI route with OpenAI error."""
         with patch("routes.ai.get_current_user", return_value=mock_user):
             with patch(
@@ -353,7 +354,7 @@ class TestRouteErrorHandling:
 
                     assert response.status_code == 500
 
-    def test_auth_route_database_error(self, client):
+    def test_auth_route_database_error(self, client) -> None:
         """Test auth route with database error."""
         with patch("services.auth_service.AuthService.register_user") as mock_register:
             mock_register.side_effect = Exception("Database error")
@@ -369,7 +370,7 @@ class TestRouteErrorHandling:
 
             assert response.status_code == 500
 
-    def test_tasks_route_supabase_error(self, client, mock_user):
+    def test_tasks_route_supabase_error(self, client, mock_user) -> None:
         """Test tasks route with Supabase error."""
         with patch("routes.tasks.get_current_user", return_value=mock_user):
             with patch("services.supabase.get_supabase_client") as mock_supabase:

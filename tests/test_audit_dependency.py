@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import Request
@@ -9,6 +9,7 @@ from services.audit_dependency import AuditLogger
 
 @pytest.mark.asyncio
 async def test_audit_logger_calls_log_audit_from_request():
+    pass
     mock_request = MagicMock(spec=Request)
     action = AuditAction.CREATE
     resource = "test_resource"
@@ -30,6 +31,7 @@ async def test_audit_logger_calls_log_audit_from_request():
 
 @pytest.mark.asyncio
 async def test_audit_logger_with_minimal_args():
+    pass
     mock_request = MagicMock(spec=Request)
     action = AuditAction.UPDATE
     resource = "thing"
@@ -49,6 +51,7 @@ async def test_audit_logger_with_minimal_args():
 
 @pytest.mark.asyncio
 async def test_audit_logger_with_partial_args():
+    pass
     mock_request = MagicMock(spec=Request)
     action = AuditAction.DELETE
     resource = "item"

@@ -7,6 +7,7 @@ from services.audit import AuditAction, log_audit_from_request
 
 class AuditLogger:
     def __init__(self, action: AuditAction, resource: str):
+    pass
         self.action = action
         self.resource = resource
 
@@ -17,6 +18,7 @@ class AuditLogger:
         resource_id: str | None = None,
         details: dict[str, Any] | None = None,
     ):
+    pass
         log_audit_from_request(
             request=request,
             user_id=user_id,

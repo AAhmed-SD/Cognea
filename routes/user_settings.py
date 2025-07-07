@@ -17,6 +17,7 @@ class UserSettings(BaseModel):
 
 @router.get("/", response_model=UserSettings, summary="Retrieve all preferences")
 async def get_user_settings(user_id: int, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=str(user_id),
@@ -42,6 +43,7 @@ async def get_user_settings(user_id: int, request: Request):
     summary="Update focus hours, energy curve, enabled modules, default views",
 )
 async def update_user_settings(settings: UserSettings, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=str(settings.user_id),
@@ -80,6 +82,7 @@ async def update_user_settings(settings: UserSettings, request: Request):
 
 @router.get("/features", summary="Get toggles: flashcards, habits, etc.")
 async def get_feature_toggles(user_id: int, request: Request):
+    pass
     log_audit_from_request(
         request=request,
         user_id=str(user_id),

@@ -23,6 +23,7 @@ class StripeService:
     """Service class for Stripe operations."""
 
     def __init__(self):
+    pass
         self.supabase = get_supabase_client()
         self.redis_client = get_redis_client()
 
@@ -161,6 +162,7 @@ class StripeService:
             raise
 
     async def process_webhook_event(self, event: stripe.Event):
+    pass
         """Process Stripe webhook events."""
         try:
             event_type = event.type
@@ -185,6 +187,7 @@ class StripeService:
             raise
 
     async def _handle_checkout_completed(self, session: stripe.checkout.Session):
+    pass
         """Handle checkout session completion."""
         try:
             user_id = session.metadata.get("user_id")
@@ -210,6 +213,7 @@ class StripeService:
             raise
 
     async def _handle_subscription_created(self, subscription: stripe.Subscription):
+    pass
         """Handle subscription creation."""
         try:
             customer_id = subscription.customer
@@ -243,6 +247,7 @@ class StripeService:
             raise
 
     async def _handle_subscription_updated(self, subscription: stripe.Subscription):
+    pass
         """Handle subscription updates."""
         try:
             # Update subscription status
@@ -260,6 +265,7 @@ class StripeService:
             raise
 
     async def _handle_subscription_deleted(self, subscription: stripe.Subscription):
+    pass
         """Handle subscription deletion."""
         try:
             # Update subscription status
@@ -277,6 +283,7 @@ class StripeService:
             raise
 
     async def _handle_payment_succeeded(self, invoice: stripe.Invoice):
+    pass
         """Handle successful payment."""
         try:
             subscription_id = invoice.subscription
@@ -296,6 +303,7 @@ class StripeService:
             raise
 
     async def _handle_payment_failed(self, invoice: stripe.Invoice):
+    pass
         """Handle failed payment."""
         try:
             subscription_id = invoice.subscription

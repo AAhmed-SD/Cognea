@@ -1,4 +1,5 @@
-from unittest.mock import MagicMock, patch
+from typing import Any, Dict, List, Optional
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from supabase import Client
@@ -17,13 +18,13 @@ from services.supabase import (
 class TestSupabaseConfiguration:
     """Test Supabase configuration and constants"""
 
-    def test_supabase_constants_exist(self):
+    def test_supabase_constants_exist(self) -> None:
         """Test that Supabase constants are defined"""
         assert SUPABASE_URL is not None
         assert SUPABASE_ANON_KEY is not None
         # SUPABASE_SERVICE_ROLE_KEY might be None in some environments
 
-    def test_supabase_client_exists(self):
+    def test_supabase_client_exists(self) -> None:
         """Test that supabase_client is created"""
         assert supabase_client is not None
         assert isinstance(supabase_client, Client)
@@ -32,7 +33,7 @@ class TestSupabaseConfiguration:
 class TestGetSupabaseClient:
     """Test get_supabase_client function"""
 
-    def test_get_supabase_client(self):
+    def test_get_supabase_client(self) -> None:
         """Test getting the Supabase client"""
         client = get_supabase_client()
 
@@ -40,7 +41,7 @@ class TestGetSupabaseClient:
         assert isinstance(client, Client)
         assert client == supabase_client  # Should return the same instance
 
-    def test_get_supabase_client_returns_same_instance(self):
+    def test_get_supabase_client_returns_same_instance(self) -> None:
         """Test that get_supabase_client returns the same instance"""
         client1 = get_supabase_client()
         client2 = get_supabase_client()
@@ -54,7 +55,7 @@ class TestGetSupabaseServiceClient:
     @patch("services.supabase.SUPABASE_SERVICE_ROLE_KEY", "test_service_key")
     @patch("services.supabase.SUPABASE_URL", "https://test.supabase.co")
     @patch("services.supabase.create_client")
-    def test_get_supabase_service_client_success(self, mock_create_client):
+    def test_get_supabase_service_client_success(self, mock_create_client) -> None:
         """Test getting service client with valid service key"""
         mock_client = MagicMock(spec=Client)
         mock_create_client.return_value = mock_client
@@ -68,7 +69,7 @@ class TestGetSupabaseServiceClient:
         )
 
     @patch("services.supabase.SUPABASE_SERVICE_ROLE_KEY", None)
-    def test_get_supabase_service_client_no_key(self):
+    def test_get_supabase_service_client_no_key(self) -> None:
         """Test getting service client without service key"""
         with pytest.raises(
             ValueError,
@@ -77,7 +78,7 @@ class TestGetSupabaseServiceClient:
             get_supabase_service_client()
 
     @patch("services.supabase.SUPABASE_SERVICE_ROLE_KEY", "")
-    def test_get_supabase_service_client_empty_key(self):
+    def test_get_supabase_service_client_empty_key(self) -> None:
         """Test getting service client with empty service key"""
         with pytest.raises(
             ValueError,
@@ -90,7 +91,7 @@ class TestTestConnection:
     """Test test_connection function"""
 
     @patch("services.supabase.supabase_client")
-    def test_test_connection_success(self, mock_client):
+    def test_test_connection_success(self, mock_client) -> None:
         """Test successful connection test"""
         # Mock the table query chain
         mock_table = MagicMock()
@@ -114,7 +115,7 @@ class TestTestConnection:
             mock_limit.execute.assert_called_once()
 
     @patch("services.supabase.supabase_client")
-    def test_test_connection_failure(self, mock_client):
+    def test_test_connection_failure(self, mock_client) -> None:
         """Test failed connection test"""
         # Mock the table query to raise an exception
         mock_client.table.side_effect = Exception("Connection failed")
@@ -128,7 +129,7 @@ class TestTestConnection:
             )
 
     @patch("services.supabase.supabase_client")
-    def test_test_connection_network_error(self, mock_client):
+    def test_test_connection_network_error(self, mock_client) -> None:
         """Test connection test with network error"""
         # Mock the table query to raise a network error
         mock_client.table.side_effect = ConnectionError("Network unreachable")
@@ -142,7 +143,7 @@ class TestTestConnection:
             )
 
     @patch("services.supabase.supabase_client")
-    def test_test_connection_auth_error(self, mock_client):
+    def test_test_connection_auth_error(self, mock_client) -> None:
         """Test connection test with authentication error"""
         # Mock the table query to raise an auth error
         mock_client.table.side_effect = Exception("Invalid API key")
@@ -159,7 +160,7 @@ class TestTestConnection:
 class TestSupabaseIntegration:
     """Integration tests for Supabase functionality"""
 
-    def test_supabase_client_singleton_pattern(self):
+    def test_supabase_client_singleton_pattern(self) -> None:
         """Test that Supabase client follows singleton pattern"""
         client1 = get_supabase_client()
         client2 = get_supabase_client()
@@ -171,7 +172,7 @@ class TestSupabaseIntegration:
     @patch("services.supabase.SUPABASE_SERVICE_ROLE_KEY", "test_service_key")
     @patch("services.supabase.SUPABASE_URL", "https://test.supabase.co")
     @patch("services.supabase.create_client")
-    def test_service_client_creation(self, mock_create_client):
+    def test_service_client_creation(self, mock_create_client) -> None:
         """Test service client creation with proper parameters"""
         mock_client = MagicMock(spec=Client)
         mock_create_client.return_value = mock_client
@@ -184,7 +185,7 @@ class TestSupabaseIntegration:
         assert call_args[0][0] == "https://test.supabase.co"  # URL
         assert call_args[0][1] == "test_service_key"  # Service key
 
-    def test_supabase_configuration_validation(self):
+    def test_supabase_configuration_validation(self) -> None:
         """Test that Supabase configuration is properly validated"""
         # These should be set by the security config
         assert SUPABASE_URL is not None
@@ -201,7 +202,7 @@ class TestSupabaseErrorHandling:
     """Test error handling in Supabase functions"""
 
     @patch("services.supabase.SUPABASE_SERVICE_ROLE_KEY", "")
-    def test_service_client_empty_string_key(self):
+    def test_service_client_empty_string_key(self) -> None:
         """Test service client with empty string key"""
         with pytest.raises(
             ValueError,
@@ -210,7 +211,7 @@ class TestSupabaseErrorHandling:
             get_supabase_service_client()
 
     @patch("services.supabase.SUPABASE_SERVICE_ROLE_KEY", "   ")
-    def test_service_client_whitespace_key(self):
+    def test_service_client_whitespace_key(self) -> None:
         """Test service client with whitespace-only key"""
         # The function only checks for None, not empty/whitespace strings
         # So this should not raise an exception
@@ -224,7 +225,7 @@ class TestSupabaseErrorHandling:
             assert isinstance(client, Client)
 
     @patch("services.supabase.supabase_client")
-    def test_connection_test_with_specific_exception(self, mock_client):
+    def test_connection_test_with_specific_exception(self, mock_client) -> None:
         """Test connection test with specific exception types"""
         test_cases = [
             (ConnectionError("Connection refused"), "Connection refused"),

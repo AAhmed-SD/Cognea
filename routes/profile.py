@@ -21,6 +21,7 @@ user_profiles_db: dict[int, UserProfile] = {}
     summary="Update focus hours, energy curve, goal weightings",
 )
 async def update_user_profile(user_id: int, profile: UserProfile):
+    pass
     user_profiles_db[user_id] = profile
     return profile
 
@@ -29,6 +30,7 @@ async def update_user_profile(user_id: int, profile: UserProfile):
     "/{user_id}", response_model=UserProfile, summary="Retrieve full adaptive profile"
 )
 async def get_user_profile(user_id: int):
+    pass
     profile = user_profiles_db.get(user_id)
     if not profile:
         raise HTTPException(status_code=404, detail="User profile not found")

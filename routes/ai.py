@@ -259,6 +259,7 @@ Return as JSON array with time, activity, and focus_area fields."""
 
 
 async def _store_plan(user_id: str, date: str, preferences: dict, schedule: list):
+    pass
     """Store plan in database (background task)"""
     try:
         supabase = get_supabase_client()
@@ -1006,6 +1007,7 @@ async def get_cache_stats(current_user: dict = Depends(get_current_user)):
 # Background task for AI processing
 @background_task(name="ai_batch_processing", priority="normal")
 async def process_ai_batch(user_id: str, data: dict[str, Any]):
+    pass
     """Background task for batch AI processing"""
     try:
         logger.info(f"Processing AI batch for user {user_id}")
@@ -1061,6 +1063,7 @@ async def start_ai_batch_processing(
 # Scheduled job for AI maintenance
 @scheduled_job(cron_expression="0 2 * * *")  # Daily at 2 AM
 async def ai_cache_maintenance():
+    pass
     """Scheduled job for AI cache maintenance"""
     try:
         logger.info("Starting AI cache maintenance")
@@ -1076,6 +1079,7 @@ async def ai_cache_maintenance():
 
 @scheduled_job(cron_expression="0 */6 * * *")  # Every 6 hours
 async def ai_performance_analysis():
+    pass
     """Scheduled job for AI performance analysis"""
     try:
         logger.info("Starting AI performance analysis")
