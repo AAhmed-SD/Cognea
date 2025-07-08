@@ -59,7 +59,7 @@ class NotionClient:
     """Notion API client with rate limiting."""
 
     def __init__(self, api_key: str):
-    pass
+        pass
         self.api_key = api_key
         self.base_url = "https://api.notion.com/v1"
         self.headers = {

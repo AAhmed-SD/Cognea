@@ -402,7 +402,7 @@ class TestErrorHandlerIntegration:
         
         @app.get("/test-error")
         def test_error():
-    pass
+            pass
             raise ValidationError("Test validation error")
         
         client = TestClient(app)
@@ -420,7 +420,7 @@ class TestErrorHandlerIntegration:
         
         @app.post("/test-validation")
         def test_validation(item: dict):
-    pass
+            pass
             return item
         
         client = TestClient(app)
@@ -437,7 +437,7 @@ class TestErrorHandlerIntegration:
         
         @app.get("/test-generic-error")
         def test_generic_error():
-    pass
+            pass
             raise Exception("Generic error")
         
         client = TestClient(app)

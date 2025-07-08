@@ -24,7 +24,7 @@ class FlashcardGenerationError(Exception):
     """Custom exception for flashcard generation errors."""
 
     def __init__(self, message: str, source: str | None = None):
-    pass
+        pass
         self.message = message
         self.source = source
         super().__init__(self.message)
@@ -48,7 +48,7 @@ class NotionFlashcardGenerator:
     """Generates flashcards from Notion content using AI."""
 
     def __init__(self, notion_client: NotionClient, openai_service=None):
-    pass
+        pass
         """Initialize the flashcard generator."""
         self.notion_client = notion_client
         self.openai_service = openai_service or get_openai_service()

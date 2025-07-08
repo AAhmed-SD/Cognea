@@ -23,7 +23,7 @@ class TestRateLimitBackoff:
         """Create a mock async function."""
 
         async def mock_func(*args, **kwargs):
-    pass
+            pass
             return {"success": True, "data": "test"}
 
         return mock_func
@@ -33,7 +33,7 @@ class TestRateLimitBackoff:
         """Create a mock async function that raises 429."""
 
         async def mock_func(*args, **kwargs):
-    pass
+            pass
             error = Exception("Rate limit exceeded")
             error.status_code = 429
             raise error
@@ -42,7 +42,7 @@ class TestRateLimitBackoff:
 
     @pytest.mark.asyncio
     async def test_safe_call_success(self, redis_client, mock_async_func):
-    pass
+        pass
         """Test successful safe_call without rate limiting."""
         with patch.object(redis_client, "check_rate_limit", return_value=True):
             result = await redis_client.safe_call(
@@ -54,7 +54,7 @@ class TestRateLimitBackoff:
 
     @pytest.mark.asyncio
     async def test_safe_call_rate_limit(self, redis_client, mock_async_func):
-    pass
+        pass
         """Test safe_call with rate limiting."""
         # Mock rate limit to be exceeded initially, then allowed
         with patch.object(redis_client, "check_rate_limit", side_effect=[False, True]):
@@ -67,7 +67,7 @@ class TestRateLimitBackoff:
 
     @pytest.mark.asyncio
     async def test_safe_call_429_backoff(self, redis_client, mock_429_func):
-    pass
+        pass
         """Test safe_call with 429 back-off."""
         with patch.object(redis_client, "check_rate_limit", return_value=True):
             with patch("asyncio.sleep") as mock_sleep:
@@ -83,12 +83,12 @@ class TestRateLimitBackoff:
 
     @pytest.mark.asyncio
     async def test_safe_call_429_recovery(self, redis_client):
-    pass
+        pass
         """Test safe_call with 429 followed by success."""
         call_count = 0
 
         async def mock_func():
-    pass
+            pass
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -108,11 +108,11 @@ class TestRateLimitBackoff:
 
     @pytest.mark.asyncio
     async def test_safe_call_non_429_error(self, redis_client):
-    pass
+        pass
         """Test safe_call with non-429 error (should not retry)."""
 
         async def mock_func():
-    pass
+            pass
             raise ValueError("Some other error")
 
         with patch.object(redis_client, "check_rate_limit", return_value=True):
@@ -121,7 +121,7 @@ class TestRateLimitBackoff:
 
     @pytest.mark.asyncio
     async def test_safe_call_max_backoff(self, redis_client, mock_429_func):
-    pass
+        pass
         """Test that back-off is capped at 30 seconds."""
         with patch.object(redis_client, "check_rate_limit", return_value=True):
             with patch("asyncio.sleep") as mock_sleep:

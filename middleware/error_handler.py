@@ -22,7 +22,6 @@ class APIError(Exception):
         details: dict[str, Any] | None = None,
         retry_after: int | None = None,
     ):
-    pass
         self.message = message
         self.status_code = status_code
         self.error_code = error_code

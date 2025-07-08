@@ -46,7 +46,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_plan_day_success(self, client, mock_auth_dependency):
-    pass
         """Test successful daily plan generation."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch(
@@ -82,7 +81,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_plan_day_budget_exceeded(self, client, mock_auth_dependency):
-    pass
         """Test daily plan with budget exceeded."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch(
@@ -106,7 +104,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_generate_flashcards_success(self, client, mock_auth_dependency):
-    pass
         """Test successful flashcard generation."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch(
@@ -139,7 +136,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_get_ai_insights_success(self, client, mock_auth_dependency):
-    pass
         """Test successful AI insights retrieval."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch("services.ai.openai_service.get_openai_service") as mock_openai:
@@ -164,7 +160,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_suggest_habits_success(self, client, mock_auth_dependency):
-    pass
         """Test successful habit suggestions."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch("services.ai.openai_service.get_openai_service") as mock_openai:
@@ -189,7 +184,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_analyze_productivity_success(self, client, mock_auth_dependency):
-    pass
         """Test successful productivity analysis."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch("services.ai.openai_service.get_openai_service") as mock_openai:
@@ -215,7 +209,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_optimize_schedule_success(self, client, mock_auth_dependency):
-    pass
         """Test successful schedule optimization."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch(
@@ -250,7 +243,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_get_weekly_summary_success(self, client, mock_auth_dependency):
-    pass
         """Test successful weekly summary retrieval."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch("services.ai.openai_service.get_openai_service") as mock_openai:
@@ -268,7 +260,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_invalidate_cache_success(self, client, mock_auth_dependency):
-    pass
         """Test successful cache invalidation."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch("services.ai_cache.invalidate_user_cache") as mock_invalidate:
@@ -285,7 +276,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_get_cache_stats_success(self, client, mock_auth_dependency):
-    pass
         """Test successful cache stats retrieval."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch("services.ai_cache.ai_cache_service.get_stats") as mock_stats:
@@ -303,7 +293,6 @@ class TestAIRoutes:
 
     @pytest.mark.asyncio
     async def test_start_batch_processing_success(self, client, mock_auth_dependency):
-    pass
         """Test successful batch processing start."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch("services.background_workers.BackgroundWorker") as mock_worker:
@@ -330,7 +319,6 @@ class TestAuthRoutes:
 
     @pytest.mark.asyncio
     async def test_register_success(self, client):
-    pass
         """Test successful user registration."""
         with patch("services.auth_service.AuthService.register_user") as mock_register:
             mock_register.return_value = {
@@ -355,7 +343,6 @@ class TestAuthRoutes:
 
     @pytest.mark.asyncio
     async def test_register_invalid_password(self, client):
-    pass
         """Test registration with invalid password."""
         response = client.post(
             "/auth/register",
@@ -370,7 +357,6 @@ class TestAuthRoutes:
 
     @pytest.mark.asyncio
     async def test_login_success(self, client):
-    pass
         """Test successful user login."""
         with patch("services.auth_service.AuthService.authenticate_user") as mock_auth:
             mock_auth.return_value = {
@@ -390,7 +376,6 @@ class TestAuthRoutes:
 
     @pytest.mark.asyncio
     async def test_login_invalid_credentials(self, client):
-    pass
         """Test login with invalid credentials."""
         with patch("services.auth_service.AuthService.authenticate_user") as mock_auth:
             mock_auth.return_value = None
@@ -404,7 +389,6 @@ class TestAuthRoutes:
 
     @pytest.mark.asyncio
     async def test_refresh_token_success(self, client, mock_auth_dependency):
-    pass
         """Test successful token refresh."""
         with patch("routes.auth.get_current_user", return_value=mock_auth_dependency()):
             with patch(
@@ -420,7 +404,6 @@ class TestAuthRoutes:
 
     @pytest.mark.asyncio
     async def test_forgot_password_success(self, client):
-    pass
         """Test successful forgot password request."""
         with patch(
             "services.auth_service.AuthService.send_password_reset"
@@ -437,7 +420,6 @@ class TestAuthRoutes:
 
     @pytest.mark.asyncio
     async def test_reset_password_success(self, client):
-    pass
         """Test successful password reset."""
         with patch("services.auth_service.AuthService.reset_password") as mock_reset:
             mock_reset.return_value = True
@@ -457,7 +439,6 @@ class TestTasksRoutes:
 
     @pytest.mark.asyncio
     async def test_create_task_success(self, client, mock_auth_dependency):
-    pass
         """Test successful task creation."""
         with patch(
             "routes.tasks.get_current_user", return_value=mock_auth_dependency()
@@ -493,7 +474,6 @@ class TestTasksRoutes:
 
     @pytest.mark.asyncio
     async def test_get_tasks_success(self, client, mock_auth_dependency):
-    pass
         """Test successful tasks retrieval."""
         with patch(
             "routes.tasks.get_current_user", return_value=mock_auth_dependency()
@@ -527,7 +507,6 @@ class TestTasksRoutes:
 
     @pytest.mark.asyncio
     async def test_get_tasks_with_filters(self, client, mock_auth_dependency):
-    pass
         """Test tasks retrieval with filters."""
         with patch(
             "routes.tasks.get_current_user", return_value=mock_auth_dependency()
@@ -547,7 +526,6 @@ class TestTasksRoutes:
 
     @pytest.mark.asyncio
     async def test_update_task_success(self, client, mock_auth_dependency):
-    pass
         """Test successful task update."""
         with patch(
             "routes.tasks.get_current_user", return_value=mock_auth_dependency()
@@ -576,7 +554,6 @@ class TestTasksRoutes:
 
     @pytest.mark.asyncio
     async def test_delete_task_success(self, client, mock_auth_dependency):
-    pass
         """Test successful task deletion."""
         with patch(
             "routes.tasks.get_current_user", return_value=mock_auth_dependency()
@@ -604,7 +581,6 @@ class TestGenerateRoutes:
 
     @pytest.mark.asyncio
     async def test_generate_daily_brief_success(self, client, mock_auth_dependency):
-    pass
         """Test successful daily brief generation."""
         with patch(
             "routes.generate.get_current_user", return_value=mock_auth_dependency()
@@ -624,7 +600,6 @@ class TestGenerateRoutes:
 
     @pytest.mark.asyncio
     async def test_extract_tasks_from_text_success(self, client, mock_auth_dependency):
-    pass
         """Test successful task extraction from text."""
         with patch(
             "routes.generate.get_current_user", return_value=mock_auth_dependency()
@@ -650,7 +625,6 @@ class TestGenerateRoutes:
 
     @pytest.mark.asyncio
     async def test_plan_my_day_success(self, client, mock_auth_dependency):
-    pass
         """Test successful daily planning."""
         with patch(
             "routes.generate.get_current_user", return_value=mock_auth_dependency()
@@ -681,7 +655,6 @@ class TestNotionRoutes:
 
     @pytest.mark.asyncio
     async def test_get_notion_auth_url_success(self, client, mock_auth_dependency):
-    pass
         """Test successful Notion auth URL generation."""
         with patch(
             "routes.notion.get_current_user", return_value=mock_auth_dependency()
@@ -696,7 +669,6 @@ class TestNotionRoutes:
 
     @pytest.mark.asyncio
     async def test_notion_auth_callback_success(self, client, mock_auth_dependency):
-    pass
         """Test successful Notion auth callback."""
         with patch(
             "routes.notion.get_current_user", return_value=mock_auth_dependency()
@@ -743,7 +715,6 @@ class TestNotionRoutes:
 
     @pytest.mark.asyncio
     async def test_list_notion_databases_success(self, client, mock_auth_dependency):
-    pass
         """Test successful Notion databases listing."""
         with patch(
             "routes.notion.get_current_user", return_value=mock_auth_dependency()
@@ -764,7 +735,6 @@ class TestNotionRoutes:
 
     @pytest.mark.asyncio
     async def test_sync_notion_database_success(self, client, mock_auth_dependency):
-    pass
         """Test successful Notion database sync."""
         with patch(
             "routes.notion.get_current_user", return_value=mock_auth_dependency()
@@ -790,7 +760,6 @@ class TestNotionRoutes:
     async def test_generate_flashcards_from_notion_success(
         self, client, mock_auth_dependency
     ):
-    pass
         """Test successful flashcard generation from Notion."""
         with patch(
             "routes.notion.get_current_user", return_value=mock_auth_dependency()
@@ -818,7 +787,6 @@ class TestRouteErrorHandling:
 
     @pytest.mark.asyncio
     async def test_ai_route_openai_error(self, client, mock_auth_dependency):
-    pass
         """Test AI route with OpenAI error."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch(
@@ -847,7 +815,6 @@ class TestRouteErrorHandling:
 
     @pytest.mark.asyncio
     async def test_auth_route_database_error(self, client):
-    pass
         """Test auth route with database error."""
         with patch("services.auth_service.AuthService.register_user") as mock_register:
             mock_register.side_effect = Exception("Database error")
@@ -865,7 +832,6 @@ class TestRouteErrorHandling:
 
     @pytest.mark.asyncio
     async def test_tasks_route_supabase_error(self, client, mock_auth_dependency):
-    pass
         """Test tasks route with Supabase error."""
         with patch(
             "routes.tasks.get_current_user", return_value=mock_auth_dependency()
@@ -897,7 +863,6 @@ class TestRouteEdgeCases:
 
     @pytest.mark.asyncio
     async def test_ai_route_empty_preferences(self, client, mock_auth_dependency):
-    pass
         """Test AI route with empty preferences."""
         with patch("routes.ai.get_current_user", return_value=mock_auth_dependency()):
             with patch(
@@ -927,7 +892,6 @@ class TestRouteEdgeCases:
 
     @pytest.mark.asyncio
     async def test_tasks_route_large_limit(self, client, mock_auth_dependency):
-    pass
         """Test tasks route with large limit."""
         with patch(
             "routes.tasks.get_current_user", return_value=mock_auth_dependency()
@@ -945,7 +909,6 @@ class TestRouteEdgeCases:
 
     # @pytest.mark.asyncio
     # async def test_mood_route_invalid_score(self, client, mock_auth_dependency):
-    pass
     #     """Test mood route with invalid score."""
     #     # Mood routes not implemented yet
     #     pass

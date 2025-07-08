@@ -178,7 +178,7 @@ class TestAuthService:
             
             @require_auth
             async def test_endpoint(request):
-    pass
+                pass
                 return {"message": "success"}
             
             result = await test_endpoint(mock_request)
@@ -195,7 +195,7 @@ class TestAuthService:
             
             @require_admin
             async def test_endpoint(request):
-    pass
+                pass
                 return {"message": "admin_success"}
             
             result = await test_endpoint(mock_request)

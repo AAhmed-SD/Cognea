@@ -122,7 +122,7 @@ class TaskMetrics:
     """Metrics tracking for background tasks."""
 
     def __init__(self):
-    pass
+        pass
         self.tasks_started = 0
         self.tasks_completed = 0
         self.tasks_failed = 0
@@ -133,21 +133,21 @@ class TaskMetrics:
         self.last_activity = None
 
     def record_task_start(self, task_type: str):
-    pass
+        pass
         """Record task start."""
         self.tasks_started += 1
         self.task_type_counts[task_type] = self.task_type_counts.get(task_type, 0) + 1
         self.last_activity = datetime.utcnow().isoformat()
 
     def record_task_completion(self, processing_time: float):
-    pass
+        pass
         """Record successful task completion."""
         self.tasks_completed += 1
         self.total_processing_time += processing_time
         self.last_activity = datetime.utcnow().isoformat()
 
     def record_task_failure(self, error_type: TaskErrorType, processing_time: float):
-    pass
+        pass
         """Record task failure."""
         self.tasks_failed += 1
         self.error_counts[error_type.value] += 1
@@ -155,7 +155,7 @@ class TaskMetrics:
         self.last_activity = datetime.utcnow().isoformat()
 
     def record_task_retry(self):
-    pass
+        pass
         """Record task retry."""
         self.tasks_retried += 1
         self.last_activity = datetime.utcnow().isoformat()
@@ -243,7 +243,7 @@ class BackgroundTaskManager:
     """Enhanced manager for FastAPI background tasks with error handling and monitoring."""
 
     def __init__(self, background_tasks: BackgroundTasks):
-    pass
+        pass
         self.background_tasks = background_tasks
         self.active_tasks: dict[str, dict[str, Any]] = {}
 

@@ -72,7 +72,7 @@ class SimpleScheduler:
     """Simple scheduler using priority × (1/length) × availability scoring."""
 
     def __init__(self, config: SchedulerConfig | None = None):
-    pass
+        pass
         self.config = config or SchedulerConfig()
 
     def calculate_task_score(

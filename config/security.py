@@ -129,13 +129,7 @@ class SecurityConfig(BaseSettings):
 
     # File Upload Security
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_FILE_TYPES: list[str] = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "application/pdf",
-        "text/plain",
-    ]
+    ALLOWED_FILE_TYPES: str = "image/jpeg,image/png,image/gif,application/pdf,text/plain"
 
     # Input Validation
     MAX_STRING_LENGTH: int = 1000

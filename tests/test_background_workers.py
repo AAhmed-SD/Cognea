@@ -115,9 +115,9 @@ class TestBackgroundWorkerCore:
 
     @pytest.mark.asyncio
     async def test_register_and_enqueue_task(self, worker):
-    pass
+        pass
         async def dummy(*args, **kwargs):
-    pass
+            pass
             return "ok"
 
         worker.register_task("dummy", dummy)
@@ -129,14 +129,14 @@ class TestBackgroundWorkerCore:
 
     @pytest.mark.asyncio
     async def test_start_and_stop(self, worker):
-    pass
+        pass
         with patch.object(worker, "redis", new=AsyncMock()):
             await worker.start()
             await worker.stop()
 
     @pytest.mark.asyncio
     async def test_get_task_status_and_cancel(self, worker):
-    pass
+        pass
         with patch.object(worker, "redis", new=AsyncMock()):
             # Simulate no task found
             status = await worker.get_task_status("notask")
@@ -146,9 +146,9 @@ class TestBackgroundWorkerCore:
 
     @pytest.mark.asyncio
     async def test_worker_process_and_failure(self, worker):
-    pass
+        pass
         async def fail(*a, **k):
-    pass
+            pass
             raise ValueError("fail")
 
         worker.register_task("fail", fail)
@@ -178,7 +178,7 @@ class TestBackgroundWorkerCore:
 class TestJobScheduler:
     @pytest.mark.asyncio
     async def test_add_and_remove_job(self):
-    pass
+        pass
         worker = BackgroundWorker()
         scheduler = JobScheduler(worker)
         with patch.object(scheduler, "jobs", new={}):
@@ -190,7 +190,7 @@ class TestJobScheduler:
 
     @pytest.mark.asyncio
     async def test_scheduler_loop_and_execute_job(self):
-    pass
+        pass
         worker = BackgroundWorker()
         scheduler = JobScheduler(worker)
         job = ScheduledJob(
@@ -205,7 +205,7 @@ class TestJobScheduler:
             with patch.object(scheduler, "_execute_job", new=AsyncMock()):
                 # Run one iteration of the scheduler loop
                 async def stop_after_one():
-    pass
+                    pass
                     await asyncio.sleep(0.01)
                     scheduler.running = False
 
@@ -214,7 +214,7 @@ class TestJobScheduler:
 
     @pytest.mark.asyncio
     async def test_execute_job(self):
-    pass
+        pass
         worker = BackgroundWorker()
         scheduler = JobScheduler(worker)
         job = ScheduledJob(

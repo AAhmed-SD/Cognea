@@ -23,7 +23,7 @@ class AICacheService:
     """Specialized cache service for AI operations"""
 
     def __init__(self):
-    pass
+        pass
         self.supabase = get_supabase_client()
 
         # TTL configuration for different AI operations
@@ -280,10 +280,10 @@ def ai_cached(operation: str, ttl: int | None = None):
     """Decorator to cache AI function results"""
 
     def decorator(func):
-    pass
+        pass
         @wraps(func)
         async def wrapper(*args, **kwargs):
-    pass
+            pass
             # Extract user_id and user_data from function arguments
             user_id = None
             user_data = None

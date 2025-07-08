@@ -30,12 +30,11 @@ class MonitoringService:
     """Service for monitoring application performance and usage."""
 
     def __init__(self):
-    pass
         self.redis_client = get_redis_client()
         self.start_time = datetime.now(UTC)
 
     def log_request(self, request: Request, response: Response, duration: float):
-    pass
+        pass
         """Log HTTP request metrics."""
         method = request.method
         endpoint = request.url.path
@@ -69,7 +68,7 @@ class MonitoringService:
         error_message: str,
         user_id: str | None = None,
     ):
-    pass
+        pass
         """Log API errors."""
         API_ERRORS.labels(endpoint=endpoint, error_type=error_type).inc()
 
@@ -92,7 +91,7 @@ class MonitoringService:
     def track_token_usage(
         self, user_id: str, model: str, tokens_used: int, cost_usd: float
     ):
-    pass
+        pass
         """Track OpenAI token usage."""
         TOKEN_USAGE.labels(model=model, user_id=user_id).inc(tokens_used)
 
@@ -201,7 +200,7 @@ class MonitoringService:
         return analytics
 
     def cleanup_old_logs(self, days_to_keep: int = 30):
-    pass
+        pass
         """Clean up old log entries."""
         if not self.redis_client.is_connected():
             return

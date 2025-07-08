@@ -104,7 +104,7 @@ class TestBackgroundWorkers:
 
     @pytest.fixture
     async def worker(self):
-    pass
+        pass
         """Create a test worker instance."""
         worker = BackgroundWorker(
             redis_url="redis://localhost:6379",
@@ -143,7 +143,7 @@ class TestBackgroundWorkers:
         )
 
     async def test_worker_initialization(self, worker):
-    pass
+        pass
         """Test worker initialization."""
         assert worker.max_workers == 2
         assert worker.task_timeout == 30
@@ -152,12 +152,12 @@ class TestBackgroundWorkers:
         assert len(worker.metrics["error_counts"]) == len(TaskErrorType)
 
     async def test_task_enqueue(self, worker, sample_task):
-    pass
+        pass
         """Test task enqueueing."""
 
         # Register a test task
         async def test_task_func():
-    pass
+            pass
             return "success"
 
         worker.register_task("test_task", test_task_func)
@@ -173,12 +173,12 @@ class TestBackgroundWorkers:
         assert worker.redis.zadd.called
 
     async def test_task_processing_success(self, worker, sample_task):
-    pass
+        pass
         """Test successful task processing."""
 
         # Register a test task
         async def test_task_func():
-    pass
+            pass
             return "success"
 
         worker.register_task("test_task", test_task_func)
@@ -195,12 +195,12 @@ class TestBackgroundWorkers:
         assert worker.metrics["tasks_failed"] == 0
 
     async def test_task_processing_failure(self, worker, sample_task):
-    pass
+        pass
         """Test task processing failure with retry logic."""
 
         # Register a failing task
         async def failing_task_func():
-    pass
+            pass
             raise ConnectionError("Network error")
 
         worker.register_task("test_task", failing_task_func)
@@ -217,7 +217,7 @@ class TestBackgroundWorkers:
         assert worker.metrics["error_counts"]["network_error"] == 1
 
     async def test_worker_health_check(self, worker):
-    pass
+        pass
         """Test worker health check."""
         # Mock workers
         worker.workers = [Mock(), Mock()]
@@ -233,7 +233,7 @@ class TestBackgroundWorkers:
         assert "queue" in health["checks"]
 
     async def test_worker_metrics(self, worker):
-    pass
+        pass
         """Test worker metrics collection."""
         # Add some test data
         worker.metrics["tasks_processed"] = 10
@@ -304,12 +304,12 @@ class TestBackgroundTaskManager:
         assert summary["avg_processing_time"] == 7.5
 
     async def test_background_task_decorator(self):
-    pass
+        pass
         """Test background task decorator."""
 
         @log_background_task
         async def test_task():
-    pass
+            pass
             return "success"
 
         result = await test_task()
@@ -322,12 +322,12 @@ class TestBackgroundTaskManager:
         assert task_metrics.tasks_completed == 1
 
     async def test_background_task_decorator_with_error(self):
-    pass
+        pass
         """Test background task decorator with error handling."""
 
         @log_background_task
         async def failing_task():
-    pass
+            pass
             raise ConnectionError("Network error")
 
         with pytest.raises(ConnectionError):
@@ -400,7 +400,7 @@ class TestNotionSyncManager:
         assert not sync_manager._is_recoverable_error(Exception("Permission denied"))
 
     async def test_content_merging(self, sync_manager):
-    pass
+        pass
         """Test content merging functionality."""
         local_content = "Line 1\nLine 2\nLine 3"
         notion_content = "Line 2\nLine 3\nLine 4"
@@ -414,7 +414,7 @@ class TestNotionSyncManager:
         assert "Line 4" in merged
 
     async def test_sync_health_status(self, sync_manager):
-    pass
+        pass
         """Test sync health status calculation."""
         # Mock user sync history
         with patch.object(sync_manager, "get_user_sync_history") as mock_history:
@@ -507,7 +507,7 @@ class TestRateLimitingScenarios:
 
     @pytest.mark.asyncio
     async def test_rate_limit_error_handling(self):
-    pass
+        pass
         """Test rate limit error handling."""
         # Simulate rate limit error
         error = RateLimitError("Rate limit exceeded", 60)
@@ -529,7 +529,7 @@ class TestNetworkFailureRecovery:
 
     @pytest.mark.asyncio
     async def test_network_error_recovery(self):
-    pass
+        pass
         """Test network error recovery strategies."""
         # Test different network errors
         network_errors = [
@@ -547,7 +547,7 @@ class TestNetworkFailureRecovery:
 
     @pytest.mark.asyncio
     async def test_exponential_backoff(self):
-    pass
+        pass
         """Test exponential backoff calculation."""
         base_delay = 60
         delay_multiplier = 2.0

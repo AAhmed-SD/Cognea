@@ -377,7 +377,7 @@ class TestLogBackgroundTask:
 
         # Mock async function
         async def test_func():
-    pass
+            pass
             return "success"
 
         # Apply decorator
@@ -409,7 +409,7 @@ class TestLogBackgroundTask:
 
         # Mock async function that raises an exception
         async def test_func():
-    pass
+            pass
             raise ValueError("Test error")
 
         # Apply decorator

@@ -11,7 +11,7 @@ import ast
 
 class SystematicMyPyFixer:
     def __init__(self):
-    pass
+        pass
         self.fixed_files = set()
         self.error_patterns = {}
         self.total_fixes = 0

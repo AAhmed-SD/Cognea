@@ -616,7 +616,7 @@ class TestCacheErrorHandling:
         # Try to cache non-serializable object
         class NonSerializable:
             def __init__(self):
-    pass
+                pass
                 self.func = lambda x: x
         
         with patch.object(cache, 'redis_client') as mock_redis:

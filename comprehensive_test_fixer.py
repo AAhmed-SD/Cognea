@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple, Set
 
 class ComprehensiveTestFixer:
     def __init__(self):
-    pass
+        pass
         self.working_tests = set()
         self.failed_tests = set()
         self.mypy_errors = []

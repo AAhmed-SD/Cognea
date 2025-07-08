@@ -55,7 +55,7 @@ class AuthService:
     """
 
     def __init__(self):
-    pass
+        pass
         """
         Initialize the authentication service.
 

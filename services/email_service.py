@@ -21,7 +21,7 @@ class EmailService:
     """Email service for sending transactional emails"""
 
     def __init__(self):
-    pass
+        pass
         self.smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
         self.smtp_port = int(os.getenv("SMTP_PORT", "587"))
         self.smtp_username = os.getenv("SMTP_USERNAME")

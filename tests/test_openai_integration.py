@@ -68,7 +68,7 @@ async def test_generate_text_missing_api_key():
 async def test_generate_text_queue_error():
     pass
     async def raise_error(*a, **k):
-    pass
+        pass
         raise Exception("Queue error")
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test_key"}):
