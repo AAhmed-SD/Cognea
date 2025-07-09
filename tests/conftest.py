@@ -9,7 +9,6 @@ from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 import types
-from unittest.mock import MagicMock
 
 # Provide a minimal stub for 'distutils' to satisfy legacy packages (e.g., aioredis) on Python 3.12+
 if 'distutils' not in sys.modules:
@@ -206,11 +205,10 @@ try:
     redis_client_module = importlib.import_module('services.redis_client')
 
     class _DummyRedisWrapper:
-        async def safe_call(self, *_, **__):
-            # Simply call the target function synchronously
-            fn = _[1] if len(_) > 1 else None  # extract if provided as positional
+        async def safe_call(self, service_name, fn, *args, **kwargs):  # noqa: D401, ANN001
+            """Synchronously execute the target callable, mimicking async behavior."""
             if callable(fn):
-                return fn()
+                return fn(*args, **kwargs)
             return None
 
     redis_client_module.get_redis_client = lambda: _DummyRedisWrapper()  # type: ignore[attr-defined]
