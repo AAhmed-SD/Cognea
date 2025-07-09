@@ -320,3 +320,12 @@ sqlalchemy==2.0.23
 stripe==12.2.0
 
 PyJWT==2.8.0
+
+# Testing dependencies (redundant with existing pinned versions but kept for explicit CI checks)
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+fastapi>=0.104.1
+httpx>=0.25.2
+PyJWT>=2.8.0
+pydantic>=2.5.0
