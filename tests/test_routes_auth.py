@@ -50,10 +50,12 @@ class TestAuthRouter:
 
     def test_router_endpoints_exist(self):
         """Test that all expected endpoints exist in router."""
+        from fastapi.routing import APIRoute
+        
         # Get all route paths
         routes = []
         for route in router.routes:
-            if hasattr(route, 'path'):
+            if isinstance(route, APIRoute) and hasattr(route, 'path'):
                 routes.append(route.path)
 
         # Check main auth endpoints exist (based on actual routes)
