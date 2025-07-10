@@ -68,7 +68,8 @@ class TestErrorHandlers:
         assert isinstance(response, JSONResponse)
         assert response.status_code == 400
         
-        content = json.loads(response.body.decode() if isinstance(response.body, bytes) else response.body)
+        # Handle different response body types
+        content = json.loads(response.body)  # type: ignore[arg-type]
         assert content["error"]["message"] == "Test error"
 
     @pytest.mark.asyncio
@@ -88,7 +89,8 @@ class TestErrorHandlers:
         assert isinstance(response, JSONResponse)
         assert response.status_code == 500
         
-        content = json.loads(response.body.decode() if isinstance(response.body, bytes) else response.body)
+        # Handle different response body types
+        content = json.loads(response.body)  # type: ignore[arg-type]
         assert content["error"]["code"] == "INTERNAL_SERVER_ERROR"
 
     def test_categorize_error_api_error(self):
