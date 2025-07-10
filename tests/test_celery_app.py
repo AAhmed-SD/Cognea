@@ -196,14 +196,14 @@ class TestCeleryLogging:
         """Test setup_loggers handles additional args and kwargs."""
         mock_logger = MagicMock()
         
-                 with patch('logging.FileHandler'), \
-              patch('logging.StreamHandler'):
-             
-             # Should not raise exception with additional args/kwargs
-             setup_loggers(mock_logger)
-             
-             # Logger should still be configured
-             mock_logger.setLevel.assert_called_once_with(logging.INFO)
+        with patch('logging.FileHandler'), \
+             patch('logging.StreamHandler'):
+            
+            # Should not raise exception with additional args/kwargs
+            setup_loggers(mock_logger)
+            
+            # Logger should still be configured
+            mock_logger.setLevel.assert_called_once_with(logging.INFO)
 
 
 class TestCeleryAppIntegration:
