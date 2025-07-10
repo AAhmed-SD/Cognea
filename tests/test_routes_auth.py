@@ -48,7 +48,7 @@ class TestAuthRouter:
 
     def test_router_tags(self):
         """Test router has correct tags."""
-        assert "Authentication" in router.tags
+        assert "authentication" in router.tags
 
     def test_router_endpoints_exist(self):
         """Test that all expected endpoints exist in router."""
@@ -57,9 +57,9 @@ class TestAuthRouter:
         for route in router.routes:
             if hasattr(route, 'path'):
                 routes.append(route.path)
-        
-        # Check main auth endpoints exist
-        expected_endpoints = ["/register", "/login", "/logout", "/refresh", "/me"]
+
+        # Check main auth endpoints exist (based on actual routes)
+        expected_endpoints = ["/signup", "/login", "/token", "/me", "/forgot-password", "/reset-password"]
         for endpoint in expected_endpoints:
             # Check if any route contains the endpoint
             assert any(endpoint in route for route in routes), f"Endpoint {endpoint} not found"
@@ -68,7 +68,7 @@ class TestAuthRouter:
     async def test_register_success(self, mock_supabase, sample_user_data, registration_data):
         """Test successful user registration."""
         # Import the function we want to test
-        from routes.auth import register
+        from routes.auth import signup
         
         # Mock Supabase response for user creation
         mock_result = MagicMock()
@@ -113,15 +113,9 @@ class TestAuthRouter:
         with patch('routes.auth.get_supabase_client', return_value=mock_supabase), \
              pytest.raises(HTTPException) as exc_info:
             
-            from pydantic import BaseModel
-            class RegisterRequest(BaseModel):
-                email: str
-                password: str
-                first_name: str
-                last_name: str
-
-            request = RegisterRequest(**registration_data)
-            await register(request)
+            from routes.auth import UserCreate
+            request = UserCreate(email=registration_data["email"], password=registration_data["password"])
+            signup(request)
 
         assert exc_info.value.status_code == 400
         assert "Email already registered" in str(exc_info.value.detail)

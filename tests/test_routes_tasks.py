@@ -305,12 +305,9 @@ class TestTasksRouter:
         mock_get_result = MagicMock()
         mock_get_result.data = [sample_task_data]
         
-        # Mock delete failure
-        mock_delete_result = MagicMock()
-        mock_delete_result.data = None
-
+        # Mock delete exception
         mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value = mock_get_result
-        mock_supabase.table.return_value.delete.return_value.eq.return_value.eq.return_value.execute.return_value = mock_delete_result
+        mock_supabase.table.return_value.delete.return_value.eq.return_value.eq.return_value.execute.side_effect = Exception("Database error")
 
         task_id = UUID("12345678-1234-5678-9012-123456789012")
         
@@ -350,6 +347,7 @@ class TestTasksRouterIntegration:
         assert "GET" in methods_by_path.get("/{task_id}", set())
         assert "PUT" in methods_by_path.get("/{task_id}", set())
         assert "DELETE" in methods_by_path.get("/{task_id}", set())
+        assert "POST" in methods_by_path.get("/{task_id}/complete", set())
 
 
 class TestTaskModels:

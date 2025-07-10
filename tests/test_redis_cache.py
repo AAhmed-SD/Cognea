@@ -1,618 +1,835 @@
+import pytest
 import asyncio
 import json
-from types import SimpleNamespace
+import time
+from datetime import timedelta
 from unittest.mock import MagicMock, patch, AsyncMock
+from typing import Any
 
-import pytest
-
-from services.redis_cache import EnhancedRedisCache, enhanced_cache
-
-
-class _InMemoryRedis:
-    """A minimal async Redis-like client for testing."""
-
-    def __init__(self):
-        self.store: dict[str, str] = {}
-        self.connection_error = False
-
-    async def get(self, key):  # noqa: D401
-        if self.connection_error:
-            raise ConnectionError("Redis connection error")
-        return self.store.get(key)
-
-    async def setex(self, key, ttl, value):  # noqa: D401
-        if self.connection_error:
-            raise ConnectionError("Redis connection error")
-        # Ignore ttl for simplicity
-        self.store[key] = value
-        return True
-
-    async def delete(self, key):  # noqa: D401
-        if self.connection_error:
-            raise ConnectionError("Redis connection error")
-        return 1 if self.store.pop(key, None) is not None else 0
-
-    async def keys(self, pattern):  # noqa: D401
-        if self.connection_error:
-            raise ConnectionError("Redis connection error")
-        # naive pattern handling: only '*' wildcard
-        if pattern == "*":
-            return list(self.store.keys())
-        return [k for k in self.store if pattern in k]
-
-    async def mget(self, keys):  # noqa: D401
-        if self.connection_error:
-            raise ConnectionError("Redis connection error")
-        return [self.store.get(k) for k in keys]
-
-    async def pipeline(self):  # noqa: D401
-        if self.connection_error:
-            raise ConnectionError("Redis connection error")
-        class _Pipe:
-            def __init__(self, outer):
-                self.outer = outer
-                self.cmds = []
-
-            def setex(self, k, ttl, v):
-                self.cmds.append((k, v))
-
-            async def execute(self):
-                if self.outer.connection_error:
-                    raise ConnectionError("Redis connection error")
-                for k, v in self.cmds:
-                    self.outer.store[k] = v
-        pipe = _Pipe(self)
-        # context mgr support
-        class _CM:  # noqa: D401
-            async def __aenter__(self):
-                return pipe
-            async def __aexit__(self, exc_type, exc_val, exc_tb):
-                pass
-        return _CM()
-
-    async def ping(self):  # noqa: D401
-        if self.connection_error:
-            raise ConnectionError("Redis connection error")
-        return True
-
-    async def close(self):
-        pass
+from services.redis_cache import (
+    RedisCircuitBreaker,
+    EnhancedRedisCache,
+    enhanced_cache,
+    enhanced_cached,
+    cache_with_lock
+)
 
 
-@pytest.fixture()
-def cache():  # noqa: D401
-    c = EnhancedRedisCache()
-    c.client = _InMemoryRedis()  # type: ignore
-    return c
+class TestRedisCircuitBreaker:
+    """Test RedisCircuitBreaker functionality."""
 
+    def test_circuit_breaker_initialization(self):
+        """Test circuit breaker initialization."""
+        cb = RedisCircuitBreaker(failure_threshold=3, recovery_timeout=30)
+        
+        assert cb.failure_threshold == 3
+        assert cb.recovery_timeout == 30
+        assert cb.failure_count == 0
+        assert cb.last_failure_time is None
+        assert cb.state == "CLOSED"
 
-@pytest.fixture()
-def cache_with_no_client():  # noqa: D401
-    c = EnhancedRedisCache()
-    c.client = None
-    return c
+    def test_circuit_breaker_record_failure(self):
+        """Test recording failures."""
+        cb = RedisCircuitBreaker(failure_threshold=2, recovery_timeout=30)
+        
+        # First failure
+        cb.record_failure()
+        assert cb.failure_count == 1
+        assert cb.state == "CLOSED"
+        assert cb.last_failure_time is not None
+        
+        # Second failure should open circuit
+        cb.record_failure()
+        assert cb.failure_count == 2
+        assert cb.state == "OPEN"
 
+    def test_circuit_breaker_record_success(self):
+        """Test recording success."""
+        cb = RedisCircuitBreaker(failure_threshold=2, recovery_timeout=30)
+        
+        # Simulate failures
+        cb.record_failure()
+        cb.record_failure()
+        assert cb.state == "OPEN"
+        
+        # Record success should close circuit
+        cb.record_success()
+        assert cb.failure_count == 0
+        assert cb.state == "CLOSED"
 
-@pytest.fixture()
-def cache_with_connection_error():  # noqa: D401
-    c = EnhancedRedisCache()
-    mock_client = _InMemoryRedis()
-    mock_client.connection_error = True
-    c.client = mock_client  # type: ignore
-    return c
+    def test_circuit_breaker_can_execute_closed(self):
+        """Test can_execute when circuit is closed."""
+        cb = RedisCircuitBreaker()
+        assert cb.can_execute() is True
+
+    def test_circuit_breaker_can_execute_open(self):
+        """Test can_execute when circuit is open."""
+        cb = RedisCircuitBreaker(failure_threshold=1, recovery_timeout=30)
+        
+        # Open circuit
+        cb.record_failure()
+        assert cb.state == "OPEN"
+        assert cb.can_execute() is False
+
+    def test_circuit_breaker_can_execute_half_open(self):
+        """Test can_execute when circuit is half-open."""
+        cb = RedisCircuitBreaker(failure_threshold=1, recovery_timeout=1)
+        
+        # Open circuit
+        cb.record_failure()
+        assert cb.state == "OPEN"
+        
+        # Wait for recovery timeout
+        time.sleep(1.1)
+        
+        # Should transition to half-open
+        assert cb.can_execute() is True
+        assert cb.state == "HALF_OPEN"
+
+    def test_circuit_breaker_recovery_timeout(self):
+        """Test recovery timeout functionality."""
+        cb = RedisCircuitBreaker(failure_threshold=1, recovery_timeout=1)
+        
+        # Open circuit
+        cb.record_failure()
+        assert cb.state == "OPEN"
+        assert cb.can_execute() is False
+        
+        # Before timeout
+        time.sleep(0.5)
+        assert cb.can_execute() is False
+        
+        # After timeout
+        time.sleep(0.6)
+        assert cb.can_execute() is True
+        assert cb.state == "HALF_OPEN"
 
 
 class TestEnhancedRedisCache:
     """Test EnhancedRedisCache functionality."""
 
-    @pytest.mark.asyncio
-    async def test_set_and_get_roundtrip(self, cache):  # noqa: D401
-        assert await cache.set("user", {"name": "Bob"}, 60, 1)
-        val = await cache.get("user", 1)
-        assert val == {"name": "Bob"}
-        metrics = cache.get_metrics()
-        assert metrics["hits"] == 1 and metrics["misses"] == 0
+    @pytest.fixture
+    def mock_redis_client(self):
+        """Mock Redis client."""
+        mock_client = AsyncMock()
+        mock_client.ping = AsyncMock()
+        mock_client.get = AsyncMock()
+        mock_client.set = AsyncMock()
+        mock_client.setex = AsyncMock()
+        mock_client.delete = AsyncMock()
+        mock_client.keys = AsyncMock()
+        mock_client.mget = AsyncMock()
+        mock_client.pipeline = AsyncMock()
+        mock_client.close = AsyncMock()
+        return mock_client
 
-    @pytest.mark.asyncio
-    async def test_delete_and_clear(self, cache):  # noqa: D401
-        await cache.set("demo", 123, 60, "x")
-        assert await cache.delete("demo", "x") is True
-        assert await cache.get("demo", "x") is None
-        # Warmup two keys then clear pattern
-        await cache.set("p", "a", 60, 1)
-        await cache.set("p", "b", 60, 2)
-        cleared = await cache.clear_pattern("p:*")
-        assert cleared == 2
+    @pytest.fixture
+    def mock_connection_pool(self):
+        """Mock Redis connection pool."""
+        mock_pool = AsyncMock()
+        mock_pool.disconnect = AsyncMock()
+        return mock_pool
 
-    @pytest.mark.asyncio
-    async def test_get_or_set(self, cache):  # noqa: D401
-        calls = {"count": 0}
-
-        async def producer():
-            calls["count"] += 1
-            return "value"
-
-        v1 = await cache.get_or_set("key", producer, 60, "a")
-        v2 = await cache.get_or_set("key", producer, 60, "a")
-        assert v1 == v2 == "value"
-        assert calls["count"] == 1  # only produced once
-
-    def test_generate_key_length(self, cache):
-        # create long kwargs to trigger hashing
-        long_value = "x" * 300
-        k = cache._generate_key("prefix", data=long_value)  # type: ignore
-        assert len(k) < 250  # should be hashed and shortened
-
-    @pytest.mark.asyncio
-    async def test_set_with_no_client(self, cache_with_no_client):
-        """Test set operation with no Redis client."""
-        result = await cache_with_no_client.set("key", "value", 60, "suffix")
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_get_with_no_client(self, cache_with_no_client):
-        """Test get operation with no Redis client."""
-        result = await cache_with_no_client.get("key", "suffix")
-        assert result is None
-        # Should increment miss count
-        metrics = cache_with_no_client.get_metrics()
-        assert metrics["misses"] == 1
-
-    @pytest.mark.asyncio
-    async def test_delete_with_no_client(self, cache_with_no_client):
-        """Test delete operation with no Redis client."""
-        result = await cache_with_no_client.delete("key", "suffix")
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_clear_pattern_with_no_client(self, cache_with_no_client):
-        """Test clear_pattern operation with no Redis client."""
-        result = await cache_with_no_client.clear_pattern("pattern*")
-        assert result == 0
-
-    @pytest.mark.asyncio
-    async def test_get_or_set_with_no_client(self, cache_with_no_client):
-        """Test get_or_set operation with no Redis client."""
-        async def producer():
-            return "value"
-
-        result = await cache_with_no_client.get_or_set("key", producer, 60, "suffix")
-        assert result == "value"  # Should call producer and return value
-
-    @pytest.mark.asyncio
-    async def test_set_with_connection_error(self, cache_with_connection_error):
-        """Test set operation with Redis connection error."""
-        result = await cache_with_connection_error.set("key", "value", 60, "suffix")
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_get_with_connection_error(self, cache_with_connection_error):
-        """Test get operation with Redis connection error."""
-        result = await cache_with_connection_error.get("key", "suffix")
-        assert result is None
-        # Should increment miss count
-        metrics = cache_with_connection_error.get_metrics()
-        assert metrics["misses"] == 1
-
-    @pytest.mark.asyncio
-    async def test_delete_with_connection_error(self, cache_with_connection_error):
-        """Test delete operation with Redis connection error."""
-        result = await cache_with_connection_error.delete("key", "suffix")
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_clear_pattern_with_connection_error(self, cache_with_connection_error):
-        """Test clear_pattern operation with Redis connection error."""
-        result = await cache_with_connection_error.clear_pattern("pattern*")
-        assert result == 0
-
-    @pytest.mark.asyncio
-    async def test_get_or_set_with_connection_error(self, cache_with_connection_error):
-        """Test get_or_set operation with Redis connection error."""
-        async def producer():
-            return "value"
-
-        result = await cache_with_connection_error.get_or_set("key", producer, 60, "suffix")
-        assert result == "value"  # Should call producer and return value
-
-    @pytest.mark.asyncio
-    async def test_set_different_data_types(self, cache):
-        """Test setting different data types."""
-        test_data = [
-            ("string", "hello"),
-            ("int", 42),
-            ("float", 3.14),
-            ("bool", True),
-            ("list", [1, 2, 3]),
-            ("dict", {"key": "value"}),
-            ("none", None),
-        ]
-        
-        for suffix, data in test_data:
-            result = await cache.set("test", data, 60, suffix)
-            assert result is True
+    @pytest.fixture
+    def cache_instance(self, mock_redis_client, mock_connection_pool):
+        """Create cache instance with mocked Redis."""
+        with patch('services.redis_cache.ConnectionPool') as mock_pool_class, \
+             patch('services.redis_cache.redis.Redis') as mock_redis_class:
             
-            retrieved = await cache.get("test", suffix)
-            assert retrieved == data
+            mock_pool_class.from_url.return_value = mock_connection_pool
+            mock_redis_class.return_value = mock_redis_client
+            
+            cache = EnhancedRedisCache(
+                redis_url="redis://localhost:6379",
+                max_connections=10,
+                connection_timeout=5
+            )
+            
+            return cache
+
+    def test_cache_initialization(self, cache_instance):
+        """Test cache initialization."""
+        assert cache_instance.redis_url == "redis://localhost:6379"
+        assert cache_instance.max_connections == 10
+        assert cache_instance.connection_timeout == 5
+        assert cache_instance.client is not None
+        assert cache_instance.circuit_breaker is not None
+        assert cache_instance.metrics is not None
+
+    def test_cache_initialization_default_values(self):
+        """Test cache initialization with default values."""
+        with patch('services.redis_cache.ConnectionPool') as mock_pool_class, \
+             patch('services.redis_cache.redis.Redis') as mock_redis_class:
+            
+            mock_pool_class.from_url.return_value = MagicMock()
+            mock_redis_class.return_value = MagicMock()
+            
+            cache = EnhancedRedisCache()
+            
+            assert cache.redis_url == "redis://localhost:6379"
+            assert cache.max_connections == 20
+            assert cache.connection_timeout == 5
+
+    def test_cache_initialization_failure(self):
+        """Test cache initialization failure."""
+        with patch('services.redis_cache.ConnectionPool') as mock_pool_class:
+            mock_pool_class.from_url.side_effect = Exception("Connection failed")
+            
+            cache = EnhancedRedisCache()
+            
+            assert cache.client is None
+
+    def test_generate_key_simple(self, cache_instance):
+        """Test key generation with simple arguments."""
+        key = cache_instance._generate_key("test", "arg1", "arg2")
+        assert key == "test:arg1:arg2"
+
+    def test_generate_key_with_kwargs(self, cache_instance):
+        """Test key generation with keyword arguments."""
+        key = cache_instance._generate_key("test", user_id="123", action="create")
+        assert "test" in key
+        assert "user_id:123" in key
+        assert "action:create" in key
+
+    def test_generate_key_with_complex_data(self, cache_instance):
+        """Test key generation with complex data structures."""
+        complex_data = {"nested": {"key": "value"}, "list": [1, 2, 3]}
+        key = cache_instance._generate_key("test", data=complex_data)
+        
+        assert "test" in key
+        assert "data:" in key
+        assert len(key) > 0
+
+    def test_generate_key_long_key_hashing(self, cache_instance):
+        """Test key generation with long keys that get hashed."""
+        long_string = "x" * 300
+        key = cache_instance._generate_key("test", long_string)
+        
+        # Should be hashed and shorter than 250 chars
+        assert len(key) < 250
+        assert key.startswith("test:")
 
     @pytest.mark.asyncio
-    async def test_get_cache_miss(self, cache):
-        """Test get operation with cache miss."""
-        result = await cache.get("nonexistent", "key")
+    async def test_get_success(self, cache_instance):
+        """Test successful cache get."""
+        test_data = {"key": "value"}
+        cache_instance.client.get.return_value = json.dumps(test_data)
+        
+        result = await cache_instance.get("test", "key1")
+        
+        assert result == test_data
+        assert cache_instance.metrics["hits"] == 1
+        assert cache_instance.metrics["total_operations"] == 1
+
+    @pytest.mark.asyncio
+    async def test_get_miss(self, cache_instance):
+        """Test cache miss."""
+        cache_instance.client.get.return_value = None
+        
+        result = await cache_instance.get("test", "key1")
+        
         assert result is None
-        
-        metrics = cache.get_metrics()
-        assert metrics["misses"] == 1
-        assert metrics["hits"] == 0
+        assert cache_instance.metrics["misses"] == 1
+        assert cache_instance.metrics["total_operations"] == 1
 
     @pytest.mark.asyncio
-    async def test_delete_nonexistent_key(self, cache):
-        """Test deleting nonexistent key."""
-        result = await cache.delete("nonexistent", "key")
+    async def test_get_error(self, cache_instance):
+        """Test cache get with error."""
+        cache_instance.client.get.side_effect = Exception("Redis error")
+        
+        result = await cache_instance.get("test", "key1")
+        
+        assert result is None
+        assert cache_instance.metrics["errors"] == 1
+        assert cache_instance.metrics["total_operations"] == 1
+
+    @pytest.mark.asyncio
+    async def test_get_circuit_breaker_open(self, cache_instance):
+        """Test get when circuit breaker is open."""
+        cache_instance.circuit_breaker.state = "OPEN"
+        cache_instance.circuit_breaker.last_failure_time = time.time()
+        
+        result = await cache_instance.get("test", "key1")
+        
+        assert result is None
+        cache_instance.client.get.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_set_success(self, cache_instance):
+        """Test successful cache set."""
+        test_data = {"key": "value"}
+        cache_instance.client.setex.return_value = True
+        
+        result = await cache_instance.set("test", test_data, 3600, "key1")
+        
+        assert result is True
+        cache_instance.client.setex.assert_called_once()
+        assert cache_instance.metrics["total_operations"] == 1
+
+    @pytest.mark.asyncio
+    async def test_set_with_timedelta(self, cache_instance):
+        """Test cache set with timedelta TTL."""
+        test_data = {"key": "value"}
+        ttl = timedelta(hours=1)
+        cache_instance.client.setex.return_value = True
+        
+        result = await cache_instance.set("test", test_data, ttl, "key1")
+        
+        assert result is True
+        # Should convert timedelta to seconds (3600)
+        cache_instance.client.setex.assert_called_once()
+        call_args = cache_instance.client.setex.call_args
+        assert call_args[0][1] == 3600  # TTL in seconds
+
+    @pytest.mark.asyncio
+    async def test_set_error(self, cache_instance):
+        """Test cache set with error."""
+        cache_instance.client.setex.side_effect = Exception("Redis error")
+        
+        result = await cache_instance.set("test", {"key": "value"}, 3600, "key1")
+        
         assert result is False
+        assert cache_instance.metrics["errors"] == 1
+        assert cache_instance.metrics["total_operations"] == 1
 
     @pytest.mark.asyncio
-    async def test_clear_pattern_no_matches(self, cache):
-        """Test clear_pattern with no matching keys."""
-        result = await cache.clear_pattern("nonexistent:*")
+    async def test_delete_success(self, cache_instance):
+        """Test successful cache delete."""
+        cache_instance.client.delete.return_value = 1
+        
+        result = await cache_instance.delete("test", "key1")
+        
+        assert result is True
+        cache_instance.client.delete.assert_called_once()
+        assert cache_instance.metrics["total_operations"] == 1
+
+    @pytest.mark.asyncio
+    async def test_delete_not_found(self, cache_instance):
+        """Test cache delete when key not found."""
+        cache_instance.client.delete.return_value = 0
+        
+        result = await cache_instance.delete("test", "key1")
+        
+        assert result is False
+        cache_instance.client.delete.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_delete_error(self, cache_instance):
+        """Test cache delete with error."""
+        cache_instance.client.delete.side_effect = Exception("Redis error")
+        
+        result = await cache_instance.delete("test", "key1")
+        
+        assert result is False
+        assert cache_instance.metrics["errors"] == 1
+
+    @pytest.mark.asyncio
+    async def test_clear_pattern_success(self, cache_instance):
+        """Test successful pattern clearing."""
+        cache_instance.client.keys.return_value = ["key1", "key2", "key3"]
+        cache_instance.client.delete.return_value = 3
+        
+        result = await cache_instance.clear_pattern("test:*")
+        
+        assert result == 3
+        cache_instance.client.keys.assert_called_once_with("test:*")
+        cache_instance.client.delete.assert_called_once_with("key1", "key2", "key3")
+
+    @pytest.mark.asyncio
+    async def test_clear_pattern_no_keys(self, cache_instance):
+        """Test pattern clearing when no keys match."""
+        cache_instance.client.keys.return_value = []
+        
+        result = await cache_instance.clear_pattern("test:*")
+        
         assert result == 0
+        cache_instance.client.delete.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_generate_key_basic(self, cache):
-        """Test basic key generation."""
-        key = cache._generate_key("prefix", "suffix")
-        assert key == "prefix:suffix"
-
-    @pytest.mark.asyncio
-    async def test_generate_key_with_kwargs(self, cache):
-        """Test key generation with kwargs."""
-        key = cache._generate_key("prefix", "suffix", param1="value1", param2="value2")
-        assert "prefix:suffix" in key
-        assert "param1:value1" in key
-        assert "param2:value2" in key
-
-    @pytest.mark.asyncio
-    async def test_generate_key_with_complex_kwargs(self, cache):
-        """Test key generation with complex kwargs."""
-        key = cache._generate_key("prefix", "suffix", 
-                                 dict_param={"nested": "value"},
-                                 list_param=[1, 2, 3])
-        assert "prefix:suffix" in key
-        # Complex objects should be hashed
-        assert len(key) < 300  # Should be reasonable length
-
-    @pytest.mark.asyncio
-    async def test_generate_key_long_value_hashing(self, cache):
-        """Test that long values are hashed to keep key length reasonable."""
-        long_value = "x" * 500
-        key = cache._generate_key("prefix", "suffix", long_param=long_value)
-        assert len(key) < 250  # Should be hashed and shortened
-
-    @pytest.mark.asyncio
-    async def test_serialize_deserialize_data(self, cache):
-        """Test data serialization and deserialization."""
-        test_data = {"complex": {"nested": {"data": [1, 2, 3]}}}
-        
-        # Test _serialize_data
-        serialized = cache._serialize_data(test_data)
-        assert isinstance(serialized, str)
-        
-        # Test _deserialize_data
-        deserialized = cache._deserialize_data(serialized)
-        assert deserialized == test_data
-
-    @pytest.mark.asyncio
-    async def test_deserialize_invalid_json(self, cache):
-        """Test deserializing invalid JSON."""
-        invalid_json = "invalid json string"
-        result = cache._deserialize_data(invalid_json)
-        assert result == invalid_json  # Should return original string
-
-    @pytest.mark.asyncio
-    async def test_get_metrics(self, cache):
-        """Test getting cache metrics."""
-        # Initial metrics
-        metrics = cache.get_metrics()
-        assert "hits" in metrics
-        assert "misses" in metrics
-        assert "sets" in metrics
-        assert "deletes" in metrics
-        assert "errors" in metrics
-        
-        # Perform operations and check metrics
-        await cache.set("test", "value", 60, "key")
-        await cache.get("test", "key")  # Hit
-        await cache.get("nonexistent", "key")  # Miss
-        await cache.delete("test", "key")
-        
-        metrics = cache.get_metrics()
-        assert metrics["hits"] == 1
-        assert metrics["misses"] == 1
-        assert metrics["sets"] == 1
-        assert metrics["deletes"] == 1
-
-    @pytest.mark.asyncio
-    async def test_reset_metrics(self, cache):
-        """Test resetting cache metrics."""
-        # Perform some operations
-        await cache.set("test", "value", 60, "key")
-        await cache.get("test", "key")
-        
-        # Check metrics are not zero
-        metrics = cache.get_metrics()
-        assert metrics["hits"] > 0
-        assert metrics["sets"] > 0
-        
-        # Reset metrics
-        cache.reset_metrics()
-        
-        # Check metrics are reset
-        metrics = cache.get_metrics()
-        assert metrics["hits"] == 0
-        assert metrics["misses"] == 0
-        assert metrics["sets"] == 0
-        assert metrics["deletes"] == 0
-        assert metrics["errors"] == 0
-
-    @pytest.mark.asyncio
-    async def test_get_or_set_cache_hit(self, cache):
+    async def test_get_or_set_cache_hit(self, cache_instance):
         """Test get_or_set with cache hit."""
-        # First set a value
-        await cache.set("test", "cached_value", 60, "key")
+        test_data = {"key": "value"}
+        cache_instance.client.get.return_value = json.dumps(test_data)
         
-        producer_called = False
-        async def producer():
-            nonlocal producer_called
-            producer_called = True
-            return "new_value"
+        def value_func():
+            return {"new": "data"}
         
-        result = await cache.get_or_set("test", producer, 60, "key")
-        assert result == "cached_value"
-        assert not producer_called  # Producer should not be called
+        result = await cache_instance.get_or_set("test", value_func, 3600, "key1")
+        
+        assert result == test_data
+        cache_instance.client.setex.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_get_or_set_cache_miss(self, cache):
+    async def test_get_or_set_cache_miss(self, cache_instance):
         """Test get_or_set with cache miss."""
-        producer_called = False
-        async def producer():
-            nonlocal producer_called
-            producer_called = True
-            return "new_value"
+        cache_instance.client.get.return_value = None
+        cache_instance.client.setex.return_value = True
         
-        result = await cache.get_or_set("test", producer, 60, "key")
-        assert result == "new_value"
-        assert producer_called  # Producer should be called
+        def value_func():
+            return {"new": "data"}
         
-        # Verify value was cached
-        cached_value = await cache.get("test", "key")
-        assert cached_value == "new_value"
+        result = await cache_instance.get_or_set("test", value_func, 3600, "key1")
+        
+        assert result == {"new": "data"}
+        cache_instance.client.setex.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_get_or_set_producer_exception(self, cache):
-        """Test get_or_set when producer raises exception."""
-        async def failing_producer():
-            raise ValueError("Producer failed")
+    async def test_get_or_set_async_function(self, cache_instance):
+        """Test get_or_set with async function."""
+        cache_instance.client.get.return_value = None
+        cache_instance.client.setex.return_value = True
         
-        with pytest.raises(ValueError, match="Producer failed"):
-            await cache.get_or_set("test", failing_producer, 60, "key")
+        async def async_value_func():
+            return {"async": "data"}
+        
+        result = await cache_instance.get_or_set("test", async_value_func, 3600, "key1")
+        
+        assert result == {"async": "data"}
+        cache_instance.client.setex.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_bulk_operations(self, cache):
-        """Test bulk operations for performance."""
-        # Set multiple keys
-        keys_values = [
-            ("bulk", "value1", "key1"),
-            ("bulk", "value2", "key2"),
-            ("bulk", "value3", "key3"),
-        ]
+    async def test_get_or_set_function_error(self, cache_instance):
+        """Test get_or_set when function raises error."""
+        cache_instance.client.get.return_value = None
         
-        for prefix, value, suffix in keys_values:
-            await cache.set(prefix, value, 60, suffix)
+        def failing_func():
+            raise Exception("Function error")
         
-        # Get multiple keys
-        for prefix, expected_value, suffix in keys_values:
-            result = await cache.get(prefix, suffix)
-            assert result == expected_value
+        with pytest.raises(Exception):
+            await cache_instance.get_or_set("test", failing_func, 3600, "key1")
 
     @pytest.mark.asyncio
-    async def test_cache_expiration_handling(self, cache):
-        """Test that cache handles expiration correctly."""
-        # Note: Our mock doesn't actually expire keys, but we test the interface
-        await cache.set("expiring", "value", 1, "key")  # 1 second TTL
+    async def test_mget_success(self, cache_instance):
+        """Test successful multiple get."""
+        test_data = [json.dumps({"key": "value1"}), json.dumps({"key": "value2"}), None]
+        cache_instance.client.mget.return_value = test_data
         
-        # Should still be available immediately
-        result = await cache.get("expiring", "key")
-        assert result == "value"
+        result = await cache_instance.mget(["key1", "key2", "key3"])
+        
+        assert len(result) == 3
+        assert result[0] == {"key": "value1"}
+        assert result[1] == {"key": "value2"}
+        assert result[2] is None
+        assert cache_instance.metrics["hits"] == 2
+        assert cache_instance.metrics["misses"] == 1
 
     @pytest.mark.asyncio
-    async def test_clear_pattern_with_wildcards(self, cache):
-        """Test clear_pattern with different wildcard patterns."""
-        # Set up test data
-        await cache.set("user", "data1", 60, "123")
-        await cache.set("user", "data2", 60, "456")
-        await cache.set("session", "data3", 60, "789")
+    async def test_mget_error(self, cache_instance):
+        """Test mget with error."""
+        cache_instance.client.mget.side_effect = Exception("Redis error")
         
-        # Clear user:* pattern
-        cleared = await cache.clear_pattern("user:*")
-        assert cleared == 2
+        result = await cache_instance.mget(["key1", "key2"])
         
-        # Verify user keys are gone but session key remains
-        assert await cache.get("user", "123") is None
-        assert await cache.get("user", "456") is None
-        assert await cache.get("session", "789") == "data3"
+        assert result == [None, None]
+        assert cache_instance.metrics["errors"] == 1
 
     @pytest.mark.asyncio
-    async def test_concurrent_operations(self, cache):
-        """Test concurrent cache operations."""
-        async def set_operation(i):
-            return await cache.set("concurrent", f"value_{i}", 60, str(i))
+    async def test_mset_success(self, cache_instance):
+        """Test successful multiple set."""
+        test_data = {"key1": {"value": 1}, "key2": {"value": 2}}
         
-        async def get_operation(i):
-            return await cache.get("concurrent", str(i))
+        # Mock pipeline context manager properly
+        mock_pipeline = AsyncMock()
+        mock_pipeline.setex = MagicMock()
+        mock_pipeline.execute = AsyncMock()
         
-        # Run concurrent set operations
-        set_tasks = [set_operation(i) for i in range(10)]
-        set_results = await asyncio.gather(*set_tasks)
-        assert all(set_results)
+        # Create a proper async context manager
+        class MockAsyncContextManager:
+            async def __aenter__(self):
+                return mock_pipeline
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                return None
         
-        # Run concurrent get operations
-        get_tasks = [get_operation(i) for i in range(10)]
-        get_results = await asyncio.gather(*get_tasks)
+        cache_instance.client.pipeline = MagicMock(return_value=MockAsyncContextManager())
         
-        for i, result in enumerate(get_results):
-            assert result == f"value_{i}"
+        result = await cache_instance.mset(test_data, 3600)
+        
+        assert result is True
+        assert mock_pipeline.setex.call_count == 2
+        mock_pipeline.execute.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_error_handling_in_set(self, cache):
-        """Test error handling in set operation."""
-        # Mock client to raise exception
-        original_client = cache.client
-        cache.client = MagicMock()
-        cache.client.setex = AsyncMock(side_effect=Exception("Redis error"))
+    async def test_mset_with_timedelta(self, cache_instance):
+        """Test mset with timedelta TTL."""
+        test_data = {"key1": {"value": 1}}
+        ttl = timedelta(hours=2)
         
-        result = await cache.set("error", "value", 60, "test")
+        # Mock pipeline context manager properly
+        mock_pipeline = AsyncMock()
+        mock_pipeline.setex = MagicMock()
+        mock_pipeline.execute = AsyncMock()
+        
+        # Create a proper async context manager
+        class MockAsyncContextManager:
+            async def __aenter__(self):
+                return mock_pipeline
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                return None
+        
+        cache_instance.client.pipeline = MagicMock(return_value=MockAsyncContextManager())
+        
+        result = await cache_instance.mset(test_data, ttl)
+        
+        assert result is True
+        # Should convert timedelta to seconds (7200)
+        mock_pipeline.setex.assert_called_with("key1", 7200, json.dumps({"value": 1}, default=str))
+
+    @pytest.mark.asyncio
+    async def test_mset_error(self, cache_instance):
+        """Test mset with error."""
+        cache_instance.client.pipeline.side_effect = Exception("Redis error")
+        
+        result = await cache_instance.mset({"key1": {"value": 1}}, 3600)
+        
         assert result is False
-        
-        # Check error was counted
-        metrics = cache.get_metrics()
-        assert metrics["errors"] > 0
-        
-        # Restore original client
-        cache.client = original_client
+        assert cache_instance.metrics["errors"] == 1
 
     @pytest.mark.asyncio
-    async def test_error_handling_in_get(self, cache):
-        """Test error handling in get operation."""
-        # Mock client to raise exception
-        original_client = cache.client
-        cache.client = MagicMock()
-        cache.client.get = AsyncMock(side_effect=Exception("Redis error"))
+    async def test_acquire_lock_success(self, cache_instance):
+        """Test successful lock acquisition."""
+        cache_instance.client.set.return_value = True
         
-        result = await cache.get("error", "test")
-        assert result is None
+        result = await cache_instance.acquire_lock("test_lock", 10)
         
-        # Check error was counted
-        metrics = cache.get_metrics()
-        assert metrics["errors"] > 0
-        
-        # Restore original client
-        cache.client = original_client
+        assert result is True
+        cache_instance.client.set.assert_called_once()
+        call_args = cache_instance.client.set.call_args
+        assert call_args[0][0] == "lock:test_lock"
+        assert call_args[1]["ex"] == 10
+        assert call_args[1]["nx"] is True
 
     @pytest.mark.asyncio
-    async def test_error_handling_in_delete(self, cache):
-        """Test error handling in delete operation."""
-        # Mock client to raise exception
-        original_client = cache.client
-        cache.client = MagicMock()
-        cache.client.delete = AsyncMock(side_effect=Exception("Redis error"))
+    async def test_acquire_lock_failure(self, cache_instance):
+        """Test lock acquisition failure."""
+        cache_instance.client.set.return_value = False
         
-        result = await cache.delete("error", "test")
+        result = await cache_instance.acquire_lock("test_lock", 10)
+        
         assert result is False
-        
-        # Check error was counted
-        metrics = cache.get_metrics()
-        assert metrics["errors"] > 0
-        
-        # Restore original client
-        cache.client = original_client
 
     @pytest.mark.asyncio
-    async def test_error_handling_in_clear_pattern(self, cache):
-        """Test error handling in clear_pattern operation."""
-        # Mock client to raise exception
-        original_client = cache.client
-        cache.client = MagicMock()
-        cache.client.keys = AsyncMock(side_effect=Exception("Redis error"))
+    async def test_acquire_lock_error(self, cache_instance):
+        """Test lock acquisition with error."""
+        cache_instance.client.set.side_effect = Exception("Redis error")
         
-        result = await cache.clear_pattern("error:*")
-        assert result == 0
+        result = await cache_instance.acquire_lock("test_lock", 10)
         
-        # Check error was counted
-        metrics = cache.get_metrics()
-        assert metrics["errors"] > 0
-        
-        # Restore original client
-        cache.client = original_client
+        assert result is False
 
-    def test_global_enhanced_cache_instance(self):
-        """Test that global enhanced_cache instance exists."""
+    @pytest.mark.asyncio
+    async def test_release_lock_success(self, cache_instance):
+        """Test successful lock release."""
+        cache_instance.client.delete.return_value = 1
+        
+        result = await cache_instance.release_lock("test_lock")
+        
+        assert result is True
+        cache_instance.client.delete.assert_called_once_with("lock:test_lock")
+
+    @pytest.mark.asyncio
+    async def test_release_lock_not_found(self, cache_instance):
+        """Test lock release when lock not found."""
+        cache_instance.client.delete.return_value = 0
+        
+        result = await cache_instance.release_lock("test_lock")
+        
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_warm_cache_success(self, cache_instance):
+        """Test successful cache warming."""
+        warmup_data = {
+            "key1": ({"value": 1}, 3600),
+            "key2": ({"value": 2}, 7200),
+        }
+        
+        cache_instance.client.setex.return_value = True
+        
+        result = await cache_instance.warm_cache(warmup_data)
+        
+        assert result == 2
+        assert cache_instance.client.setex.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_warm_cache_partial_success(self, cache_instance):
+        """Test cache warming with partial success."""
+        warmup_data = {
+            "key1": ({"value": 1}, 3600),
+            "key2": ({"value": 2}, 7200),
+        }
+        
+        cache_instance.client.setex.side_effect = [True, Exception("Error")]
+        
+        result = await cache_instance.warm_cache(warmup_data)
+        
+        assert result == 1
+
+    def test_get_metrics(self, cache_instance):
+        """Test getting cache metrics."""
+        # Set some metrics
+        cache_instance.metrics["hits"] = 10
+        cache_instance.metrics["misses"] = 5
+        cache_instance.metrics["errors"] = 2
+        cache_instance.metrics["total_operations"] = 17
+        
+        metrics = cache_instance.get_metrics()
+        
+        assert metrics["hits"] == 10
+        assert metrics["misses"] == 5
+        assert metrics["errors"] == 2
+        assert metrics["total_operations"] == 17
+        assert metrics["hit_rate"] == 10/17
+        assert metrics["circuit_breaker_state"] == "CLOSED"
+        assert metrics["connection_healthy"] is True
+
+    def test_get_metrics_zero_operations(self, cache_instance):
+        """Test getting metrics with zero operations."""
+        metrics = cache_instance.get_metrics()
+        
+        assert metrics["hit_rate"] == 0
+        assert metrics["total_operations"] == 0
+
+    @pytest.mark.asyncio
+    async def test_health_check_success(self, cache_instance):
+        """Test successful health check."""
+        cache_instance.client.ping.return_value = True
+        
+        # Start health check
+        await cache_instance.start_health_check()
+        
+        # Let it run briefly
+        await asyncio.sleep(0.1)
+        
+        # Stop health check
+        await cache_instance.stop_health_check()
+        
+        assert cache_instance.health_check_task is None
+
+    @pytest.mark.asyncio
+    async def test_health_check_failure(self, cache_instance):
+        """Test health check failure."""
+        cache_instance.client.ping.side_effect = Exception("Connection failed")
+        cache_instance.health_check_interval = 0.1
+        
+        # Start health check
+        await cache_instance.start_health_check()
+        
+        # Let it run briefly
+        await asyncio.sleep(0.2)
+        
+        # Stop health check
+        await cache_instance.stop_health_check()
+        
+        # Circuit breaker should have recorded failures
+        assert cache_instance.circuit_breaker.failure_count > 0
+
+    @pytest.mark.asyncio
+    async def test_close(self, cache_instance):
+        """Test cache close."""
+        await cache_instance.close()
+        
+        cache_instance.client.close.assert_called_once()
+        cache_instance.pool.disconnect.assert_called_once()
+
+
+class TestCacheDecorators:
+    """Test cache decorators."""
+
+    @pytest.fixture
+    def mock_cache(self):
+        """Mock enhanced cache."""
+        mock_cache = AsyncMock()
+        mock_cache.get_or_set = AsyncMock()
+        mock_cache.get = AsyncMock()
+        mock_cache.acquire_lock = AsyncMock()
+        mock_cache.release_lock = AsyncMock()
+        return mock_cache
+
+    @pytest.mark.asyncio
+    async def test_enhanced_cached_decorator_async(self, mock_cache):
+        """Test enhanced_cached decorator with async function."""
+        with patch('services.redis_cache.enhanced_cache', mock_cache):
+            mock_cache.get_or_set.return_value = {"cached": "result"}
+            
+            @enhanced_cached("test", ttl=3600)
+            async def async_function(param1, param2):
+                return {"param1": param1, "param2": param2}
+            
+            result = await async_function("value1", "value2")
+            
+            assert result == {"cached": "result"}
+            mock_cache.get_or_set.assert_called_once()
+
+    def test_enhanced_cached_decorator_sync(self, mock_cache):
+        """Test enhanced_cached decorator with sync function."""
+        with patch('services.redis_cache.enhanced_cache', mock_cache):
+            # Mock sync return for sync functions
+            mock_cache.get_or_set = MagicMock(return_value={"cached": "result"})
+            
+            @enhanced_cached("test", ttl=3600)
+            def sync_function(param1, param2):
+                return {"param1": param1, "param2": param2}
+            
+            result = sync_function("value1", "value2")
+            
+            assert result == {"cached": "result"}
+            mock_cache.get_or_set.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_cache_with_lock_decorator_success(self, mock_cache):
+        """Test cache_with_lock decorator with successful lock acquisition."""
+        with patch('services.redis_cache.enhanced_cache', mock_cache):
+            mock_cache.acquire_lock.return_value = True
+            mock_cache.get_or_set.return_value = {"locked": "result"}
+            mock_cache.release_lock.return_value = True
+            
+            @cache_with_lock("test", ttl=3600, lock_timeout=10)
+            async def locked_function(param):
+                return {"param": param}
+            
+            result = await locked_function("value")
+            
+            assert result == {"locked": "result"}
+            mock_cache.acquire_lock.assert_called_once()
+            mock_cache.get_or_set.assert_called_once()
+            mock_cache.release_lock.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_cache_with_lock_decorator_lock_failure(self, mock_cache):
+        """Test cache_with_lock decorator with lock acquisition failure."""
+        with patch('services.redis_cache.enhanced_cache', mock_cache):
+            mock_cache.acquire_lock.return_value = False
+            mock_cache.get.return_value = {"fallback": "result"}
+            
+            @cache_with_lock("test", ttl=3600, lock_timeout=10)
+            async def locked_function(param):
+                return {"param": param}
+            
+            result = await locked_function("value")
+            
+            assert result == {"fallback": "result"}
+            mock_cache.acquire_lock.assert_called_once()
+            mock_cache.get.assert_called_once()
+            mock_cache.get_or_set.assert_not_called()
+            mock_cache.release_lock.assert_not_called()
+
+
+class TestGlobalCacheInstance:
+    """Test global cache instance."""
+
+    def test_global_cache_exists(self):
+        """Test that global enhanced_cache exists."""
         assert enhanced_cache is not None
         assert isinstance(enhanced_cache, EnhancedRedisCache)
 
-    @pytest.mark.asyncio
-    async def test_cache_key_collision_handling(self, cache):
-        """Test handling of potential key collisions."""
-        # Create keys that might collide
-        key1 = cache._generate_key("prefix", "suffix", param="value1")
-        key2 = cache._generate_key("prefix", "suffix", param="value2")
-        
-        # Keys should be different
-        assert key1 != key2
-        
-        # Set different values
-        await cache.set("prefix", "data1", 60, "suffix", param="value1")
-        await cache.set("prefix", "data2", 60, "suffix", param="value2")
-        
-        # Should get correct values
-        result1 = await cache.get("prefix", "suffix", param="value1")
-        result2 = await cache.get("prefix", "suffix", param="value2")
-        
-        assert result1 == "data1"
-        assert result2 == "data2"
+    def test_global_cache_configuration(self):
+        """Test global cache configuration."""
+        assert enhanced_cache.redis_url == "redis://localhost:6379"
+        assert enhanced_cache.max_connections == 20
+        assert enhanced_cache.connection_timeout == 5
+
+
+class TestCacheIntegration:
+    """Integration tests for cache functionality."""
+
+    @pytest.fixture
+    def cache_with_real_circuit_breaker(self):
+        """Create cache with real circuit breaker for integration tests."""
+        with patch('services.redis_cache.ConnectionPool') as mock_pool_class, \
+             patch('services.redis_cache.redis.Redis') as mock_redis_class:
+            
+            mock_pool_class.from_url.return_value = MagicMock()
+            mock_redis_class.return_value = AsyncMock()
+            
+            cache = EnhancedRedisCache(
+                redis_url="redis://localhost:6379",
+                max_connections=5,
+                connection_timeout=1
+            )
+            
+            return cache
 
     @pytest.mark.asyncio
-    async def test_cache_with_special_characters(self, cache):
-        """Test cache operations with special characters."""
-        special_data = {
-            "unicode": "Hello 世界",
-            "symbols": "!@#$%^&*()",
-            "quotes": 'Test "quotes" and \'apostrophes\'',
-            "newlines": "Line 1\nLine 2\nLine 3"
+    async def test_cache_operations_with_circuit_breaker(self, cache_with_real_circuit_breaker):
+        """Test cache operations with circuit breaker integration."""
+        cache = cache_with_real_circuit_breaker
+        
+        # Simulate failures to trigger circuit breaker
+        cache.client.get.side_effect = Exception("Connection failed")
+        
+        # Multiple failures should open circuit breaker
+        for _ in range(6):
+            await cache.get("test", "key")
+        
+        assert cache.circuit_breaker.state == "OPEN"
+        
+        # Further operations should be blocked
+        result = await cache.get("test", "key2")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_cache_key_generation_consistency(self, cache_with_real_circuit_breaker):
+        """Test that key generation is consistent."""
+        cache = cache_with_real_circuit_breaker
+        
+        # Same arguments should generate same key
+        key1 = cache._generate_key("test", "arg1", user_id="123", action="create")
+        key2 = cache._generate_key("test", "arg1", user_id="123", action="create")
+        
+        assert key1 == key2
+        
+        # Different arguments should generate different keys
+        key3 = cache._generate_key("test", "arg1", user_id="456", action="create")
+        assert key1 != key3
+
+    @pytest.mark.asyncio
+    async def test_cache_serialization_deserialization(self, cache_with_real_circuit_breaker):
+        """Test cache serialization and deserialization."""
+        cache = cache_with_real_circuit_breaker
+        
+        # Test various data types
+        test_data = {
+            "string": "test",
+            "number": 123,
+            "boolean": True,
+            "list": [1, 2, 3],
+            "dict": {"nested": "value"},
+            "null": None
         }
         
-        await cache.set("special", special_data, 60, "chars")
-        result = await cache.get("special", "chars")
+        cache.client.setex.return_value = True
+        cache.client.get.return_value = json.dumps(test_data, default=str)
         
-        assert result == special_data
+        # Set and get
+        await cache.set("test", test_data, 3600, "key")
+        result = await cache.get("test", "key")
+        
+        assert result == test_data
 
     @pytest.mark.asyncio
-    async def test_cache_large_data(self, cache):
-        """Test cache operations with large data."""
-        large_data = {"data": "x" * 10000}  # 10KB of data
+    async def test_cache_metrics_accuracy(self, cache_with_real_circuit_breaker):
+        """Test cache metrics accuracy."""
+        cache = cache_with_real_circuit_breaker
         
-        result = await cache.set("large", large_data, 60, "data")
-        assert result is True
+        # Reset metrics
+        cache.metrics = {"hits": 0, "misses": 0, "errors": 0, "total_operations": 0}
         
-        retrieved = await cache.get("large", "data")
-        assert retrieved == large_data
-
-    @pytest.mark.asyncio
-    async def test_cache_empty_values(self, cache):
-        """Test cache operations with empty values."""
-        empty_values = [
-            ("empty_string", ""),
-            ("empty_list", []),
-            ("empty_dict", {}),
-            ("zero", 0),
-            ("false", False),
-        ]
+        # Simulate hits
+        cache.client.get.return_value = json.dumps({"test": "data"})
+        await cache.get("test", "key1")
+        await cache.get("test", "key2")
         
-        for suffix, value in empty_values:
-            await cache.set("empty", value, 60, suffix)
-            result = await cache.get("empty", suffix)
-            assert result == value
-
-    @pytest.mark.asyncio
-    async def test_pipeline_operations(self, cache):
-        """Test pipeline operations if available."""
-        # Our mock supports pipeline operations
-        assert hasattr(cache.client, 'pipeline')
+        # Simulate misses
+        cache.client.get.return_value = None
+        await cache.get("test", "key3")
         
-        # Test that pipeline can be used
-        async with await cache.client.pipeline() as pipe:
-            pipe.setex("pipe:key1", 60, "value1")
-            pipe.setex("pipe:key2", 60, "value2")
-            await pipe.execute()
+        # Simulate errors
+        cache.client.get.side_effect = Exception("Error")
+        await cache.get("test", "key4")
         
-        # Note: Our mock doesn't actually use pipeline for bulk operations
-        # but we test the interface exists
+        metrics = cache.get_metrics()
+        assert metrics["hits"] == 2
+        assert metrics["misses"] == 1
+        assert metrics["errors"] == 1
+        assert metrics["total_operations"] == 4
+        assert metrics["hit_rate"] == 0.5
