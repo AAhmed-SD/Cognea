@@ -33,9 +33,7 @@ class TestAuthRouter:
         """Sample registration data."""
         return {
             "email": "newuser@example.com",
-            "password": "securepassword123",
-            "first_name": "Jane",
-            "last_name": "Smith"
+            "password": "SecurePassword123!"
         }
 
     @pytest.fixture
@@ -43,7 +41,7 @@ class TestAuthRouter:
         """Sample login data."""
         return {
             "email": "test@example.com",
-            "password": "password123"
+            "password": "Password123!"
         }
 
     def test_router_tags(self):
@@ -64,244 +62,182 @@ class TestAuthRouter:
             # Check if any route contains the endpoint
             assert any(endpoint in route for route in routes), f"Endpoint {endpoint} not found"
 
-    @pytest.mark.asyncio
-    async def test_register_success(self, mock_supabase, sample_user_data, registration_data):
-        """Test successful user registration."""
+    def test_signup_success(self, mock_supabase, sample_user_data, registration_data):
+        """Test successful user signup."""
         # Import the function we want to test
         from routes.auth import signup
         
-        # Mock Supabase response for user creation
-        mock_result = MagicMock()
-        mock_result.data = [sample_user_data]
-        mock_supabase.table.return_value.insert.return_value.execute.return_value = mock_result
+        # Mock Supabase auth response
+        mock_auth_response = MagicMock()
+        mock_auth_response.user = MagicMock()
+        mock_auth_response.user.id = "user123"
+        mock_auth_response.user.email = "test@example.com"
+        
+        mock_supabase.auth.sign_up.return_value = mock_auth_response
+        mock_supabase.table.return_value.insert.return_value.execute.return_value.data = [sample_user_data]
 
-        # Mock email service
         with patch('routes.auth.get_supabase_client', return_value=mock_supabase), \
-             patch('routes.auth.email_service') as mock_email_service, \
-             patch('routes.auth.bcrypt.hashpw') as mock_hash:
+             patch('routes.auth.create_access_token') as mock_token:
             
-            mock_hash.return_value = b"hashed_password"
-            mock_email_service.send_email_verification.return_value = True
+            mock_token.return_value = "access_token_123"
 
             # Mock the registration request
-            from pydantic import BaseModel
-            class RegisterRequest(BaseModel):
-                email: str
-                password: str
-                first_name: str
-                last_name: str
-
-            request = RegisterRequest(**registration_data)
+            from routes.auth import UserCreate
+            request = UserCreate(**registration_data)
             
-            result = await register(request)
+            result = signup(request)
 
             assert "user" in result
             assert "access_token" in result
-            assert result["user"]["email"] == sample_user_data["email"]
-            mock_supabase.table.assert_called_with("users")
+            assert result["user"]["email"] == "newuser@example.com"
+            mock_supabase.auth.sign_up.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_register_email_exists(self, mock_supabase, registration_data):
-        """Test registration with existing email."""
-        from routes.auth import register
+    def test_signup_email_exists(self, mock_supabase, registration_data):
+        """Test signup with existing email."""
+        from routes.auth import signup
         
-        # Mock Supabase to return existing user
-        mock_result = MagicMock()
-        mock_result.data = [{"email": "newuser@example.com"}]
-        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_result
+        # Mock Supabase auth to raise exception for existing user
+        mock_supabase.auth.sign_up.side_effect = Exception("User already registered")
 
         with patch('routes.auth.get_supabase_client', return_value=mock_supabase), \
+             patch('routes.auth.validate_password_strength', return_value=(True, None)), \
              pytest.raises(HTTPException) as exc_info:
             
             from routes.auth import UserCreate
-            request = UserCreate(email=registration_data["email"], password=registration_data["password"])
+            request = UserCreate(**registration_data)
             signup(request)
 
         assert exc_info.value.status_code == 400
         assert "Email already registered" in str(exc_info.value.detail)
 
-    @pytest.mark.asyncio
-    async def test_login_success(self, mock_supabase, sample_user_data, login_data):
+    def test_login_success(self, mock_supabase, sample_user_data, login_data):
         """Test successful login."""
         from routes.auth import login
         
-        # Mock Supabase response for user lookup
-        user_with_password = sample_user_data.copy()
-        user_with_password["password"] = "hashed_password"
+        # Mock Supabase auth response
+        mock_auth_response = MagicMock()
+        mock_auth_response.user = MagicMock()
+        mock_auth_response.user.id = "user123"
+        mock_auth_response.user.email = "test@example.com"
         
-        mock_result = MagicMock()
-        mock_result.data = [user_with_password]
-        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_result
+        mock_supabase.auth.sign_in_with_password.return_value = mock_auth_response
 
         with patch('routes.auth.get_supabase_client', return_value=mock_supabase), \
-             patch('routes.auth.bcrypt.checkpw') as mock_check, \
              patch('routes.auth.create_access_token') as mock_token:
             
-            mock_check.return_value = True
             mock_token.return_value = "access_token_123"
 
-            from pydantic import BaseModel
-            class LoginRequest(BaseModel):
-                email: str
-                password: str
-
-            request = LoginRequest(**login_data)
-            result = await login(request)
+            from routes.auth import UserLogin
+            request = UserLogin(**login_data)
+            result = login(request)
 
             assert "user" in result
             assert "access_token" in result
             assert result["access_token"] == "access_token_123"
-            mock_check.assert_called_once()
+            mock_supabase.auth.sign_in_with_password.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_login_invalid_credentials(self, mock_supabase, login_data):
+    def test_login_invalid_credentials(self, mock_supabase, login_data):
         """Test login with invalid credentials."""
         from routes.auth import login
         
-        # Mock Supabase to return no user
-        mock_result = MagicMock()
-        mock_result.data = []
-        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_result
+        # Mock Supabase auth to raise exception
+        mock_supabase.auth.sign_in_with_password.side_effect = Exception("Invalid credentials")
 
         with patch('routes.auth.get_supabase_client', return_value=mock_supabase), \
              pytest.raises(HTTPException) as exc_info:
             
-            from pydantic import BaseModel
-            class LoginRequest(BaseModel):
-                email: str
-                password: str
-
-            request = LoginRequest(**login_data)
-            await login(request)
+            from routes.auth import UserLogin
+            request = UserLogin(**login_data)
+            login(request)
 
         assert exc_info.value.status_code == 401
-        assert "Invalid credentials" in str(exc_info.value.detail)
+        assert "Incorrect email or password" in str(exc_info.value.detail)
 
-    @pytest.mark.asyncio
-    async def test_login_wrong_password(self, mock_supabase, sample_user_data, login_data):
+    def test_login_wrong_password(self, mock_supabase, sample_user_data, login_data):
         """Test login with wrong password."""
         from routes.auth import login
         
-        # Mock Supabase response with user
-        user_with_password = sample_user_data.copy()
-        user_with_password["password"] = "hashed_password"
-        
-        mock_result = MagicMock()
-        mock_result.data = [user_with_password]
-        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_result
+        # Mock Supabase auth to return no user
+        mock_auth_response = MagicMock()
+        mock_auth_response.user = None
+        mock_supabase.auth.sign_in_with_password.return_value = mock_auth_response
 
         with patch('routes.auth.get_supabase_client', return_value=mock_supabase), \
-             patch('routes.auth.bcrypt.checkpw') as mock_check, \
              pytest.raises(HTTPException) as exc_info:
             
-            mock_check.return_value = False  # Wrong password
-
-            from pydantic import BaseModel
-            class LoginRequest(BaseModel):
-                email: str
-                password: str
-
-            request = LoginRequest(**login_data)
-            await login(request)
+            from routes.auth import UserLogin
+            request = UserLogin(**login_data)
+            login(request)
 
         assert exc_info.value.status_code == 401
-        assert "Invalid credentials" in str(exc_info.value.detail)
+        assert "Incorrect email or password" in str(exc_info.value.detail)
 
-    @pytest.mark.asyncio
-    async def test_get_current_user_success(self, mock_supabase, sample_user_data):
+    def test_get_current_user_success(self, sample_user_data):
         """Test getting current user profile."""
-        from routes.auth import get_current_user_profile
+        from routes.auth import get_current_user_info
         
-        # Mock current user from dependency
-        current_user = sample_user_data
+        # Mock current user object with attributes
+        class MockUser:
+            def __init__(self, data):
+                self.id = data["id"]
+                self.email = data["email"]
+        
+        current_user = MockUser(sample_user_data)
 
-        result = await get_current_user_profile(current_user)
+        result = get_current_user_info(current_user)
 
-        assert result == current_user
+        assert "id" in result
+        assert "email" in result
         assert result["email"] == "test@example.com"
 
-    @pytest.mark.asyncio
-    async def test_logout_success(self):
-        """Test successful logout."""
-        from routes.auth import logout
+    def test_forgot_password_success(self, mock_supabase):
+        """Test successful password reset request."""
+        from routes.auth import forgot_password
         
-        # Mock current user
-        current_user = {"id": "user123"}
-
-        with patch('routes.auth.invalidate_token') as mock_invalidate:
-            mock_invalidate.return_value = True
+        with patch('routes.auth.get_supabase_client', return_value=mock_supabase):
+            from routes.auth import ForgotPasswordRequest
+            request = ForgotPasswordRequest(email="test@example.com")
             
-            result = await logout(current_user)
+            result = forgot_password(request)
 
-            assert result == {"message": "Successfully logged out"}
+            assert "message" in result
+            mock_supabase.auth.reset_password_email.assert_called_once_with("test@example.com")
 
-    @pytest.mark.asyncio
-    async def test_refresh_token_success(self):
-        """Test successful token refresh."""
-        from routes.auth import refresh_token
+    def test_reset_password_success(self, mock_supabase):
+        """Test successful password reset."""
+        from routes.auth import reset_password
         
-        refresh_data = {"refresh_token": "valid_refresh_token"}
-
-        with patch('routes.auth.verify_refresh_token') as mock_verify, \
-             patch('routes.auth.create_access_token') as mock_create:
+        with patch('routes.auth.get_supabase_client', return_value=mock_supabase):
+            from routes.auth import ResetPasswordRequest
+            request = ResetPasswordRequest(token="reset_token", new_password="NewPassword123!")
             
-            mock_verify.return_value = {"user_id": "user123"}
-            mock_create.return_value = "new_access_token"
+            result = reset_password(request)
 
-            from pydantic import BaseModel
-            class RefreshRequest(BaseModel):
-                refresh_token: str
-
-            request = RefreshRequest(**refresh_data)
-            result = await refresh_token(request)
-
-            assert "access_token" in result
-            assert result["access_token"] == "new_access_token"
-
-    @pytest.mark.asyncio
-    async def test_refresh_token_invalid(self):
-        """Test token refresh with invalid token."""
-        from routes.auth import refresh_token
-        
-        refresh_data = {"refresh_token": "invalid_token"}
-
-        with patch('routes.auth.verify_refresh_token') as mock_verify, \
-             pytest.raises(HTTPException) as exc_info:
-            
-            mock_verify.return_value = None  # Invalid token
-
-            from pydantic import BaseModel
-            class RefreshRequest(BaseModel):
-                refresh_token: str
-
-            request = RefreshRequest(**refresh_data)
-            await refresh_token(request)
-
-        assert exc_info.value.status_code == 401
-        assert "Invalid refresh token" in str(exc_info.value.detail)
+            assert "message" in result
 
 
 class TestAuthHelperFunctions:
     """Test authentication helper functions."""
 
-    def test_password_hashing(self):
-        """Test password hashing functionality."""
-        import bcrypt
+    def test_password_validation(self):
+        """Test password validation functionality."""
+        from config.security import validate_password_strength
         
-        password = "test_password"
-        hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        # Test valid password
+        is_valid, message = validate_password_strength("ValidPassword123!")
+        assert is_valid
         
-        # Verify password can be checked
-        assert bcrypt.checkpw(password.encode('utf-8'), hashed)
-        assert not bcrypt.checkpw("wrong_password".encode('utf-8'), hashed)
+        # Test invalid password (too short)
+        is_valid, message = validate_password_strength("short")
+        assert not is_valid
 
     def test_token_creation(self):
         """Test JWT token creation."""
-        from routes.auth import create_access_token
+        from services.auth import create_access_token
         
-        user_data = {"user_id": "123", "email": "test@example.com"}
+        user_data = {"sub": "test@example.com"}
         
-        with patch('routes.auth.jwt.encode') as mock_encode:
+        with patch('jwt.encode') as mock_encode:
             mock_encode.return_value = "jwt_token"
             
             token = create_access_token(user_data)
@@ -313,68 +249,58 @@ class TestAuthHelperFunctions:
 class TestAuthIntegration:
     """Integration tests for authentication flow."""
 
-    @pytest.mark.asyncio
-    async def test_full_registration_login_flow(self, mock_supabase):
-        """Test complete registration and login flow."""
-        from routes.auth import register, login
+    @pytest.fixture
+    def mock_supabase(self):
+        """Mock Supabase client."""
+        mock_client = MagicMock()
+        return mock_client
+
+    def test_full_signup_login_flow(self, mock_supabase):
+        """Test complete signup and login flow."""
+        from routes.auth import signup, login
         
         # Registration data
         reg_data = {
             "email": "integration@test.com",
-            "password": "password123",
-            "first_name": "Integration",
-            "last_name": "Test"
+            "password": "Password123!"
         }
 
         # Mock user creation
         user_data = {
             "id": "user123",
-            "email": "integration@test.com",
-            "first_name": "Integration",
-            "last_name": "Test"
+            "email": "integration@test.com"
         }
 
         with patch('routes.auth.get_supabase_client', return_value=mock_supabase), \
-             patch('routes.auth.email_service') as mock_email, \
-             patch('routes.auth.bcrypt.hashpw') as mock_hash, \
-             patch('routes.auth.bcrypt.checkpw') as mock_check, \
-             patch('routes.auth.create_access_token') as mock_token:
+             patch('routes.auth.create_access_token') as mock_token, \
+             patch('routes.auth.validate_password_strength', return_value=(True, None)):
 
             # Setup mocks
-            mock_hash.return_value = b"hashed_password"
-            mock_check.return_value = True
             mock_token.return_value = "access_token"
-            mock_email.send_email_verification.return_value = True
 
-            # Mock registration responses
-            mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = []  # No existing user
+            # Mock signup response
+            mock_auth_response = MagicMock()
+            mock_auth_response.user = MagicMock()
+            mock_auth_response.user.id = "user123"
+            mock_auth_response.user.email = "integration@test.com"
+            
+            mock_supabase.auth.sign_up.return_value = mock_auth_response
             mock_supabase.table.return_value.insert.return_value.execute.return_value.data = [user_data]
 
             # Register user
-            from pydantic import BaseModel
-            class RegisterRequest(BaseModel):
-                email: str
-                password: str
-                first_name: str
-                last_name: str
-
-            reg_request = RegisterRequest(**reg_data)
-            reg_result = await register(reg_request)
+            from routes.auth import UserCreate
+            reg_request = UserCreate(**reg_data)
+            reg_result = signup(reg_request)
 
             assert "user" in reg_result
             assert "access_token" in reg_result
 
             # Now test login
-            user_with_password = user_data.copy()
-            user_with_password["password"] = "hashed_password"
-            mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [user_with_password]
+            mock_supabase.auth.sign_in_with_password.return_value = mock_auth_response
 
-            class LoginRequest(BaseModel):
-                email: str
-                password: str
-
-            login_request = LoginRequest(email=reg_data["email"], password=reg_data["password"])
-            login_result = await login(login_request)
+            from routes.auth import UserLogin
+            login_request = UserLogin(email=reg_data["email"], password=reg_data["password"])
+            login_result = login(login_request)
 
             assert "user" in login_result
             assert "access_token" in login_result

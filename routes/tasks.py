@@ -3,7 +3,7 @@ Tasks router for the Personal Agent application.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -30,8 +30,8 @@ async def create_task(task: TaskCreate, current_user: dict = Depends(get_current
             "due_date": task.due_date.isoformat() if task.due_date else None,
             "priority": task.priority.value,
             "status": TaskStatus.PENDING.value,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         result = supabase.table("tasks").insert(task_data).execute()
@@ -126,7 +126,7 @@ async def update_task(
             raise HTTPException(status_code=404, detail="Task not found")
 
         # Prepare update data
-        update_data = {"updated_at": datetime.utcnow().isoformat()}
+        update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
 
         if task_update.title is not None:
             update_data["title"] = task_update.title
@@ -204,7 +204,7 @@ async def complete_task(task_id: UUID, current_user: dict = Depends(get_current_
 
         update_data = {
             "status": TaskStatus.COMPLETED.value,
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         result = (
