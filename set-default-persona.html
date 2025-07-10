@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Set Default Persona</title>
+</head>
+<body>
+    <h1>Setting Default Persona</h1>
+    <button onclick="setDefaultPersona()">Set Student Persona</button>
+    <div id="result"></div>
+    
+    <script>
+        function setDefaultPersona() {
+            const defaultPersona = {
+                id: 'student',
+                title: 'Student',
+                description: 'Study planning, flashcards, exam scheduling'
+            };
+            
+            const defaultPreferences = {
+                focusHours: [9, 17],
+                energyPeak: 'morning',
+                notifications: true,
+                aiBriefs: true
+            };
+            
+            localStorage.setItem('cognie-persona', JSON.stringify(defaultPersona));
+            localStorage.setItem('cognie-preferences', JSON.stringify(defaultPreferences));
+            
+            document.getElementById('result').innerHTML = '<p>✅ Default persona set! You can now visit the dashboard.</p>';
+        }
+    </script>
+</body>
+</html> 

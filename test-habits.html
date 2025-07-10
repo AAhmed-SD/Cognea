@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Habits Test</title>
+</head>
+<body>
+    <h1>Testing Habits Page</h1>
+    <p>If you can see this, the habits page is loading properly.</p>
+    <script>
+        // Test if the page loads without errors
+        console.log('Habits test page loaded successfully');
+        
+        // Test API service
+        fetch('http://localhost:8001/health')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Backend health check:', data);
+                document.body.innerHTML += '<p>✅ Backend is running</p>';
+            })
+            .catch(error => {
+                console.error('Backend error:', error);
+                document.body.innerHTML += '<p>❌ Backend error: ' + error.message + '</p>';
+            });
+    </script>
+</body>
+</html> 

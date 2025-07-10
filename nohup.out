@@ -1,0 +1,1151 @@
+INFO:     Will watch for changes in these directories: ['/Users/hadiqa/personal_agent_copy_2']
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [31412] using StatReload
+INFO:services.background_workers:Registered task: ai_batch_processing
+INFO:services.background_workers:Registered task: ai_cache_maintenance
+INFO:services.background_workers:Registered task: ai_performance_analysis
+INFO:services.background_workers:Registered task: mood_analysis
+INFO:middleware.error_handler:Enhanced error handlers configured
+INFO:middleware.logging:Logging middleware configured
+INFO:middleware.rate_limit:Rate limiting middleware configured
+INFO:     Started server process [31455]
+INFO:     Waiting for application startup.
+INFO:main:Starting Cognie AI Personal Assistant...
+INFO:main:Enhanced Redis cache started
+INFO:services.background_workers:Background worker started with 10 workers
+INFO:main:Background workers started
+INFO:services.background_workers:Job scheduler started
+INFO:main:Job scheduler started
+INFO:services.background_workers:Worker worker-0 started
+INFO:services.background_workers:Worker worker-1 started
+INFO:services.background_workers:Worker worker-2 started
+INFO:services.background_workers:Worker worker-3 started
+INFO:services.background_workers:Worker worker-4 started
+INFO:services.background_workers:Worker worker-5 started
+INFO:services.background_workers:Worker worker-6 started
+INFO:services.background_workers:Worker worker-7 started
+INFO:services.background_workers:Worker worker-8 started
+INFO:services.background_workers:Worker worker-9 started
+INFO:services.performance_monitor:Performance monitor started
+INFO:main:Performance monitoring started
+INFO:main:Cognie AI Personal Assistant started successfully!
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:main:Shutting down Cognie AI Personal Assistant...
+INFO:services.performance_monitor:Performance monitor stopped
+INFO:main:Performance monitoring stopped
+INFO:services.background_workers:Job scheduler stopped
+INFO:main:Job scheduler stopped
+INFO:services.background_workers:Worker worker-0 stopped
+INFO:services.background_workers:Worker worker-1 stopped
+INFO:services.background_workers:Worker worker-2 stopped
+INFO:services.background_workers:Worker worker-3 stopped
+INFO:services.background_workers:Worker worker-4 stopped
+INFO:services.background_workers:Worker worker-5 stopped
+INFO:services.background_workers:Worker worker-6 stopped
+INFO:services.background_workers:Worker worker-7 stopped
+INFO:services.background_workers:Worker worker-8 stopped
+INFO:services.background_workers:Worker worker-9 stopped
+INFO:services.background_workers:Background worker stopped
+INFO:main:Background workers stopped
+INFO:main:Enhanced Redis cache stopped
+INFO:main:Cognie AI Personal Assistant stopped successfully!
+INFO:     Application shutdown complete.
+INFO:     Finished server process [31455]
+INFO:     Stopping reloader process [31412]
+INFO:     Will watch for changes in these directories: ['/Users/hadiqa/personal_agent_copy_2']
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [32553] using StatReload
+INFO:services.background_workers:Registered task: ai_batch_processing
+INFO:services.background_workers:Registered task: ai_cache_maintenance
+INFO:services.background_workers:Registered task: ai_performance_analysis
+INFO:services.background_workers:Registered task: mood_analysis
+INFO:middleware.error_handler:Enhanced error handlers configured
+INFO:middleware.logging:Logging middleware configured
+INFO:middleware.rate_limit:Rate limiting middleware configured
+INFO:     Started server process [32582]
+INFO:     Waiting for application startup.
+INFO:main:Starting Cognie AI Personal Assistant...
+INFO:main:Enhanced Redis cache started
+INFO:services.background_workers:Background worker started with 10 workers
+INFO:main:Background workers started
+INFO:services.background_workers:Job scheduler started
+INFO:main:Job scheduler started
+INFO:services.background_workers:Worker worker-0 started
+INFO:services.background_workers:Worker worker-1 started
+INFO:services.background_workers:Worker worker-2 started
+INFO:services.background_workers:Worker worker-3 started
+INFO:services.background_workers:Worker worker-4 started
+INFO:services.background_workers:Worker worker-5 started
+INFO:services.background_workers:Worker worker-6 started
+INFO:services.background_workers:Worker worker-7 started
+INFO:services.background_workers:Worker worker-8 started
+INFO:services.background_workers:Worker worker-9 started
+INFO:services.performance_monitor:Performance monitor started
+INFO:main:Performance monitoring started
+INFO:main:Cognie AI Personal Assistant started successfully!
+INFO:     Application startup complete.
+INFO:middleware.logging:Incoming request
+WARNING:middleware.logging:Client error response
+INFO:     127.0.0.1:53635 - "POST /api/user/profile HTTP/1.1" 404 Not Found
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+INFO:middleware.logging:Incoming request
+WARNING:middleware.logging:Client error response
+INFO:     127.0.0.1:53657 - "POST /api/user/profile HTTP/1.1" 404 Not Found
+INFO:middleware.logging:Incoming request
+INFO:middleware.logging:Successful response
+INFO:     127.0.0.1:53659 - "GET /docs HTTP/1.1" 200 OK
+INFO:middleware.logging:Incoming request
+INFO:middleware.logging:Successful response
+INFO:     127.0.0.1:53663 - "GET /openapi.json HTTP/1.1" 200 OK
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+WARNING:  StatReload detected changes in 'routes/__init__.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:main:Shutting down Cognie AI Personal Assistant...
+INFO:services.performance_monitor:Performance monitor stopped
+INFO:main:Performance monitoring stopped
+INFO:services.background_workers:Job scheduler stopped
+INFO:main:Job scheduler stopped
+INFO:services.background_workers:Worker worker-0 stopped
+INFO:services.background_workers:Worker worker-1 stopped
+INFO:services.background_workers:Worker worker-2 stopped
+INFO:services.background_workers:Worker worker-3 stopped
+INFO:services.background_workers:Worker worker-4 stopped
+INFO:services.background_workers:Worker worker-5 stopped
+INFO:services.background_workers:Worker worker-6 stopped
+INFO:services.background_workers:Worker worker-7 stopped
+INFO:services.background_workers:Worker worker-8 stopped
+INFO:services.background_workers:Worker worker-9 stopped
+INFO:services.background_workers:Background worker stopped
+INFO:main:Background workers stopped
+INFO:main:Enhanced Redis cache stopped
+INFO:main:Cognie AI Personal Assistant stopped successfully!
+INFO:     Application shutdown complete.
+INFO:     Finished server process [32582]
+INFO:services.background_workers:Registered task: ai_batch_processing
+INFO:services.background_workers:Registered task: ai_cache_maintenance
+INFO:services.background_workers:Registered task: ai_performance_analysis
+INFO:services.background_workers:Registered task: mood_analysis
+INFO:middleware.error_handler:Enhanced error handlers configured
+INFO:middleware.logging:Logging middleware configured
+INFO:middleware.rate_limit:Rate limiting middleware configured
+INFO:     Started server process [34981]
+INFO:     Waiting for application startup.
+INFO:main:Starting Cognie AI Personal Assistant...
+INFO:main:Enhanced Redis cache started
+INFO:services.background_workers:Background worker started with 10 workers
+INFO:main:Background workers started
+INFO:services.background_workers:Job scheduler started
+INFO:main:Job scheduler started
+INFO:services.background_workers:Worker worker-0 started
+INFO:services.background_workers:Worker worker-1 started
+INFO:services.background_workers:Worker worker-2 started
+INFO:services.background_workers:Worker worker-3 started
+INFO:services.background_workers:Worker worker-4 started
+INFO:services.background_workers:Worker worker-5 started
+INFO:services.background_workers:Worker worker-6 started
+INFO:services.background_workers:Worker worker-7 started
+INFO:services.background_workers:Worker worker-8 started
+INFO:services.background_workers:Worker worker-9 started
+INFO:services.performance_monitor:Performance monitor started
+INFO:main:Performance monitoring started
+INFO:main:Cognie AI Personal Assistant started successfully!
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:main:Shutting down Cognie AI Personal Assistant...
+INFO:services.performance_monitor:Performance monitor stopped
+INFO:main:Performance monitoring stopped
+INFO:services.background_workers:Job scheduler stopped
+INFO:main:Job scheduler stopped
+INFO:services.background_workers:Worker worker-0 stopped
+INFO:services.background_workers:Worker worker-1 stopped
+INFO:services.background_workers:Worker worker-2 stopped
+INFO:services.background_workers:Worker worker-3 stopped
+INFO:services.background_workers:Worker worker-4 stopped
+INFO:services.background_workers:Worker worker-5 stopped
+INFO:services.background_workers:Worker worker-6 stopped
+INFO:services.background_workers:Worker worker-7 stopped
+INFO:services.background_workers:Worker worker-8 stopped
+INFO:services.background_workers:Worker worker-9 stopped
+INFO:services.background_workers:Background worker stopped
+INFO:main:Background workers stopped
+INFO:main:Enhanced Redis cache stopped
+INFO:main:Cognie AI Personal Assistant stopped successfully!
+INFO:     Application shutdown complete.
+INFO:     Finished server process [34981]
+INFO:     Stopping reloader process [32553]
+INFO:     Will watch for changes in these directories: ['/Users/hadiqa/personal_agent_copy_2']
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [35766] using StatReload
+INFO:services.background_workers:Registered task: ai_batch_processing
+INFO:services.background_workers:Registered task: ai_cache_maintenance
+INFO:services.background_workers:Registered task: ai_performance_analysis
+INFO:services.background_workers:Registered task: mood_analysis
+INFO:middleware.error_handler:Enhanced error handlers configured
+INFO:middleware.logging:Logging middleware configured
+INFO:middleware.rate_limit:Rate limiting middleware configured
+INFO:     Started server process [35800]
+INFO:     Waiting for application startup.
+INFO:main:Starting Cognie AI Personal Assistant...
+INFO:main:Enhanced Redis cache started
+INFO:services.background_workers:Background worker started with 10 workers
+INFO:main:Background workers started
+INFO:services.background_workers:Job scheduler started
+INFO:main:Job scheduler started
+INFO:services.background_workers:Worker worker-0 started
+INFO:services.background_workers:Worker worker-1 started
+INFO:services.background_workers:Worker worker-2 started
+INFO:services.background_workers:Worker worker-3 started
+INFO:services.background_workers:Worker worker-4 started
+INFO:services.background_workers:Worker worker-5 started
+INFO:services.background_workers:Worker worker-6 started
+INFO:services.background_workers:Worker worker-7 started
+INFO:services.background_workers:Worker worker-8 started
+INFO:services.background_workers:Worker worker-9 started
+INFO:services.performance_monitor:Performance monitor started
+INFO:main:Performance monitoring started
+INFO:main:Cognie AI Personal Assistant started successfully!
+INFO:     Application startup complete.
+INFO:middleware.logging:Incoming request
+INFO:middleware.logging:Successful response
+INFO:     127.0.0.1:53783 - "OPTIONS /api/user/profile HTTP/1.1" 200 OK
+INFO:middleware.logging:Incoming request
+WARNING:middleware.logging:Client error response
+INFO:     127.0.0.1:53783 - "POST /api/user/profile HTTP/1.1" 404 Not Found
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+INFO:middleware.logging:Incoming request
+INFO:middleware.logging:Successful response
+INFO:     127.0.0.1:54529 - "OPTIONS /api/user/profile HTTP/1.1" 200 OK
+INFO:middleware.logging:Incoming request
+WARNING:middleware.logging:Client error response
+INFO:     127.0.0.1:54529 - "POST /api/user/profile HTTP/1.1" 404 Not Found
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+INFO:middleware.logging:Incoming request
+WARNING:middleware.logging:Client error response
+INFO:     127.0.0.1:54535 - "POST /api/user/profile HTTP/1.1" 404 Not Found
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+INFO:middleware.logging:Incoming request
+INFO:middleware.logging:Successful response
+INFO:     127.0.0.1:54947 - "OPTIONS /api/ai-study-coach/generate-study-plan HTTP/1.1" 200 OK
+INFO:middleware.logging:Incoming request
+WARNING:middleware.logging:Client error response
+INFO:     127.0.0.1:54949 - "POST /api/ai-study-coach/generate-study-plan HTTP/1.1" 401 Unauthorized
+INFO:middleware.logging:Incoming request
+WARNING:middleware.logging:Client error response
+INFO:     127.0.0.1:54954 - "POST /api/ai-study-coach/generate-study-plan HTTP/1.1" 401 Unauthorized
+INFO:middleware.logging:Incoming request
+WARNING:middleware.logging:Client error response
+INFO:     127.0.0.1:54954 - "POST /api/ai-study-coach/generate-study-plan HTTP/1.1" 401 Unauthorized
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+ERROR:services.performance_monitor:Error collecting metrics: Invalid input of type: 'datetime'. Convert to a bytes, string, int or float first.
+WARNING:  StatReload detected changes in 'routes/user.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:main:Shutting down Cognie AI Personal Assistant...
+INFO:services.performance_monitor:Performance monitor stopped
+INFO:main:Performance monitoring stopped
+INFO:services.background_workers:Job scheduler stopped
+INFO:main:Job scheduler stopped
+INFO:services.background_workers:Worker worker-0 stopped
+INFO:services.background_workers:Worker worker-1 stopped
+INFO:services.background_workers:Worker worker-2 stopped
+INFO:services.background_workers:Worker worker-3 stopped
+INFO:services.background_workers:Worker worker-4 stopped
+INFO:services.background_workers:Worker worker-5 stopped
+INFO:services.background_workers:Worker worker-6 stopped
+INFO:services.background_workers:Worker worker-7 stopped
+INFO:services.background_workers:Worker worker-8 stopped
+INFO:services.background_workers:Worker worker-9 stopped
+INFO:services.background_workers:Background worker stopped
+INFO:main:Background workers stopped
+INFO:main:Enhanced Redis cache stopped
+INFO:main:Cognie AI Personal Assistant stopped successfully!
+INFO:     Application shutdown complete.
+INFO:     Finished server process [35800]
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020d949f00 (most recent call first):
+  <no Python frame>
+WARNING:  StatReload detected changes in 'routes/user.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020d949f00 (most recent call first):
+  <no Python frame>
+WARNING:  StatReload detected changes in 'routes/user.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020d949f00 (most recent call first):
+  <no Python frame>
+WARNING:  StatReload detected changes in 'app.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020d949f00 (most recent call first):
+  <no Python frame>
+WARNING:  StatReload detected changes in 'models/habit.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020d949f00 (most recent call first):
+  <no Python frame>

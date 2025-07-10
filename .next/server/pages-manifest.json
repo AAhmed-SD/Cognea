@@ -1,10 +1,6 @@
 {
-  "/_document": "pages/_document.js",
   "/_app": "pages/_app.js",
-  "/billing": "pages/billing.js",
   "/_error": "pages/_error.js",
-  "/forgot-password": "pages/forgot-password.js",
-  "/": "pages/index.js",
-  "/login": "pages/login.js",
-  "/reset-password": "pages/reset-password.js"
+  "/_document": "pages/_document.js",
+  "/": "pages/index.js"
 }

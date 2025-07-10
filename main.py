@@ -43,6 +43,7 @@ from routes import (
     user,
     user_settings,
 )
+from routes.exam_papers import router as exam_papers_router
 from services.background_workers import background_worker, job_scheduler
 from services.performance_monitor import get_performance_monitor
 
@@ -317,7 +318,9 @@ async def get_metrics():
         cache_metrics = enhanced_cache.get_metrics()
 
         # Get optimization recommendations
-        recommendations = await get_performance_monitor().get_optimization_recommendations()
+        recommendations = (
+            await get_performance_monitor().get_optimization_recommendations()
+        )
 
         return {
             "performance_metrics": recent_metrics,
@@ -336,7 +339,9 @@ async def get_metrics():
 async def get_alerts(resolved: bool = None, limit: int = 50):
     """Get performance alerts"""
     try:
-        alerts = await get_performance_monitor().get_alerts(resolved=resolved, limit=limit)
+        alerts = await get_performance_monitor().get_alerts(
+            resolved=resolved, limit=limit
+        )
         return {"alerts": alerts}
     except Exception as e:
         logger.error(f"Error getting alerts: {e}")
@@ -413,6 +418,7 @@ app.include_router(privacy.router, prefix="/api/privacy", tags=["Privacy"])
 app.include_router(calendar.router, prefix="/api/calendar", tags=["Calendar"])
 app.include_router(diary.router, prefix="/api/diary", tags=["Diary"])
 app.include_router(fitness.router, prefix="/api/fitness", tags=["Fitness"])
+app.include_router(exam_papers_router, prefix="/api/exam-papers", tags=["Exam Papers"])
 
 
 # Root endpoint

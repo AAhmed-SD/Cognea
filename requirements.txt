@@ -1,4 +1,4 @@
-aiofiles==24.1.0
+aiofiles==23.2.1
 alembic==1.13.1
 amqp==5.3.1
 annotated-types==0.7.0
@@ -101,7 +101,7 @@ passlib[bcrypt]==1.7.4
 pathspec==0.12.1
 pbr==6.1.1
 pexpect==4.8.0
-pillow==11.2.1
+pillow==10.0.1
 pip_audit==2.9.0
 pip-api==0.0.34
 pip-requirements-parser==32.0.1
@@ -318,3 +318,9 @@ zipp==3.21.0
 stripe==7.8.0
 sqlalchemy==2.0.23
 stripe==12.2.0
+
+# Exam Paper Processing Dependencies
+PyPDF2==3.0.1
+google-cloud-vision==3.4.4
+pytesseract==0.3.10
+Pillow==10.0.1
