@@ -8,7 +8,7 @@ from datetime import datetime
 from urllib.parse import urlencode
 
 import httpx
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from pydantic import BaseModel, ConfigDict
 
 from services.ai.openai_service import get_openai_service
@@ -131,9 +131,11 @@ async def get_notion_auth_url(current_user: dict = Depends(get_current_user)):
     return {"auth_url": auth_url, "state": state}
 
 
-@router.post("/auth/callback", summary="Handle Notion OAuth callback")
+@router.get("/auth/callback", summary="Handle Notion OAuth callback")
 async def notion_auth_callback(
-    request: NotionAuthRequest, current_user: dict = Depends(get_current_user)
+    code: str = Query(..., description="Authorization code from Notion"),
+    state: str = Query(..., description="State parameter for security"),
+    current_user: dict = Depends(get_current_user)
 ):
     if not NOTION_CLIENT_SECRET:
         raise HTTPException(
@@ -142,7 +144,7 @@ async def notion_auth_callback(
 
     token_data = {
         "grant_type": "authorization_code",
-        "code": request.code,
+        "code": code,
         "redirect_uri": NOTION_REDIRECT_URI,
     }
 
