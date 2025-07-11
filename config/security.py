@@ -129,13 +129,10 @@ class SecurityConfig(BaseSettings):
 
     # File Upload Security
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_FILE_TYPES: list[str] = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "application/pdf",
-        "text/plain",
-    ]
+    ALLOWED_FILE_TYPES: str = Field(
+        default="image/jpeg,image/png,image/gif,application/pdf,text/plain",
+        alias="ALLOWED_FILE_TYPES"
+    )
 
     # Input Validation
     MAX_STRING_LENGTH: int = 1000
@@ -239,3 +236,8 @@ def get_rate_limit_config() -> dict[str, Any]:
         "requests_per_hour": security_config.RATE_LIMIT_REQUESTS_PER_HOUR,
         "disabled": security_config.DISABLE_RATE_LIMIT or False,
     }
+
+
+def get_allowed_file_types() -> list[str]:
+    """Get allowed file types as a list"""
+    return [file_type.strip() for file_type in security_config.ALLOWED_FILE_TYPES.split(",")]

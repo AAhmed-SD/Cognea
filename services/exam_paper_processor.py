@@ -10,7 +10,13 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-import PyPDF2
+# Optional PyPDF2 import
+try:
+    import PyPDF2
+    PDF2_AVAILABLE = True
+except ImportError:
+    PDF2_AVAILABLE = False
+    PyPDF2 = None
 from google.cloud import vision
 
 from services.ai.hybrid_ai_service import TaskType, get_hybrid_ai_service
@@ -228,6 +234,9 @@ class PDFProcessor:
 
     async def extract_from_pdf(self, pdf_path: str) -> str:
         """Extract text from PDF file"""
+        if not PDF2_AVAILABLE:
+            raise Exception("PyPDF2 is not available. Please install it with: pip install PyPDF2")
+        
         try:
             text_content = ""
 

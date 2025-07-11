@@ -9,9 +9,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
+import time
 
 from services.cost_tracking import cost_tracking_service
 from services.redis_cache import enhanced_cache
+from services.prometheus_integration import get_prometheus_service
 
 logger = logging.getLogger(__name__)
 
@@ -258,63 +260,103 @@ class HybridAIService:
         self,
         task_type: TaskType,
         prompt: str,
-        user_id: str,
-        quality_threshold: float | None = None,
+        user_id: str = None,
+        max_tokens: int = 1000,
+        temperature: float = 0.7,
+        stop: list[str] = None,
         **kwargs,
     ) -> AIResponse:
-        """
-        Generate AI response using optimal provider routing
-        """
-        start_time = asyncio.get_event_loop().time()
-
-        # Set quality threshold
-        if quality_threshold is None:
-            quality_threshold = self.quality_thresholds.get(task_type, 0.8)
-
-        # Check cache first
-        cache_key = f"ai_response:{task_type}:{user_id}:{hash(prompt)}"
-        cached_response = await enhanced_cache.get(cache_key)
-        if cached_response:
-            logger.info(f"Cache hit for {task_type} request")
-            return AIResponse(**cached_response)
-
-        # Get optimal model sequence
-        model_sequence = self._get_optimal_models(task_type)
-
-        # Try each model in sequence
-        for provider in model_sequence:
-            try:
-                # Check if model is available
-                if not await self.clients[provider].is_available():
-                    logger.warning(f"Model {provider} is not available, trying next")
-                    continue
-
-                # Generate response
-                response = await self.clients[provider].generate(prompt, **kwargs)
-
-                # Check quality
-                if response.quality_score >= quality_threshold:
-                    # Track usage and cost
-                    await self._track_usage(user_id, provider, response)
-
-                    # Cache successful response
-                    await enhanced_cache.set(
-                        cache_key, response.__dict__, 3600, cache_key  # 1 hour cache
+        """Generate AI response using optimal provider for task type."""
+        start_time = time.time()
+        prometheus_service = get_prometheus_service()
+        
+        try:
+            # Get optimal models for task type
+            models = self._get_optimal_models(task_type)
+            
+            # Try each model until one succeeds
+            for model in models:
+                try:
+                    logger.info(f"Attempting AI request with {model.value} for {task_type.value}")
+                    
+                    # Record AI request start
+                    prometheus_service.record_ai_request(
+                        provider=model.value,
+                        task_type=task_type.value,
+                        status="started",
+                        duration=0,
+                        user_id=user_id
                     )
-
-                    logger.info(f"Successfully generated response using {provider}")
+                    
+                    # Generate response
+                    response = await self._generate_with_model(
+                        model, prompt, max_tokens, temperature, stop, **kwargs
+                    )
+                    
+                    # Calculate duration
+                    duration = time.time() - start_time
+                    
+                    # Record successful AI request
+                    prometheus_service.record_ai_request(
+                        provider=model.value,
+                        task_type=task_type.value,
+                        status="success",
+                        duration=duration,
+                        user_id=user_id
+                    )
+                    
+                    # Record token usage
+                    if response.tokens_used:
+                        prometheus_service.record_ai_tokens(
+                            provider=model.value,
+                            task_type=task_type.value,
+                            token_type="total",
+                            tokens=response.tokens_used,
+                            user_id=user_id
+                        )
+                    
+                    # Record cost
+                    if response.cost_usd:
+                        prometheus_service.record_ai_cost(
+                            provider=model.value,
+                            task_type=task_type.value,
+                            cost=response.cost_usd,
+                            user_id=user_id
+                        )
+                    
                     return response
-                else:
-                    logger.warning(
-                        f"Quality threshold not met for {provider}: {response.quality_score}"
+                    
+                except Exception as e:
+                    duration = time.time() - start_time
+                    
+                    # Record failed AI request
+                    prometheus_service.record_ai_request(
+                        provider=model.value,
+                        task_type=task_type.value,
+                        status="failed",
+                        duration=duration,
+                        user_id=user_id
                     )
-
-            except Exception as e:
-                logger.error(f"Error with {provider}: {str(e)}")
-                continue
-
-        # If all models fail, raise exception
-        raise Exception(f"All AI providers failed for task type: {task_type}")
+                    
+                    logger.warning(f"Failed with {model.value}: {e}")
+                    continue
+            
+            # If all models failed
+            raise Exception(f"All AI providers failed for task type {task_type.value}")
+            
+        except Exception as e:
+            duration = time.time() - start_time
+            
+            # Record overall failure
+            prometheus_service.record_ai_request(
+                provider="unknown",
+                task_type=task_type.value,
+                status="failed",
+                duration=duration,
+                user_id=user_id
+            )
+            
+            raise
 
     async def _track_usage(
         self, user_id: str, provider: ModelProvider, response: AIResponse

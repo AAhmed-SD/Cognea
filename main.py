@@ -16,6 +16,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 from middleware.error_handler import setup_error_handlers
 from middleware.logging import setup_logging
 from middleware.rate_limit import setup_rate_limiting
@@ -43,16 +47,19 @@ from routes import (
     user,
     user_settings,
 )
-from routes.exam_papers import router as exam_papers_router
+# Optional exam papers feature - only import if available
+try:
+    from routes.exam_papers import router as exam_papers_router
+    EXAM_PAPERS_ENABLED = True
+except ImportError as e:
+    logger.warning(f"Exam papers feature disabled: {e}")
+    EXAM_PAPERS_ENABLED = False
+    exam_papers_router = None
 from services.background_workers import background_worker, job_scheduler
 from services.performance_monitor import get_performance_monitor
 
 # Import enhanced services
 from services.redis_cache import enhanced_cache
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -418,7 +425,9 @@ app.include_router(privacy.router, prefix="/api/privacy", tags=["Privacy"])
 app.include_router(calendar.router, prefix="/api/calendar", tags=["Calendar"])
 app.include_router(diary.router, prefix="/api/diary", tags=["Diary"])
 app.include_router(fitness.router, prefix="/api/fitness", tags=["Fitness"])
-app.include_router(exam_papers_router, prefix="/api/exam-papers", tags=["Exam Papers"])
+# Include exam papers router only if enabled
+if EXAM_PAPERS_ENABLED and exam_papers_router:
+    app.include_router(exam_papers_router, prefix="/api/exam-papers", tags=["Exam Papers"])
 
 
 # Root endpoint

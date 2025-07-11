@@ -410,6 +410,7 @@ async def receive_notion_webhook(
 ):
     """
     Receive and process Notion webhooks with proper security and echo prevention.
+    Rate limited to 10 requests per minute per IP to prevent abuse.
     """
     try:
         # Get the raw body for signature verification
@@ -537,7 +538,7 @@ async def receive_notion_webhook(
     except Exception as e:
         logger.error(f"Error processing webhook: {str(e)}")
         # Still return 200 to prevent Notion from retrying
-        return {"status": "error", "message": "Webhook processing error"}
+        return {"status": "error", "message": "Internal server error"}
 
 
 def verify_notion_webhook_signature(body: bytes, signature: str, secret: str) -> bool:
