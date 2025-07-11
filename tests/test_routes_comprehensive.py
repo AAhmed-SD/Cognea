@@ -57,9 +57,10 @@ class TestAIRoutes:
                 }
 
                 with patch(
-                    "services.openai_integration.generate_openai_text"
+                    "services.ai.hybrid_ai_service.get_hybrid_ai_service"
                 ) as mock_openai:
-                    mock_openai.return_value = {
+                    mock_openai.return_value = Mock()
+                    mock_openai.return_value.generate_text.return_value = {
                         "generated_text": '[{"time": "09:00-10:30", "activity": "Work", "focus_area": "work"}]'
                     }
 
@@ -115,9 +116,10 @@ class TestAIRoutes:
                 }
 
                 with patch(
-                    "services.openai_integration.generate_openai_text"
+                    "services.ai.hybrid_ai_service.get_hybrid_ai_service"
                 ) as mock_openai:
-                    mock_openai.return_value = {
+                    mock_openai.return_value = Mock()
+                    mock_openai.return_value.generate_text.return_value = {
                         "generated_text": '[{"question": "What is X?", "answer": "X is Y"}]'
                     }
 
@@ -220,9 +222,10 @@ class TestAIRoutes:
                 }
 
                 with patch(
-                    "services.openai_integration.generate_openai_text"
+                    "services.ai.hybrid_ai_service.get_hybrid_ai_service"
                 ) as mock_openai:
-                    mock_openai.return_value = {
+                    mock_openai.return_value = Mock()
+                    mock_openai.return_value.generate_text.return_value = {
                         "generated_text": '[{"task": "Work", "start_time": "09:00", "end_time": "12:00"}]'
                     }
 
@@ -586,9 +589,12 @@ class TestGenerateRoutes:
             "routes.generate.get_current_user", return_value=mock_auth_dependency()
         ):
             with patch(
-                "services.openai_integration.generate_openai_text"
+                "services.ai.hybrid_ai_service.get_hybrid_ai_service"
             ) as mock_openai:
-                mock_openai.return_value = {"generated_text": "Daily brief content"}
+                mock_openai.return_value = Mock()
+                mock_openai.return_value.generate_text.return_value = {
+                    "generated_text": "Daily brief content"
+                }
 
                 response = client.post(
                     "/generate/daily-brief", json={"date": "2024-01-01"}
@@ -605,9 +611,10 @@ class TestGenerateRoutes:
             "routes.generate.get_current_user", return_value=mock_auth_dependency()
         ):
             with patch(
-                "services.openai_integration.generate_openai_text"
+                "services.ai.hybrid_ai_service.get_hybrid_ai_service"
             ) as mock_openai:
-                mock_openai.return_value = {
+                mock_openai.return_value = Mock()
+                mock_openai.return_value.generate_text.return_value = {
                     "generated_text": '[{"task": "Complete project", "priority": "high"}]'
                 }
 
@@ -630,9 +637,10 @@ class TestGenerateRoutes:
             "routes.generate.get_current_user", return_value=mock_auth_dependency()
         ):
             with patch(
-                "services.openai_integration.generate_openai_text"
+                "services.ai.hybrid_ai_service.get_hybrid_ai_service"
             ) as mock_openai:
-                mock_openai.return_value = {
+                mock_openai.return_value = Mock()
+                mock_openai.return_value.generate_text.return_value = {
                     "generated_text": '{"timeblocks": [{"start_time": "09:00", "end_time": "10:30", "task_name": "Work"}]}'
                 }
 
@@ -798,9 +806,12 @@ class TestRouteErrorHandling:
                 }
 
                 with patch(
-                    "services.openai_integration.generate_openai_text"
+                    "services.ai.hybrid_ai_service.get_hybrid_ai_service"
                 ) as mock_openai:
-                    mock_openai.return_value = {"error": "OpenAI API error"}
+                    mock_openai.return_value = Mock()
+                    mock_openai.return_value.generate_text.return_value = {
+                        "error": "OpenAI API error"
+                    }
 
                     response = client.post(
                         "/ai/plan-day",
@@ -874,9 +885,10 @@ class TestRouteEdgeCases:
                 }
 
                 with patch(
-                    "services.openai_integration.generate_openai_text"
+                    "services.ai.hybrid_ai_service.get_hybrid_ai_service"
                 ) as mock_openai:
-                    mock_openai.return_value = {
+                    mock_openai.return_value = Mock()
+                    mock_openai.return_value.generate_text.return_value = {
                         "generated_text": '[{"time": "09:00-10:30", "activity": "Work", "focus_area": "work"}]'
                     }
 

@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, confloat
 
+from services.ai.hybrid_ai_service import TaskType, get_hybrid_ai_service
 from services.ai_cache import ai_cache_service, ai_cached, invalidate_ai_cache_for_user
 from services.auth import get_current_user
 from services.background_workers import (
@@ -14,7 +15,6 @@ from services.background_workers import (
     scheduled_job,
 )
 from services.cost_tracking import cost_tracking_service
-from services.openai_integration import generate_openai_text
 from services.performance_monitor import monitor_performance
 from services.supabase import get_supabase_client
 
@@ -172,17 +172,19 @@ User Context:
 Generate a structured daily plan with specific time slots and activities.
 Return as JSON array with time, activity, and focus_area fields."""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=800, temperature=0.3
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.SCHEDULE_OPTIMIZATION,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=800,
+            temperature=0.3,
         )
-
-        if "error" in response:
-            raise HTTPException(status_code=500, detail=response["error"])
 
         # Parse AI response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             start_idx = response_text.find("[")
             end_idx = response_text.rfind("]") + 1
             if start_idx != -1 and end_idx != 0:
@@ -303,17 +305,19 @@ Generate flashcards in JSON format:
 
 Make the flashcards engaging and appropriate for {request.difficulty} difficulty level."""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1000, temperature=0.4
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.FLASHCARD,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=1000,
+            temperature=0.4,
         )
-
-        if "error" in response:
-            raise HTTPException(status_code=500, detail=response["error"])
 
         # Parse AI response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             start_idx = response_text.find("[")
             end_idx = response_text.rfind("]") + 1
             if start_idx != -1 and end_idx != 0:
@@ -427,7 +431,14 @@ async def get_ai_insights(
         Provide a comprehensive analysis with specific insights and recommendations.
         """
 
-        insight = await generate_openai_text(prompt, max_tokens=1000)
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.PRODUCTIVITY_ANALYSIS,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=1000,
+        )
+        insight = response.content
 
         # Cache the result
         await ai_cache_service.set_cached_ai_response(
@@ -501,17 +512,19 @@ Generate suggestions in JSON format:
     "reasoning": "Why these habits would be beneficial"
 }}"""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=600, temperature=0.4
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.FLASHCARD,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=600,
+            temperature=0.4,
         )
-
-        if "error" in response:
-            raise HTTPException(status_code=500, detail=response["error"])
 
         # Parse AI response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             start_idx = response_text.find("{")
             end_idx = response_text.rfind("}") + 1
             if start_idx != -1 and end_idx != 0:
@@ -625,17 +638,19 @@ Generate analysis in JSON format:
     ]
 }}"""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1200, temperature=0.3
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.PRODUCTIVITY_ANALYSIS,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=1200,
+            temperature=0.3,
         )
-
-        if "error" in response:
-            raise HTTPException(status_code=500, detail=response["error"])
 
         # Parse AI response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             start_idx = response_text.find("{")
             end_idx = response_text.rfind("}") + 1
             if start_idx != -1 and end_idx != 0:
@@ -766,17 +781,19 @@ Generate optimized schedule in JSON format:
     ]
 }}"""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1000, temperature=0.3
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.SMART_SCHEDULING,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=1000,
+            temperature=0.3,
         )
-
-        if "error" in response:
-            raise HTTPException(status_code=500, detail=response["error"])
 
         # Parse AI response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             start_idx = response_text.find("{")
             end_idx = response_text.rfind("}") + 1
             if start_idx != -1 and end_idx != 0:
@@ -874,17 +891,19 @@ Generate summary in JSON format:
     }}
 }}"""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1000, temperature=0.4
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.PRODUCTIVITY_ANALYSIS,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=1000,
+            temperature=0.4,
         )
-
-        if "error" in response:
-            raise HTTPException(status_code=500, detail=response["error"])
 
         # Parse AI response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             start_idx = response_text.find("{")
             end_idx = response_text.rfind("}") + 1
             if start_idx != -1 and end_idx != 0:
@@ -1016,7 +1035,14 @@ async def process_ai_batch(user_id: str, data: dict[str, Any]):
         # Example: Process multiple AI operations
         for operation_type in ["insights", "analysis", "suggestions"]:
             prompt = f"Process {operation_type} for user data: {data}"
-            result = await generate_openai_text(prompt, max_tokens=500)
+            hybrid_ai = get_hybrid_ai_service()
+            response = await hybrid_ai.generate_response(
+                task_type=TaskType.GENERAL_QA,
+                prompt=prompt,
+                user_id=user_id,
+                max_tokens=500,
+            )
+            result = response.content
             results[operation_type] = result
 
         # Store results in database

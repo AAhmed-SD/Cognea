@@ -4,17 +4,16 @@ import os
 from datetime import datetime
 from typing import Any
 
-import aioredis
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from models.text import TextGenerationRequest, TextGenerationResponse
+from services.ai.hybrid_ai_service import TaskType, get_hybrid_ai_service
 from services.ai_cache import ai_cache_service, ai_cached
 from services.auth import get_current_user
 from services.cost_tracking import cost_tracking_service
-from services.openai_integration import generate_openai_text
 from services.supabase import get_supabase_client
 
 router = APIRouter()
@@ -35,11 +34,6 @@ async def api_key_auth(api_key: str = Header(...)):
         logging.warning("Invalid API Key")
         raise HTTPException(status_code=403, detail="Not authenticated")
     return api_key
-
-
-# Initialize Redis client for caching
-async def get_redis_client():
-    return await aioredis.create_redis_pool("redis://localhost")
 
 
 async def _get_user_context(user_id: str) -> dict[str, Any]:
@@ -106,36 +100,34 @@ async def generate_text_endpoint(
 
         logging.debug(f"Received request: {request_data}")
 
-        # Call OpenAI API
-        response = await generate_openai_text(
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.GENERAL_QA,
             prompt=request_data.prompt,
-            model=request_data.model,
+            user_id=request_data.user_id,
             max_tokens=request_data.max_tokens,
             temperature=request_data.temperature,
             stop=request_data.stop,
         )
 
-        if "error" in response:
-            logging.warning(f"Error in text generation: {response['error']}")
-            raise HTTPException(status_code=500, detail=response["error"])
-
-        logging.info(f"Generated text: {response['generated_text']}")
+        logging.info(f"Generated text: {response.content}")
 
         # Track API usage
         await cost_tracking_service.track_api_call(
             user_id=request_data.user_id,
             endpoint="/generate-text",
-            model=request_data.model,
-            input_tokens=response.get("usage", {}).get("prompt_tokens", 100),
-            output_tokens=response.get("usage", {}).get("completion_tokens", 200),
-            cost_usd=response.get("usage", {}).get("total_cost", 0.01),
+            model=response.model_used,
+            input_tokens=response.tokens_used // 2,  # Estimate input tokens
+            output_tokens=response.tokens_used // 2,  # Estimate output tokens
+            cost_usd=response.cost_usd,
         )
 
         response_obj = TextGenerationResponse(
             original_prompt=request_data.prompt,
-            model=request_data.model,
-            generated_text=response["generated_text"],
-            total_tokens=response["total_tokens"],
+            model=response.model_used,
+            generated_text=response.content,
+            total_tokens=response.tokens_used,
         )
 
         return response_obj
@@ -177,31 +169,35 @@ Generate a concise daily summary in JSON format:
     "recommendations": ["Recommendation 1", "Recommendation 2"]
 }}"""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=400, temperature=0.3
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.PRODUCTIVITY_ANALYSIS,
+            prompt=prompt,
+            user_id=str(user_id),
+            max_tokens=400,
+            temperature=0.3,
         )
 
-        if "error" not in response:
-            # Store brief in database
-            supabase = get_supabase_client()
-            brief_data = {
-                "user_id": str(user_id),
-                "date": date,
-                "brief": response.get("generated_text", ""),
-                "created_at": datetime.utcnow().isoformat(),
-            }
-            supabase.table("daily_briefs").insert(brief_data).execute()
+        # Store brief in database
+        supabase = get_supabase_client()
+        brief_data = {
+            "user_id": str(user_id),
+            "date": date,
+            "brief": response.content,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        supabase.table("daily_briefs").insert(brief_data).execute()
 
-            # Track API usage
-            await cost_tracking_service.track_api_call(
-                user_id=str(user_id),
-                endpoint="/daily-brief",
-                model="gpt-4-turbo-preview",
-                input_tokens=response.get("usage", {}).get("prompt_tokens", 100),
-                output_tokens=response.get("usage", {}).get("completion_tokens", 200),
-                cost_usd=response.get("usage", {}).get("total_cost", 0.01),
-            )
+        # Track API usage
+        await cost_tracking_service.track_api_call(
+            user_id=str(user_id),
+            endpoint="/daily-brief",
+            model=response.model_used,
+            input_tokens=response.tokens_used // 2,  # Estimate input tokens
+            output_tokens=response.tokens_used // 2,  # Estimate output tokens
+            cost_usd=response.cost_usd,
+        )
 
     except Exception as e:
         logger.error(f"Error processing daily brief: {e}")
@@ -283,25 +279,19 @@ Generate questions in JSON format:
 
 Make questions engaging and test understanding of the concepts."""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=600, temperature=0.4
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.FLASHCARD,
+            prompt=prompt,
+            user_id=user_id,
+            max_tokens=600,
+            temperature=0.4,
         )
-
-        if "error" in response:
-            # Fallback questions
-            return [
-                {"question": "What is the capital of France?", "answer": "Paris"},
-                {"question": "What is 2 + 2?", "answer": "4"},
-                {
-                    "question": "What is the boiling point of water?",
-                    "answer": "100°C",
-                },
-            ]
 
         # Parse AI response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             start_idx = response_text.find("[")
             end_idx = response_text.rfind("]") + 1
             if start_idx != -1 and end_idx != 0:
@@ -412,27 +402,27 @@ Notes: {notes[:2000]}  # Limit to avoid token limits
 Generate a concise summary that captures the key points and main ideas.
 Focus on clarity and actionable insights."""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=500, temperature=0.3
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.SUMMARIZATION,
+            prompt=prompt,
+            user_id=user_id,
+            max_tokens=500,
+            temperature=0.3,
         )
-
-        if "error" in response:
-            return f"Summary ({summary_type}): {notes[:100]}..."
 
         # Track API usage
         await cost_tracking_service.track_api_call(
             user_id=user_id,
             endpoint="/summarize-notes",
-            model="gpt-4-turbo-preview",
-            input_tokens=response.get("usage", {}).get("prompt_tokens", 200),
-            output_tokens=response.get("usage", {}).get("completion_tokens", 300),
-            cost_usd=response.get("usage", {}).get("total_cost", 0.02),
+            model=response.model_used,
+            input_tokens=response.tokens_used // 2,  # Estimate input tokens
+            output_tokens=response.tokens_used // 2,  # Estimate output tokens
+            cost_usd=response.cost_usd,
         )
 
-        return response.get(
-            "generated_text", f"Summary ({summary_type}): {notes[:100]}..."
-        )
+        return response.content
 
     except Exception as e:
         logger.error(f"Error summarizing notes: {e}")
@@ -529,21 +519,19 @@ Generate suggestion in JSON format:
 
 Consider energy levels, deadlines, and existing commitments."""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=400, temperature=0.3
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.SMART_SCHEDULING,
+            prompt=prompt,
+            user_id=user_id,
+            max_tokens=400,
+            temperature=0.3,
         )
-
-        if "error" in response:
-            # Fallback suggestion
-            return RescheduleSuggestion(
-                suggested_time="Friday, 9:00 AM - 10:30 AM",
-                reason="Closer to the deadline. User has higher focus in the morning and Friday is still open.",
-            )
 
         # Parse AI response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             start_idx = response_text.find("{")
             end_idx = response_text.rfind("}") + 1
             if start_idx != -1 and end_idx != 0:
@@ -572,10 +560,10 @@ Consider energy levels, deadlines, and existing commitments."""
         await cost_tracking_service.track_api_call(
             user_id=user_id,
             endpoint="/suggest-reschedule",
-            model="gpt-4-turbo-preview",
-            input_tokens=response.get("usage", {}).get("prompt_tokens", 150),
-            output_tokens=response.get("usage", {}).get("completion_tokens", 200),
-            cost_usd=response.get("usage", {}).get("total_cost", 0.01),
+            model=response.model_used,
+            input_tokens=response.tokens_used // 2,  # Estimate input tokens
+            output_tokens=response.tokens_used // 2,  # Estimate output tokens
+            cost_usd=response.cost_usd,
         )
 
     except Exception as e:
@@ -666,27 +654,29 @@ Return the response as a valid JSON array like this:
 
 Focus on extracting actionable, specific tasks rather than general statements."""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=1000, temperature=0.3
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.TASK_GENERATION,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=1000,
+            temperature=0.3,
         )
-
-        if "error" in response:
-            raise HTTPException(status_code=500, detail=response["error"])
 
         # Track API usage
         await cost_tracking_service.track_api_call(
             user_id=current_user["id"],
             endpoint="/extract-tasks-from-text",
-            model="gpt-4-turbo-preview",
-            input_tokens=response.get("usage", {}).get("prompt_tokens", 200),
-            output_tokens=response.get("usage", {}).get("completion_tokens", 400),
-            cost_usd=response.get("usage", {}).get("total_cost", 0.02),
+            model=response.model_used,
+            input_tokens=response.tokens_used // 2,  # Estimate input tokens
+            output_tokens=response.tokens_used // 2,  # Estimate output tokens
+            cost_usd=response.cost_usd,
         )
 
         # Parse the response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             # Extract JSON from the response
             start_idx = response_text.find("[")
             end_idx = response_text.rfind("]") + 1
@@ -805,61 +795,31 @@ Generate a structured daily plan in JSON format:
     "notes": "AI-generated plan based on your preferences and current tasks"
 }}"""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=800, temperature=0.3
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.SMART_SCHEDULING,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=800,
+            temperature=0.3,
         )
 
-        if "error" in response:
-            # Fallback plan
-            timeblocks = [
-                TimeBlock(
-                    start_time="09:00",
-                    end_time="10:30",
-                    task_name="Morning Focus Session",
-                    task_id="task1",
-                    goal="Productivity",
-                    priority="high",
-                ),
-                TimeBlock(
-                    start_time="14:00",
-                    end_time="16:00",
-                    task_name="Afternoon Work",
-                    task_id="task2",
-                    goal="Project Completion",
-                    priority="medium",
-                ),
-            ]
-        else:
-            # Parse AI response
-            try:
-                response_text = response.get("generated_text", "")
-                start_idx = response_text.find("{")
-                end_idx = response_text.rfind("}") + 1
-                if start_idx != -1 and end_idx != 0:
-                    plan_data = json.loads(response_text[start_idx:end_idx])
-                    timeblocks = [
-                        TimeBlock(**block) for block in plan_data.get("timeblocks", [])
-                    ]
-                    notes = plan_data.get(
-                        "notes",
-                        "AI-generated plan based on your preferences and current tasks.",
-                    )
-                else:
-                    timeblocks = [
-                        TimeBlock(
-                            start_time="09:00",
-                            end_time="10:30",
-                            task_name="Morning Focus Session",
-                            task_id="task1",
-                            goal="Productivity",
-                            priority="high",
-                        )
-                    ]
-                    notes = (
-                        "AI-generated plan based on your preferences and current tasks."
-                    )
-            except json.JSONDecodeError:
+        # Parse AI response
+        try:
+            response_text = response.content
+            start_idx = response_text.find("{")
+            end_idx = response_text.rfind("}") + 1
+            if start_idx != -1 and end_idx != 0:
+                plan_data = json.loads(response_text[start_idx:end_idx])
+                timeblocks = [
+                    TimeBlock(**block) for block in plan_data.get("timeblocks", [])
+                ]
+                notes = plan_data.get(
+                    "notes",
+                    "AI-generated plan based on your preferences and current tasks.",
+                )
+            else:
                 timeblocks = [
                     TimeBlock(
                         start_time="09:00",
@@ -871,15 +831,27 @@ Generate a structured daily plan in JSON format:
                     )
                 ]
                 notes = "AI-generated plan based on your preferences and current tasks."
+        except json.JSONDecodeError:
+            timeblocks = [
+                TimeBlock(
+                    start_time="09:00",
+                    end_time="10:30",
+                    task_name="Morning Focus Session",
+                    task_id="task1",
+                    goal="Productivity",
+                    priority="high",
+                )
+            ]
+            notes = "AI-generated plan based on your preferences and current tasks."
 
         # Track API usage
         await cost_tracking_service.track_api_call(
             user_id=current_user["id"],
             endpoint="/plan-my-day",
-            model="gpt-4-turbo-preview",
-            input_tokens=response.get("usage", {}).get("prompt_tokens", 200),
-            output_tokens=response.get("usage", {}).get("completion_tokens", 400),
-            cost_usd=response.get("usage", {}).get("total_cost", 0.02),
+            model=response.model_used,
+            input_tokens=response.tokens_used // 2,  # Estimate input tokens
+            output_tokens=response.tokens_used // 2,  # Estimate output tokens
+            cost_usd=response.cost_usd,
         )
 
         return PlanMyDayResponse(
@@ -952,9 +924,14 @@ Return the response as a JSON array like this:
 
 Focus on creating an effective learning experience within the time constraint."""
 
-        # Call OpenAI API
-        response = await generate_openai_text(
-            prompt=prompt, model="gpt-4-turbo-preview", max_tokens=800, temperature=0.3
+        # Call Hybrid AI Service
+        hybrid_ai = get_hybrid_ai_service()
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.REVISION_PLANNING,
+            prompt=prompt,
+            user_id=current_user["id"],
+            max_tokens=800,
+            temperature=0.3,
         )
 
         if "error" in response:
@@ -964,15 +941,15 @@ Focus on creating an effective learning experience within the time constraint.""
         await cost_tracking_service.track_api_call(
             user_id=current_user["id"],
             endpoint="/review-plan",
-            model="gpt-4-turbo-preview",
-            input_tokens=response.get("usage", {}).get("prompt_tokens", 200),
-            output_tokens=response.get("usage", {}).get("completion_tokens", 400),
-            cost_usd=response.get("usage", {}).get("total_cost", 0.02),
+            model=response.model_used,
+            input_tokens=response.tokens_used // 2,  # Estimate input tokens
+            output_tokens=response.tokens_used // 2,  # Estimate output tokens
+            cost_usd=response.cost_usd,
         )
 
         # Parse the response
         try:
-            response_text = response.get("generated_text", "")
+            response_text = response.content
             start_idx = response_text.find("[")
             end_idx = response_text.rfind("]") + 1
             if start_idx != -1 and end_idx != 0:

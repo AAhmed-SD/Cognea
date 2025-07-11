@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-import functools
 import json
 import logging
 import os
@@ -27,8 +25,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from handlers import custom_rate_limit_exceeded_handler
-from openai_integration import generate_text
 from routes import generate
+from services.ai.hybrid_ai_service import TaskType, get_hybrid_ai_service
 
 # Load environment variables from .env file
 load_dotenv()
@@ -447,27 +445,25 @@ async def generate_text_endpoint(
             logger.info("Cache hit")
             return TextGenerationResponse(**json.loads(cached_response))
 
-        # Asynchronous OpenAI call
-        loop = asyncio.get_event_loop()
-        logger.info("Attempting to call OpenAI API")
-        result, total_tokens = await loop.run_in_executor(
-            None,
-            functools.partial(
-                generate_text,
-                prompt=normalized_prompt,
-                model=model,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                stop=stop,
-            ),
+        # Asynchronous AI call using hybrid service
+        hybrid_ai = get_hybrid_ai_service()
+        logger.info("Attempting to call Hybrid AI Service")
+
+        response = await hybrid_ai.generate_response(
+            task_type=TaskType.GENERAL_QA,
+            prompt=normalized_prompt,
+            user_id="system",  # System-level request
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stop=stop,
         )
 
         # Cache the response
         response_data = TextGenerationResponse(
             original_prompt=prompt,
-            model=model,
-            generated_text=result,
-            total_tokens=total_tokens,
+            model=response.model_used,
+            generated_text=response.content,
+            total_tokens=response.tokens_used,
         )
         redis_client.setex(cache_key, 3600, response_data.json())  # Cache for 1 hour
 
@@ -591,7 +587,7 @@ async def daily_brief() -> dict[str, Any]:
                     missed_tasks.append(task)
 
         # Generate AI-powered reflection
-        from services.openai_integration import generate_openai_text
+        hybrid_ai = get_hybrid_ai_service()
 
         task_summary = f"""
 Completed Tasks: {len(completed_tasks)}
@@ -616,16 +612,14 @@ Write a 2-3 sentence reflection that:
 Keep it positive and actionable."""
 
         try:
-            reflection_response = await generate_openai_text(
+            response = await hybrid_ai.generate_response(
+                task_type=TaskType.PRODUCTIVITY_ANALYSIS,
                 prompt=reflection_prompt,
-                model="gpt-4-turbo-preview",
+                user_id="system",  # System-level reflection
                 max_tokens=150,
                 temperature=0.7,
             )
-            reflection = reflection_response.get(
-                "generated_text",
-                "Reflect on your day: What went well? What could be improved?",
-            )
+            reflection = response.content
         except Exception as e:
             logging.error(f"Error generating reflection: {str(e)}")
             reflection = "Reflect on your day: What went well? What could be improved?"

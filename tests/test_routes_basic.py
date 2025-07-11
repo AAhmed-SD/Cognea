@@ -40,7 +40,7 @@ class TestAIRoutes:
                 }
 
                 with patch(
-                    "services.openai_integration.generate_openai_text"
+                    "services.ai.hybrid_ai_service.get_hybrid_ai_service"
                 ) as mock_openai:
                     mock_openai.return_value = {
                         "generated_text": '[{"time": "09:00-10:30", "activity": "Work", "focus_area": "work"}]'
@@ -94,7 +94,7 @@ class TestAIRoutes:
                 }
 
                 with patch(
-                    "services.openai_integration.generate_openai_text"
+                    "services.ai.hybrid_ai_service.get_hybrid_ai_service"
                 ) as mock_openai:
                     mock_openai.return_value = {
                         "generated_text": '[{"question": "What is X?", "answer": "X is Y"}]'
@@ -256,7 +256,7 @@ class TestGenerateRoutes:
         """Test successful daily brief generation."""
         with patch("routes.generate.get_current_user", return_value=mock_user):
             with patch(
-                "services.openai_integration.generate_openai_text"
+                "services.ai.hybrid_ai_service.get_hybrid_ai_service"
             ) as mock_openai:
                 mock_openai.return_value = {"generated_text": "Daily brief content"}
 
@@ -272,7 +272,7 @@ class TestGenerateRoutes:
         """Test successful task extraction from text."""
         with patch("routes.generate.get_current_user", return_value=mock_user):
             with patch(
-                "services.openai_integration.generate_openai_text"
+                "services.ai.hybrid_ai_service.get_hybrid_ai_service"
             ) as mock_openai:
                 mock_openai.return_value = {
                     "generated_text": '[{"task": "Complete project", "priority": "high"}]'
@@ -339,7 +339,7 @@ class TestRouteErrorHandling:
                 }
 
                 with patch(
-                    "services.openai_integration.generate_openai_text"
+                    "services.ai.hybrid_ai_service.get_hybrid_ai_service"
                 ) as mock_openai:
                     mock_openai.return_value = {"error": "OpenAI API error"}
 
